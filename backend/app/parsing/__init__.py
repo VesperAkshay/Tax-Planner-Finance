@@ -5,13 +5,24 @@ from app.parsing.constants import (
 from app.parsing.csv_adapter_schema import BankAdapterConfig, SignConvention
 from app.parsing.csv_parser import CSVBankAdapterRegistry, CSVBankParser
 from app.parsing.pdf_parser import DoclingPDFParser, parse_date, parse_numeric
-from app.parsing.schemas import ParsedTransactionRow, StatementParseResult
+from app.parsing.salary_slip_parser import (
+    DoclingSalarySlipParser,
+    calculate_financial_year,
+    extract_period_from_text,
+)
+from app.parsing.schemas import (
+    ParsedTransactionRow,
+    SalarySlipParseResult,
+    StatementParseResult,
+)
 
 __all__ = [
     "DEFAULT_REVIEW_THRESHOLD",
     "HIGH_CONFIDENCE_ROW_THRESHOLD",
     "DoclingPDFParser",
+    "DoclingSalarySlipParser",
     "ParsedTransactionRow",
+    "SalarySlipParseResult",
     "StatementParseResult",
     "BankAdapterConfig",
     "SignConvention",
@@ -19,5 +30,7 @@ __all__ = [
     "CSVBankParser",
     "parse_date",
     "parse_numeric",
+    "calculate_financial_year",
+    "extract_period_from_text",
 ]
 
