@@ -149,7 +149,7 @@ def generate_scanned_pdf(source_pdf: Path, output_pdf: Path, dpi_scale: float = 
 
 def generate_hdfc_csv(output_path: Path):
     content = (
-        "Date,Narration,Chq/Ref No,Withdrawal Amount (INR ),Deposit Amount (INR ),Closing Balance\n"
+        "Date,Narration,Chq./Ref.No.,Withdrawal Amt.,Deposit Amt.,Closing Balance\n"
         "01/04/2025,SALARY CREDIT ACME CORP,SAL001,,90000.00,120000.00\n"
         "03/04/2025,SWIGGY BANGALORE,UPI101,550.00,,119450.00\n"
         "07/04/2025,RENT TRANSFER TO OWNER,NEFT102,28000.00,,91450.00\n"
@@ -675,7 +675,7 @@ EXPECTED_SALARY_APRIL = {
     "employer_name": "Acme Tech Solutions India Pvt Ltd",
     "month": 4,
     "year": 2024,
-    "financial_year": "2024-25",
+    "financial_year": "2024-2025",
     "basic_salary": 65000.0,
     "hra": 26000.0,
     "lta": 5000.0,
@@ -693,7 +693,7 @@ EXPECTED_SALARY_MAY = {
     "employer_name": "Infosys Technologies Limited",
     "month": 5,
     "year": 2025,
-    "financial_year": "2025-26",
+    "financial_year": "2025-2026",
     "basic_salary": 85000.0,
     "hra": 34000.0,
     "lta": 6000.0,
@@ -711,7 +711,7 @@ EXPECTED_SALARY_JUNE = {
     "employer_name": "Tata Consultancy Services Limited",
     "month": 6,
     "year": 2025,
-    "financial_year": "2025-26",
+    "financial_year": "2025-2026",
     "basic_salary": 45000.0,
     "hra": 18000.0,
     "lta": 3500.0,

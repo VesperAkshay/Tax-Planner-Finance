@@ -298,6 +298,10 @@ class DoclingSalarySlipParser:
             }
         )
 
+    def parse(self, file_path: Union[str, Path]) -> SalarySlipParseResult:
+        """Alias for extract() to provide consistent parser interface."""
+        return self.extract(file_path)
+
     def extract(self, file_path: Union[str, Path]) -> SalarySlipParseResult:
         """Parses a salary slip PDF or image file into a SalarySlipParseResult."""
         path = Path(file_path).resolve()
