@@ -19,6 +19,7 @@ from app.parsing.constants import (
     DESCRIPTION_HEADER_PATTERNS,
     REF_NO_HEADER_PATTERNS,
 )
+from app.parsing.balance_reconciler import reconcile_statement_balance
 from app.parsing.schemas import ParsedTransactionRow, StatementParseResult
 
 
@@ -321,33 +322,4 @@ class DoclingPDFParser:
             warnings=warnings,
         )
 
-        if rows:
-            result.rows.sort(key=lambda r: r.date)
-            result.statement_start_date = result.rows[0].date
-            result.statement_end_date = result.rows[-1].date
-
-            result.total_credits = round(
-                sum(r.amount for r in result.rows if r.transaction_type == "credit"), 2
-            )
-            result.total_debits = round(
-                sum(r.amount for r in result.rows if r.transaction_type == "debit"), 2
-            )
-
-            avg_row_confidence = sum(r.parse_confidence for r in result.rows) / len(result.rows)
-            result.parse_confidence = round(avg_row_confidence, 3)
-
-            first_bal = result.rows[0].balance
-            last_bal = result.rows[-1].balance
-            if first_bal is not None:
-                if result.rows[0].transaction_type == "credit":
-                    result.opening_balance = round(first_bal - result.rows[0].amount, 2)
-                else:
-                    result.opening_balance = round(first_bal + result.rows[0].amount, 2)
-            if last_bal is not None:
-                result.closing_balance = round(last_bal, 2)
-        else:
-            result.parse_confidence = 0.0
-            result.warnings.append("No transaction rows detected in statement.")
-
-        result.needs_review = result.parse_confidence < DEFAULT_REVIEW_THRESHOLD
-        return result
+        return reconcile_statement_balance(result)

@@ -27,10 +27,42 @@ class StatementParseResult(BaseModel):
     total_debits: float = 0.0
     parse_confidence: float = Field(ge=0.0, le=1.0, default=0.0)
     balance_reconciled: bool = False
+    parse_status: str = "pending"  # pending, completed, failed, needs_review
+    expected_closing_balance: Optional[float] = None
+    balance_discrepancy: Optional[float] = None
     needs_review: bool = False
     is_scanned: bool = False
     warnings: List[str] = []
     raw_tables_count: int = 0
+
+    def to_statement_upload_dict(
+        self, user_id: Optional[int] = None, account_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """Converts result into a dict matching StatementUpload model attributes."""
+        return {
+            "user_id": user_id,
+            "account_id": account_id,
+            "file_name": self.file_name,
+            "file_path": self.file_path,
+            "file_type": self.file_type,
+            "parse_status": self.parse_status,
+            "parse_confidence": self.parse_confidence,
+            "balance_reconciled": self.balance_reconciled,
+            "opening_balance": self.opening_balance,
+            "closing_balance": self.closing_balance,
+            "statement_start_date": self.statement_start_date,
+            "statement_end_date": self.statement_end_date,
+            "needs_review": self.needs_review,
+            "raw_metadata": {
+                "total_credits": self.total_credits,
+                "total_debits": self.total_debits,
+                "expected_closing_balance": self.expected_closing_balance,
+                "balance_discrepancy": self.balance_discrepancy,
+                "raw_tables_count": self.raw_tables_count,
+                "warnings": self.warnings,
+            },
+        }
+
 
 
 class SalarySlipParseResult(BaseModel):

@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
+from app.parsing.balance_reconciler import reconcile_statement_balance
 from app.parsing.constants import DEFAULT_REVIEW_THRESHOLD
 from app.parsing.csv_adapter_schema import BankAdapterConfig, SignConvention
 from app.parsing.pdf_parser import parse_date, parse_numeric
@@ -304,32 +305,4 @@ class CSVBankParser:
             )
 
         result.rows = rows
-        if rows:
-            result.rows.sort(key=lambda r: r.date)
-            result.statement_start_date = result.rows[0].date
-            result.statement_end_date = result.rows[-1].date
-            result.total_credits = round(
-                sum(r.amount for r in result.rows if r.transaction_type == "credit"), 2
-            )
-            result.total_debits = round(
-                sum(r.amount for r in result.rows if r.transaction_type == "debit"), 2
-            )
-            result.parse_confidence = round(
-                sum(r.parse_confidence for r in result.rows) / len(result.rows), 3
-            )
-
-            first_bal = result.rows[0].balance
-            last_bal = result.rows[-1].balance
-            if first_bal is not None:
-                if result.rows[0].transaction_type == "credit":
-                    result.opening_balance = round(first_bal - result.rows[0].amount, 2)
-                else:
-                    result.opening_balance = round(first_bal + result.rows[0].amount, 2)
-            if last_bal is not None:
-                result.closing_balance = round(last_bal, 2)
-        else:
-            result.parse_confidence = 0.0
-            result.warnings.append("No valid transactions found in CSV.")
-
-        result.needs_review = result.parse_confidence < DEFAULT_REVIEW_THRESHOLD
-        return result
+        return reconcile_statement_balance(result)
