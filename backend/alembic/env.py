@@ -13,6 +13,7 @@ if str(backend_path) not in sys.path:
     sys.path.insert(0, str(backend_path))
 
 from app.config import get_settings
+import app.models  # Load all models into SQLModel.metadata
 
 settings = get_settings()
 
