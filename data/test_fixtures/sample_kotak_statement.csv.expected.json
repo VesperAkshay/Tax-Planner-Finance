@@ -1,0 +1,53 @@
+{
+  "fixture_type": "bank_statement",
+  "bank_name": "Kotak Mahindra Bank",
+  "opening_balance": 30000.0,
+  "closing_balance": 91121.0,
+  "statement_start_date": "2025-05-02",
+  "statement_end_date": "2025-05-24",
+  "total_credits": 65420.0,
+  "total_debits": 4299.0,
+  "total_rows": 5,
+  "rows": [
+    {
+      "date": "2025-05-02",
+      "description": "FREELANCE PAYMENT CLIENT X",
+      "amount": 65000.0,
+      "transaction_type": "credit",
+      "balance": 95000.0,
+      "reference_number": "TXN-901"
+    },
+    {
+      "date": "2025-05-05",
+      "description": "GROCERY BLINKIT",
+      "amount": 1250.0,
+      "transaction_type": "debit",
+      "balance": 93750.0,
+      "reference_number": "TXN-902"
+    },
+    {
+      "date": "2025-05-11",
+      "description": "TATA POWER ELECTRICITY",
+      "amount": 2400.0,
+      "transaction_type": "debit",
+      "balance": 91350.0,
+      "reference_number": "TXN-903"
+    },
+    {
+      "date": "2025-05-16",
+      "description": "NETFLIX SUBSCRIPTION",
+      "amount": 649.0,
+      "transaction_type": "debit",
+      "balance": 90701.0,
+      "reference_number": "TXN-904"
+    },
+    {
+      "date": "2025-05-24",
+      "description": "BANK INTEREST",
+      "amount": 420.0,
+      "transaction_type": "credit",
+      "balance": 91121.0,
+      "reference_number": "TXN-905"
+    }
+  ]
+}

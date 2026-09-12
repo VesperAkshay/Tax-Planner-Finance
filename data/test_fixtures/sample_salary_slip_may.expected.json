@@ -1,0 +1,17 @@
+{
+  "fixture_type": "salary_slip",
+  "employer_name": "Infosys Technologies Limited",
+  "month": 5,
+  "year": 2025,
+  "financial_year": "2025-26",
+  "basic_salary": 85000.0,
+  "hra": 34000.0,
+  "lta": 6000.0,
+  "special_allowance": 25000.0,
+  "employer_pf": 10200.0,
+  "employee_pf": 10200.0,
+  "professional_tax": 200.0,
+  "tds": 18600.0,
+  "gross_pay": 150000.0,
+  "net_pay": 121000.0
+}

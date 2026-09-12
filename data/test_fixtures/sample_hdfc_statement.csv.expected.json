@@ -1,0 +1,53 @@
+{
+  "fixture_type": "bank_statement",
+  "bank_name": "HDFC Bank",
+  "opening_balance": 30000.0,
+  "closing_balance": 88750.0,
+  "statement_start_date": "2025-04-01",
+  "statement_end_date": "2025-04-22",
+  "total_credits": 91500.0,
+  "total_debits": 32750.0,
+  "total_rows": 5,
+  "rows": [
+    {
+      "date": "2025-04-01",
+      "description": "SALARY CREDIT ACME CORP",
+      "amount": 90000.0,
+      "transaction_type": "credit",
+      "balance": 120000.0,
+      "reference_number": "SAL001"
+    },
+    {
+      "date": "2025-04-03",
+      "description": "SWIGGY BANGALORE",
+      "amount": 550.0,
+      "transaction_type": "debit",
+      "balance": 119450.0,
+      "reference_number": "UPI101"
+    },
+    {
+      "date": "2025-04-07",
+      "description": "RENT TRANSFER TO OWNER",
+      "amount": 28000.0,
+      "transaction_type": "debit",
+      "balance": 91450.0,
+      "reference_number": "NEFT102"
+    },
+    {
+      "date": "2025-04-14",
+      "description": "AMAZON INDIA",
+      "amount": 4200.0,
+      "transaction_type": "debit",
+      "balance": 87250.0,
+      "reference_number": "UPI103"
+    },
+    {
+      "date": "2025-04-22",
+      "description": "MUTUAL FUND DIVIDEND",
+      "amount": 1500.0,
+      "transaction_type": "credit",
+      "balance": 88750.0,
+      "reference_number": "DIV104"
+    }
+  ]
+}

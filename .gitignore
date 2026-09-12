@@ -48,5 +48,7 @@ tax-planner-and-finance-project.md
 tax-planner*.md
 
 # Data fixtures
-data/test_fixtures/*.pdf
+# data/test_fixtures/*.pdf
+!data/test_fixtures/*.pdf
 !data/test_fixtures/README.md
+

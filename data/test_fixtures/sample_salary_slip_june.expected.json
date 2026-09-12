@@ -1,0 +1,17 @@
+{
+  "fixture_type": "salary_slip",
+  "employer_name": "Tata Consultancy Services Limited",
+  "month": 6,
+  "year": 2025,
+  "financial_year": "2025-26",
+  "basic_salary": 45000.0,
+  "hra": 18000.0,
+  "lta": 3500.0,
+  "special_allowance": 13500.0,
+  "employer_pf": 5400.0,
+  "employee_pf": 5400.0,
+  "professional_tax": 200.0,
+  "tds": 4400.0,
+  "gross_pay": 80000.0,
+  "net_pay": 70000.0
+}

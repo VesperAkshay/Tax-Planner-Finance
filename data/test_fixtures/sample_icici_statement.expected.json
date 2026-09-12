@@ -1,0 +1,53 @@
+{
+  "fixture_type": "bank_statement",
+  "bank_name": "ICICI Bank",
+  "opening_balance": 45000.0,
+  "closing_balance": 99520.0,
+  "statement_start_date": "2025-05-01",
+  "statement_end_date": "2025-05-25",
+  "total_credits": 75620.0,
+  "total_debits": 21100.0,
+  "total_rows": 5,
+  "rows": [
+    {
+      "date": "2025-05-01",
+      "description": "CONSULTING INCOME CLIENT ALPHA",
+      "amount": 75000.0,
+      "transaction_type": "credit",
+      "balance": 120000.0,
+      "reference_number": "REF-CONS-01"
+    },
+    {
+      "date": "2025-05-05",
+      "description": "NATURES BASKET GROCERIES",
+      "amount": 4250.0,
+      "transaction_type": "debit",
+      "balance": 115750.0,
+      "reference_number": "POS-99881"
+    },
+    {
+      "date": "2025-05-12",
+      "description": "BESCOM ELECTRICITY BILL",
+      "amount": 1850.0,
+      "transaction_type": "debit",
+      "balance": 113900.0,
+      "reference_number": "BIL-44552"
+    },
+    {
+      "date": "2025-05-18",
+      "description": "HDFC MUTUAL FUND SIP",
+      "amount": 15000.0,
+      "transaction_type": "debit",
+      "balance": 98900.0,
+      "reference_number": "SIP-00911"
+    },
+    {
+      "date": "2025-05-25",
+      "description": "SAVINGS INTEREST CREDIT",
+      "amount": 620.0,
+      "transaction_type": "credit",
+      "balance": 99520.0,
+      "reference_number": "INT-202505"
+    }
+  ]
+}

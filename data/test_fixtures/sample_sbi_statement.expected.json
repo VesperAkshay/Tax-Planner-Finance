@@ -1,0 +1,61 @@
+{
+  "fixture_type": "bank_statement",
+  "bank_name": "State Bank of India",
+  "opening_balance": 20000.0,
+  "closing_balance": 109571.0,
+  "statement_start_date": "2025-06-01",
+  "statement_end_date": "2025-06-28",
+  "total_credits": 99500.0,
+  "total_debits": 9929.0,
+  "total_rows": 6,
+  "rows": [
+    {
+      "date": "2025-06-01",
+      "description": "SALARY CREDIT TECHCORP",
+      "amount": 95000.0,
+      "transaction_type": "credit",
+      "balance": 115000.0,
+      "reference_number": "SAL-202506"
+    },
+    {
+      "date": "2025-06-04",
+      "description": "UPI-ZOMATO-FOOD",
+      "amount": 680.0,
+      "transaction_type": "debit",
+      "balance": 114320.0,
+      "reference_number": "UPI-334411"
+    },
+    {
+      "date": "2025-06-10",
+      "description": "APOLLO PHARMACY BANGALORE",
+      "amount": 2450.0,
+      "transaction_type": "debit",
+      "balance": 111870.0,
+      "reference_number": "POS-112233"
+    },
+    {
+      "date": "2025-06-15",
+      "description": "AIRTEL BROADBAND BILL",
+      "amount": 1199.0,
+      "transaction_type": "debit",
+      "balance": 110671.0,
+      "reference_number": "BIL-88771"
+    },
+    {
+      "date": "2025-06-20",
+      "description": "FIXED DEPOSIT INTEREST",
+      "amount": 4500.0,
+      "transaction_type": "credit",
+      "balance": 115171.0,
+      "reference_number": "INT-99221"
+    },
+    {
+      "date": "2025-06-28",
+      "description": "ZARA CLOTHING RETAIL",
+      "amount": 5600.0,
+      "transaction_type": "debit",
+      "balance": 109571.0,
+      "reference_number": "POS-55441"
+    }
+  ]
+}

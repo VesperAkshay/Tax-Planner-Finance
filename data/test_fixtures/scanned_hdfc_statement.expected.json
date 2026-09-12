@@ -1,0 +1,61 @@
+{
+  "fixture_type": "bank_statement",
+  "bank_name": "HDFC Bank",
+  "opening_balance": 30000.0,
+  "closing_balance": 85151.0,
+  "statement_start_date": "2025-04-01",
+  "statement_end_date": "2025-04-20",
+  "total_credits": 86200.0,
+  "total_debits": 31049.0,
+  "total_rows": 6,
+  "rows": [
+    {
+      "date": "2025-04-01",
+      "description": "SALARY CREDIT - ACME CORP",
+      "amount": 85000.0,
+      "transaction_type": "credit",
+      "balance": 115000.0,
+      "reference_number": "SAL20250401"
+    },
+    {
+      "date": "2025-04-03",
+      "description": "UPI-SWIGGY-BANGALORE",
+      "amount": 450.0,
+      "transaction_type": "debit",
+      "balance": 114550.0,
+      "reference_number": "UPI987654"
+    },
+    {
+      "date": "2025-04-05",
+      "description": "NEFT-RENT PAYMENT TO LANDLORD",
+      "amount": 25000.0,
+      "transaction_type": "debit",
+      "balance": 89550.0,
+      "reference_number": "NEFT112233"
+    },
+    {
+      "date": "2025-04-10",
+      "description": "ELECTRICITY BILL TNEB",
+      "amount": 2100.0,
+      "transaction_type": "debit",
+      "balance": 87450.0,
+      "reference_number": "ELEC5544"
+    },
+    {
+      "date": "2025-04-15",
+      "description": "UPI-AMAZON-SHOPPING",
+      "amount": 3499.0,
+      "transaction_type": "debit",
+      "balance": 83951.0,
+      "reference_number": "UPI443322"
+    },
+    {
+      "date": "2025-04-20",
+      "description": "DIVIDEND CREDIT - TCS",
+      "amount": 1200.0,
+      "transaction_type": "credit",
+      "balance": 85151.0,
+      "reference_number": "DIV8899"
+    }
+  ]
+}
