@@ -1,0 +1,53 @@
+{
+  "description": "Task 4.6 fixture with fully-matching salary slips and bank credits (zero false positives)",
+  "salary_slips": [
+    {
+      "id": 301,
+      "month": 4,
+      "year": 2025,
+      "net_pay": 85000.0,
+      "gross_pay": 100000.0,
+      "file_name": "salary_slip_april_2025.pdf"
+    },
+    {
+      "id": 302,
+      "month": 5,
+      "year": 2025,
+      "net_pay": 85000.0,
+      "gross_pay": 100000.0,
+      "file_name": "salary_slip_may_2025.pdf"
+    },
+    {
+      "id": 303,
+      "month": 6,
+      "year": 2025,
+      "net_pay": 85000.0,
+      "gross_pay": 100000.0,
+      "file_name": "salary_slip_june_2025.pdf"
+    }
+  ],
+  "bank_credits": [
+    {
+      "id": 401,
+      "date": "2025-04-30",
+      "amount": 85000.0,
+      "description": "SALARY CREDIT - ACME CORP APR 2025",
+      "is_salary": true
+    },
+    {
+      "id": 402,
+      "date": "2025-05-31",
+      "amount": 85200.0,
+      "description": "SALARY CREDIT - ACME CORP MAY 2025",
+      "is_salary": true
+    },
+    {
+      "id": 403,
+      "date": "2025-06-30",
+      "amount": 84800.0,
+      "description": "SALARY CREDIT - ACME CORP JUN 2025",
+      "is_salary": true
+    }
+  ],
+  "expected_flags_count": 0
+}

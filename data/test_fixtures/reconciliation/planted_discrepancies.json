@@ -1,0 +1,74 @@
+{
+  "description": "Task 4.5 fixture with exactly 3 planted discrepancies: missing month, mismatched amount, and extra unexplained credit",
+  "salary_slips": [
+    {
+      "id": 101,
+      "month": 7,
+      "year": 2025,
+      "net_pay": 88000.0,
+      "gross_pay": 105000.0,
+      "file_name": "salary_slip_july_2025.pdf"
+    },
+    {
+      "id": 102,
+      "month": 8,
+      "year": 2025,
+      "net_pay": 88000.0,
+      "gross_pay": 105000.0,
+      "file_name": "salary_slip_august_2025.pdf"
+    },
+    {
+      "id": 103,
+      "month": 9,
+      "year": 2025,
+      "net_pay": 88000.0,
+      "gross_pay": 105000.0,
+      "file_name": "salary_slip_september_2025.pdf"
+    }
+  ],
+  "bank_credits": [
+    {
+      "id": 201,
+      "date": "2025-08-31",
+      "amount": 82000.0,
+      "description": "SALARY CREDIT - TECHCORP AUG 2025",
+      "is_salary": true
+    },
+    {
+      "id": 202,
+      "date": "2025-09-30",
+      "amount": 88000.0,
+      "description": "SALARY CREDIT - TECHCORP SEP 2025",
+      "is_salary": true
+    },
+    {
+      "id": 203,
+      "date": "2025-09-18",
+      "amount": 25000.0,
+      "description": "ACH CREDIT/UNEXPLAINED PAYROLL BONUS REF 992",
+      "is_salary": true
+    }
+  ],
+  "expected_discrepancies": [
+    {
+      "flag_type": "missing_bank_credit",
+      "month": 7,
+      "year": 2025,
+      "expected_amount": 88000.0
+    },
+    {
+      "flag_type": "mismatched_amount",
+      "month": 8,
+      "year": 2025,
+      "expected_amount": 88000.0,
+      "actual_amount": 82000.0,
+      "difference": 6000.0
+    },
+    {
+      "flag_type": "unexplained_salary_credit",
+      "month": 9,
+      "year": 2025,
+      "actual_amount": 25000.0
+    }
+  ]
+}
