@@ -238,8 +238,10 @@ class CSVBankParser:
                         break
                 except Exception:
                     continue
+            used_fallback_date = False
             if not txn_date:
                 txn_date = parse_date(date_raw)
+                used_fallback_date = True
 
             if not txn_date:
                 continue
@@ -257,6 +259,10 @@ class CSVBankParser:
             amount = 0.0
             txn_type = "debit"
             confidence = 0.98
+            if used_fallback_date:
+                confidence -= 0.06
+            if desc_raw == "Unknown Narration":
+                confidence -= 0.10
 
             # Resolve amount and type based on adapter sign convention
             if adapter.sign_convention == SignConvention.SEPARATE_COLUMNS:
@@ -290,6 +296,9 @@ class CSVBankParser:
                 continue
 
             bal_val = parse_numeric(raw_row.get(bal_col)) if bal_col else None
+            if bal_val is None:
+                confidence -= 0.04
+            confidence = round(max(0.10, min(1.0, confidence)), 2)
 
             rows.append(
                 ParsedTransactionRow(

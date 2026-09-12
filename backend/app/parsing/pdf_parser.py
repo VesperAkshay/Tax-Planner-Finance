@@ -236,6 +236,11 @@ class DoclingPDFParser:
                 continue
 
             balance_val = parse_numeric(raw_row.get(bal_col)) if bal_col else None
+            if raw_desc == "Unknown Narration":
+                confidence -= 0.08
+            if balance_val is None:
+                confidence -= 0.04
+            confidence = round(max(0.10, min(1.0, confidence)), 2)
 
             rows.append(
                 ParsedTransactionRow(

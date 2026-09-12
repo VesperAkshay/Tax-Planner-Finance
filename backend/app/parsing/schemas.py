@@ -3,6 +3,9 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
+from app.parsing.constants import DEFAULT_REVIEW_THRESHOLD
+
+
 class ParsedTransactionRow(BaseModel):
     date: dt_date
     description: str
@@ -11,7 +14,29 @@ class ParsedTransactionRow(BaseModel):
     balance: Optional[float] = None
     reference_number: Optional[str] = None
     parse_confidence: float = Field(ge=0.0, le=1.0, default=0.95)
+    needs_review: bool = False
     raw_row: Optional[Dict[str, Any]] = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.parse_confidence < DEFAULT_REVIEW_THRESHOLD:
+            self.needs_review = True
+
+    def to_transaction_dict(
+        self, account_id: int, upload_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """Maps row into a dict compatible with the Transaction database model."""
+        return {
+            "account_id": account_id,
+            "upload_id": upload_id,
+            "date": self.date,
+            "description": self.description,
+            "amount": self.amount,
+            "transaction_type": self.transaction_type,
+            "balance": self.balance,
+            "reference_number": self.reference_number,
+            "parse_confidence": self.parse_confidence,
+            "needs_review": self.needs_review or (self.parse_confidence < DEFAULT_REVIEW_THRESHOLD),
+        }
 
 
 class StatementParseResult(BaseModel):
