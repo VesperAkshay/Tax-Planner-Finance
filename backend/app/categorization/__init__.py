@@ -24,6 +24,13 @@ from app.categorization.xgboost_classifier import (
     train_xgboost_classifier,
 )
 
+from app.categorization.categorizer import (
+    DEFAULT_CATEGORIZATION_CONFIDENCE_THRESHOLD,
+    UNCATEGORIZED_CATEGORY,
+    CategorizationResult,
+    TransactionCategorizer,
+    get_transaction_categorizer,
+)
 from app.categorization.evaluator import (
     DEFAULT_REPORT_PATH,
     compute_holdout_metrics,
@@ -32,13 +39,17 @@ from app.categorization.evaluator import (
 
 __all__ = [
     "DEFAULT_CACHE_PATH",
+    "DEFAULT_CATEGORIZATION_CONFIDENCE_THRESHOLD",
     "DEFAULT_DATASET_PATH",
     "DEFAULT_EMBEDDING_MODEL",
     "DEFAULT_LOGISTIC_MODEL_PATH",
     "DEFAULT_REPORT_PATH",
     "DEFAULT_XGBOOST_MODEL_PATH",
     "EMBEDDING_DIMENSION",
+    "UNCATEGORIZED_CATEGORY",
+    "CategorizationResult",
     "LogisticRegressionClassifier",
+    "TransactionCategorizer",
     "TransactionEmbedder",
     "XGBoostTransactionClassifier",
     "compare_logistic_vs_xgboost",
@@ -46,6 +57,7 @@ __all__ = [
     "generate_categorization_eval_report",
     "get_trained_logistic_classifier",
     "get_trained_xgboost_classifier",
+    "get_transaction_categorizer",
     "get_transaction_embedder",
     "train_baseline_logistic",
     "train_xgboost_classifier",
