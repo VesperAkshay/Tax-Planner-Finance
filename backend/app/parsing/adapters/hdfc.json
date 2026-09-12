@@ -1,0 +1,24 @@
+{
+  "bank_id": "hdfc_bank",
+  "bank_name": "HDFC Bank",
+  "version": "1.0",
+  "description": "Standard HDFC NetBanking Account Statement CSV Export",
+  "skip_rows": 0,
+  "header_row_identifier": "Narration",
+  "header_signatures": [
+    "Narration",
+    "Chq./Ref.No.",
+    "Withdrawal Amt.",
+    "Deposit Amt.",
+    "Closing Balance"
+  ],
+  "date_column": "Date",
+  "date_format": "%d/%m/%y",
+  "alternative_date_formats": ["%d/%m/%Y", "%d-%m-%Y"],
+  "description_column": "Narration",
+  "reference_column": "Chq./Ref.No.",
+  "balance_column": "Closing Balance",
+  "sign_convention": "separate_columns",
+  "debit_column": "Withdrawal Amt.",
+  "credit_column": "Deposit Amt."
+}

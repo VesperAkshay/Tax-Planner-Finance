@@ -1,0 +1,28 @@
+{
+  "bank_id": "kotak_bank",
+  "bank_name": "Kotak Mahindra Bank",
+  "version": "1.0",
+  "description": "Kotak NetBanking CSV Export (Type Indicator)",
+  "skip_rows": 0,
+  "header_row_identifier": "Transaction Date",
+  "header_signatures": [
+    "Transaction Date",
+    "Amount",
+    "Balance"
+  ],
+  "date_column": "Transaction Date",
+  "date_format": "%d-%m-%Y",
+  "alternative_date_formats": ["%d/%m/%Y", "%d-%b-%Y"],
+  "description_column": "Narration",
+  "reference_column": "Reference Number",
+  "balance_column": "Balance",
+  "sign_convention": "type_indicator",
+  "amount_column": "Amount",
+  "type_column": "Transaction Type",
+  "type_mapping": {
+    "cr": "credit",
+    "dr": "debit",
+    "c": "credit",
+    "d": "debit"
+  }
+}

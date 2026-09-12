@@ -1,0 +1,24 @@
+{
+  "bank_id": "icici_bank",
+  "bank_name": "ICICI Bank",
+  "version": "1.0",
+  "description": "ICICI Bank Statement CSV Export",
+  "skip_rows": 0,
+  "header_row_identifier": "Transaction Remarks",
+  "header_signatures": [
+    "Transaction Date",
+    "Transaction Remarks",
+    "Withdrawal Amount (INR )",
+    "Deposit Amount (INR )",
+    "Balance (INR )"
+  ],
+  "date_column": "Transaction Date",
+  "date_format": "%d/%m/%Y",
+  "alternative_date_formats": ["%d-%m-%Y", "%d-%b-%Y"],
+  "description_column": "Transaction Remarks",
+  "reference_column": "Cheque Number",
+  "balance_column": "Balance (INR )",
+  "sign_convention": "separate_columns",
+  "debit_column": "Withdrawal Amount (INR )",
+  "credit_column": "Deposit Amount (INR )"
+}

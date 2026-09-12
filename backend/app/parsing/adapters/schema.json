@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "SignConvention": {
+      "enum": [
+        "separate_columns",
+        "signed_amount",
+        "type_indicator"
+      ],
+      "title": "SignConvention",
+      "type": "string"
+    }
+  },
+  "description": "Schema definition for bank CSV export adapter configurations.\nSpecifies column mapping, date parsing, and credit/debit conventions per bank.",
+  "properties": {
+    "bank_id": {
+      "description": "Unique slug for the bank adapter",
+      "maxLength": 50,
+      "minLength": 1,
+      "title": "Bank Id",
+      "type": "string"
+    },
+    "bank_name": {
+      "description": "Display name of the bank",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Bank Name",
+      "type": "string"
+    },
+    "version": {
+      "default": "1.0",
+      "description": "Configuration version",
+      "title": "Version",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "skip_rows": {
+      "default": 0,
+      "description": "Number of leading metadata rows to skip",
+      "minimum": 0,
+      "title": "Skip Rows",
+      "type": "integer"
+    },
+    "header_row_identifier": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "String or substring in the CSV line that marks the actual header row",
+      "title": "Header Row Identifier"
+    },
+    "header_signatures": {
+      "description": "List of exact or partial column names expected to auto-sniff this bank format",
+      "items": {
+        "type": "string"
+      },
+      "title": "Header Signatures",
+      "type": "array"
+    },
+    "date_column": {
+      "description": "Name of column containing transaction date",
+      "title": "Date Column",
+      "type": "string"
+    },
+    "date_format": {
+      "default": "%d/%m/%Y",
+      "description": "Primary strptime date format",
+      "title": "Date Format",
+      "type": "string"
+    },
+    "alternative_date_formats": {
+      "description": "Fallback date formats",
+      "items": {
+        "type": "string"
+      },
+      "title": "Alternative Date Formats",
+      "type": "array"
+    },
+    "description_column": {
+      "description": "Name of column containing transaction narration/description",
+      "title": "Description Column",
+      "type": "string"
+    },
+    "reference_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Name of column containing reference or cheque number",
+      "title": "Reference Column"
+    },
+    "balance_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Name of column containing running account balance",
+      "title": "Balance Column"
+    },
+    "sign_convention": {
+      "$ref": "#/$defs/SignConvention",
+      "default": "separate_columns",
+      "description": "Mechanism used to distinguish debits from credits"
+    },
+    "debit_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Column name for debit / withdrawal amounts",
+      "title": "Debit Column"
+    },
+    "credit_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Column name for credit / deposit amounts",
+      "title": "Credit Column"
+    },
+    "amount_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Column name when single amount column is used",
+      "title": "Amount Column"
+    },
+    "positive_is_credit": {
+      "default": true,
+      "description": "True if positive numbers are credit, negative are debit",
+      "title": "Positive Is Credit",
+      "type": "boolean"
+    },
+    "type_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Column name indicating Cr/Dr or Credit/Debit",
+      "title": "Type Column"
+    },
+    "type_mapping": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Mapping of raw type indicator values to 'credit' or 'debit'",
+      "title": "Type Mapping",
+      "type": "object"
+    }
+  },
+  "required": [
+    "bank_id",
+    "bank_name",
+    "date_column",
+    "description_column"
+  ],
+  "title": "BankAdapterConfig",
+  "type": "object"
+}

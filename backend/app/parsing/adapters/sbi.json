@@ -1,0 +1,26 @@
+{
+  "bank_id": "sbi_bank",
+  "bank_name": "State Bank of India",
+  "version": "1.0",
+  "description": "SBI Online Banking Statement CSV Export",
+  "skip_rows": 0,
+  "header_row_identifier": "Txn Date",
+  "header_signatures": [
+    "Txn Date",
+    "Value Date",
+    "Description",
+    "Ref No./Cheque No.",
+    "Debit",
+    "Credit",
+    "Balance"
+  ],
+  "date_column": "Txn Date",
+  "date_format": "%d %b %Y",
+  "alternative_date_formats": ["%d/%m/%Y", "%d-%m-%Y"],
+  "description_column": "Description",
+  "reference_column": "Ref No./Cheque No.",
+  "balance_column": "Balance",
+  "sign_convention": "separate_columns",
+  "debit_column": "Debit",
+  "credit_column": "Credit"
+}
