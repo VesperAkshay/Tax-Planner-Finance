@@ -36,12 +36,23 @@ from app.categorization.evaluator import (
     compute_holdout_metrics,
     generate_categorization_eval_report,
 )
+from app.categorization.feedback_loop import (
+    CANONICAL_CATEGORIES,
+    DEFAULT_FEEDBACK_DATASET_PATH,
+    get_combined_training_data,
+    load_user_feedback,
+    record_user_feedback,
+    retrain_model_with_feedback,
+    sanitize_description_for_training,
+)
 
 __all__ = [
+    "CANONICAL_CATEGORIES",
     "DEFAULT_CACHE_PATH",
     "DEFAULT_CATEGORIZATION_CONFIDENCE_THRESHOLD",
     "DEFAULT_DATASET_PATH",
     "DEFAULT_EMBEDDING_MODEL",
+    "DEFAULT_FEEDBACK_DATASET_PATH",
     "DEFAULT_LOGISTIC_MODEL_PATH",
     "DEFAULT_REPORT_PATH",
     "DEFAULT_XGBOOST_MODEL_PATH",
@@ -55,10 +66,15 @@ __all__ = [
     "compare_logistic_vs_xgboost",
     "compute_holdout_metrics",
     "generate_categorization_eval_report",
+    "get_combined_training_data",
     "get_trained_logistic_classifier",
     "get_trained_xgboost_classifier",
     "get_transaction_categorizer",
     "get_transaction_embedder",
+    "load_user_feedback",
+    "record_user_feedback",
+    "retrain_model_with_feedback",
+    "sanitize_description_for_training",
     "train_baseline_logistic",
     "train_xgboost_classifier",
 ]
