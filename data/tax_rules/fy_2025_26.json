@@ -1,0 +1,142 @@
+{
+  "financial_year": "2025-2026",
+  "assessment_year": "2026-2027",
+  "currency": "INR",
+  "cess": {
+    "rate": 0.04,
+    "name": "Health and Education Cess"
+  },
+  "surcharge": {
+    "status": "# NOT IMPLEMENTED — v2",
+    "description": "Surcharge for high net-worth income tiers (> ₹50L) deferred to v2 scope per spec §5.5"
+  },
+  "new_regime": {
+    "standard_deduction": 75000.0,
+    "rebate_87a": {
+      "threshold": 1200000.0,
+      "max_rebate": 60000.0,
+      "marginal_relief": {
+        "enabled": true,
+        "threshold": 1200000.0,
+        "description": "Tax payable on income just above ₹12L shall not exceed the income exceeding ₹12,00,000"
+      }
+    },
+    "slabs": [
+      {
+        "min": 0.0,
+        "max": 400000.0,
+        "rate": 0.0
+      },
+      {
+        "min": 400000.0,
+        "max": 800000.0,
+        "rate": 0.05
+      },
+      {
+        "min": 800000.0,
+        "max": 1200000.0,
+        "rate": 0.10
+      },
+      {
+        "min": 1200000.0,
+        "max": 1600000.0,
+        "rate": 0.15
+      },
+      {
+        "min": 1600000.0,
+        "max": 2000000.0,
+        "rate": 0.20
+      },
+      {
+        "min": 2000000.0,
+        "max": 2400000.0,
+        "rate": 0.25
+      },
+      {
+        "min": 2400000.0,
+        "max": null,
+        "rate": 0.30
+      }
+    ]
+  },
+  "old_regime": {
+    "standard_deduction": 50000.0,
+    "rebate_87a": {
+      "threshold": 500000.0,
+      "max_rebate": 12500.0,
+      "marginal_relief": {
+        "enabled": false
+      }
+    },
+    "slabs": [
+      {
+        "min": 0.0,
+        "max": 250000.0,
+        "rate": 0.0
+      },
+      {
+        "min": 250000.0,
+        "max": 500000.0,
+        "rate": 0.05
+      },
+      {
+        "min": 500000.0,
+        "max": 1000000.0,
+        "rate": 0.20
+      },
+      {
+        "min": 1000000.0,
+        "max": null,
+        "rate": 0.30
+      }
+    ],
+    "deductions": {
+      "section_80c": {
+        "cap": 150000.0,
+        "eligible_components": [
+          "epf",
+          "ppf",
+          "elss",
+          "life_insurance",
+          "home_loan_principal",
+          "sukanya_samriddhi",
+          "nsc",
+          "tax_saving_fd"
+        ]
+      },
+      "section_80d": {
+        "self_family_max": 25000.0,
+        "self_family_senior_max": 50000.0,
+        "parents_max": 25000.0,
+        "parents_senior_max": 50000.0,
+        "preventive_health_checkup_sublimit": 5000.0,
+        "max_allowable": 100000.0
+      },
+      "section_80ccd_1b": {
+        "cap": 50000.0,
+        "description": "National Pension System (NPS) additional employee voluntary contribution"
+      },
+      "section_24b": {
+        "self_occupied_cap": 200000.0,
+        "let_out_cap": null,
+        "description": "Interest on home loan for self-occupied residential property"
+      },
+      "section_10_13a_hra": {
+        "description": "Exemption on House Rent Allowance under Section 10(13A)",
+        "rules": [
+          "Actual HRA received from employer",
+          "Rent paid minus 10% of basic salary",
+          "50% of basic salary for metro cities (Mumbai, Delhi, Kolkata, Chennai) or 40% for non-metro"
+        ]
+      },
+      "section_80tta": {
+        "cap": 10000.0,
+        "description": "Deduction for interest on savings account deposits for non-senior individuals"
+      },
+      "section_80ttb": {
+        "cap": 50000.0,
+        "description": "Deduction for interest on deposits (savings & FD) for senior citizens"
+      }
+    }
+  }
+}
