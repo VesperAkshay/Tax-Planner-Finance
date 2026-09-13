@@ -5,6 +5,11 @@ Deterministic pure functions for Indian Income Tax computation (FY 2025-26).
 """
 
 from app.tax_engine.new_regime import compute_new_regime_tax
+from app.tax_engine.old_regime import (
+    compute_hra_exemption,
+    compute_old_regime_tax,
+    compute_section_80d_deduction,
+)
 from app.tax_engine.rules_loader import (
     DEFAULT_RULES_PATH,
     clear_rules_cache,
@@ -14,6 +19,9 @@ from app.tax_engine.rules_loader import (
 __all__ = [
     "DEFAULT_RULES_PATH",
     "clear_rules_cache",
+    "compute_hra_exemption",
     "compute_new_regime_tax",
+    "compute_old_regime_tax",
+    "compute_section_80d_deduction",
     "load_tax_rules",
 ]
