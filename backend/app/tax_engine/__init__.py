@@ -4,6 +4,10 @@ Tax Rules Engine (Phase 5).
 Deterministic pure functions for Indian Income Tax computation (FY 2025-26).
 """
 
+from app.tax_engine.comparator import (
+    compare_regimes,
+    compute_breakeven_deductions,
+)
 from app.tax_engine.new_regime import compute_new_regime_tax
 from app.tax_engine.old_regime import (
     compute_hra_exemption,
@@ -19,6 +23,8 @@ from app.tax_engine.rules_loader import (
 __all__ = [
     "DEFAULT_RULES_PATH",
     "clear_rules_cache",
+    "compare_regimes",
+    "compute_breakeven_deductions",
     "compute_hra_exemption",
     "compute_new_regime_tax",
     "compute_old_regime_tax",
