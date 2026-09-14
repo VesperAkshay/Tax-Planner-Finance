@@ -190,7 +190,16 @@ def compute_old_regime_tax(
         }
         total_deductions += allowed_24b
 
-    # 7. Other deductions (e.g. 80TTA / 80TTB)
+    # 7. Section 80G (Charitable Donations)
+    if "section_80g" in ded_dict or "80g" in ded_dict or "donations" in ded_dict:
+        raw_80g = float(ded_dict.get("section_80g", ded_dict.get("80g", ded_dict.get("donations", 0.0))))
+        deductions_breakdown["section_80g"] = {
+            "claimed": round(raw_80g, 2),
+            "allowed": round(max(0.0, raw_80g), 2),
+        }
+        total_deductions += max(0.0, raw_80g)
+
+    # 8. Other deductions (e.g. 80TTA / 80TTB)
     for other_key in ["section_80tta", "section_80ttb", "other_deductions"]:
         if other_key in ded_dict:
             raw_other = float(ded_dict[other_key])

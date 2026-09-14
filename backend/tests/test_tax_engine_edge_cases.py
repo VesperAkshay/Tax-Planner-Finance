@@ -345,6 +345,23 @@ def test_dict_based_section_80d_in_old_regime_tax(rules):
     assert res["taxable_income"] == 930000.0
 
 
+def test_section_80g_deduction_in_old_regime(rules):
+    """
+    Tests Section 80G charitable donations deduction in compute_old_regime_tax.
+    """
+    res = compute_old_regime_tax(
+        1000000.0,
+        deductions={"section_80g": 30000.0},
+        rules=rules,
+        is_salaried=False,
+    )
+    bdown = res["deductions_breakdown"]["section_80g"]
+    assert bdown["claimed"] == 30000.0
+    assert bdown["allowed"] == 30000.0
+    assert res["taxable_income"] == 970000.0
+
+
+
 def test_hra_exemption_zero_cases():
     """HRA exemption when salary, rent, or HRA is zero returns 0 exemption."""
     res_zero_hra = compute_hra_exemption({"basic_salary": 500000.0, "hra_received": 0.0, "rent_paid": 120000.0})
