@@ -52,3 +52,5 @@ tax-planner*.md
 !data/test_fixtures/*.pdf
 !data/test_fixtures/README.md
 
+# ChromaDB vector store
+data/chroma_db/
