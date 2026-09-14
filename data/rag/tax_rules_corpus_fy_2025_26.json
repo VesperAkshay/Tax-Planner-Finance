@@ -1,0 +1,116 @@
+{
+  "financial_year": "2025-2026",
+  "assessment_year": "2026-2027",
+  "chunks": [
+    {
+      "id": "sec_80c_overview",
+      "section": "80C",
+      "title": "Section 80C Deduction Limits and Eligible Investments",
+      "content": "Section 80C of the Income Tax Act allows a deduction from gross total income up to a maximum limit of ₹1,50,000 per financial year for an individual or Hindu Undivided Family (HUF). Eligible investment and expenditure instruments include: Employee Provident Fund (EPF), Voluntary Provident Fund (VPF), Public Provident Fund (PPF), Equity Linked Savings Scheme (ELSS mutual funds with 3-year lock-in), National Savings Certificate (NSC), Sukanya Samriddhi Yojana (SSY), Unit Linked Insurance Plans (ULIP), Senior Citizens Savings Scheme (SCSS), 5-year tax-saving bank fixed deposits, and life insurance premium payments for self, spouse, and children. Section 80C deductions are only available under the Old Tax Regime and cannot be claimed under the New Tax Regime (Section 115BAC).",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=80C",
+      "regime_applicability": "old",
+      "tags": ["80c", "ppf", "elss", "epf", "life insurance", "investments", "tax saving fd", "scss", "ssy"]
+    },
+    {
+      "id": "sec_80c_expenses",
+      "section": "80C",
+      "title": "Section 80C Tuition Fees and Housing Loan Principal Repayment",
+      "content": "In addition to investment products, Section 80C provides deductions for specific expenditure incurred during the financial year: 1) Children's Tuition Fees paid for full-time education in any university, college, school or educational institution in India for up to two children per individual. 2) Principal repayment on housing loans borrowed from approved banks or financial institutions for purchase or construction of residential house property. 3) Stamp duty, registration charges, and transfer fees paid for the acquisition of a residential property in the year of purchase. These expenses fall within the overall cumulative ceiling of ₹1,50,000 under Section 80C, Section 80CCC, and Section 80CCD(1). Claimable only under the Old Tax Regime.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=80C",
+      "regime_applicability": "old",
+      "tags": ["80c", "tuition fees", "home loan principal", "stamp duty", "registration fee", "education fees"]
+    },
+    {
+      "id": "sec_80d_self_family",
+      "section": "80D",
+      "title": "Section 80D Medical Insurance Deductions for Self and Family",
+      "content": "Section 80D of the Income Tax Act provides tax deductions on payments made for health insurance premiums and medical expenses. For self, spouse, and dependent children: 1) The maximum deduction is ₹25,000 per financial year if self and family members are below 60 years of age. 2) If either the taxpayer or spouse is a senior citizen (aged 60 years or older), the maximum deduction limit rises to ₹50,000 per financial year. 3) Preventive health checkup expenses up to ₹5,000 are eligible for deduction within the overall ₹25,000 or ₹50,000 ceiling. Section 80D health insurance deductions are admissible solely under the Old Tax Regime.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=80D",
+      "regime_applicability": "old",
+      "tags": ["80d", "health insurance", "mediclaim", "medical insurance", "preventive health checkup", "family"]
+    },
+    {
+      "id": "sec_80d_parents_seniors",
+      "section": "80D",
+      "title": "Section 80D Medical Insurance Deductions for Parents and Senior Citizens",
+      "content": "Section 80D provides an additional, separate deduction for health insurance premiums paid on behalf of parents: 1) If parents are non-senior citizens (below 60 years of age), an additional deduction up to ₹25,000 is allowed. 2) If parents are senior citizens (age 60 or above), the deduction limit increases to ₹50,000. 3) For senior citizen parents who do not have health insurance coverage due to age or pre-existing medical conditions, actual medical expenditures incurred for their treatment are eligible for deduction up to ₹50,000. 4) The aggregate preventive health checkup sublimit across self, family, and parents remains ₹5,000. If both the taxpayer (and spouse) and parents are senior citizens, the maximum combined deduction under Section 80D can reach up to ₹1,00,000 (₹50,000 for self/family + ₹50,000 for parents). Only claimable under Old Tax Regime.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=80D",
+      "regime_applicability": "old",
+      "tags": ["80d", "parents health insurance", "senior citizen", "parents 80d limit", "medical treatment", "parents mediclaim"]
+    },
+    {
+      "id": "sec_80ccd_1b_nps",
+      "section": "80CCD(1B)",
+      "title": "Section 80CCD(1B) Additional NPS Contribution Deduction",
+      "content": "Section 80CCD(1B) provides an exclusive deduction of up to ₹50,000 for voluntary contributions made by an individual taxpayer to the National Pension System (NPS Tier 1 account) or the Atal Pension Yojana (APY). This deduction of ₹50,000 is over and above the general ₹1,50,000 ceiling permitted under Section 80C and Section 80CCD(1), allowing a total combined deduction of up to ₹2,00,000 under Sections 80C and 80CCD(1B) combined. Note: Section 80CCD(1B) voluntary employee contributions are only deductible under the Old Tax Regime. In contrast, employer's co-contribution to NPS under Section 80CCD(2) (up to 14% of salary for government employees and 10% or 14% as applicable for private employees) is available under both the Old and New Tax Regimes.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=80CCD",
+      "regime_applicability": "old",
+      "tags": ["80ccd(1b)", "80ccd", "nps", "national pension system", "tier 1", "atal pension yojana", "apy"]
+    },
+    {
+      "id": "sec_80g_charity",
+      "section": "80G",
+      "title": "Section 80G Tax Deductions for Donations and Relief Funds",
+      "content": "Section 80G of the Income Tax Act allows taxpayers to claim tax deductions on donations made to approved charitable organizations, trusts, and government relief funds. 1) 100% deduction without qualifying limit applies to funds such as the Prime Minister's National Relief Fund (PMNRF), National Defence Fund, and Clean Ganga Fund. 2) 50% deduction without qualifying limit applies to funds like the PM's Drought Relief Fund and Jawaharlal Nehru Memorial Fund. 3) 100% or 50% deduction subject to a qualifying limit (restricted to 10% of Adjusted Gross Total Income) applies to approved public charitable institutions and NGOs. Crucial Rule: Cash donations exceeding ₹2,000 are not eligible for deduction under Section 80G; eligible donations must be made through digital/banking modes (cheque, draft, UPI, NEFT, net banking). Donor must obtain Form 10BE certificate from the donee. Admissible only under the Old Tax Regime.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=80G",
+      "regime_applicability": "old",
+      "tags": ["80g", "donations", "charity", "relief funds", "pmnrf", "cash donation limit", "form 10be"]
+    },
+    {
+      "id": "sec_24b_home_loan_interest",
+      "section": "Section 24(b)",
+      "title": "Section 24(b) Deduction on Home Loan Interest for Self-Occupied and Let-Out Property",
+      "content": "Under Section 24(b) of the Income Tax Act, interest payable on capital borrowed for acquiring, constructing, repairing, renewing, or reconstructing residential house property can be claimed as a deduction against income from house property: 1) For self-occupied property, the maximum allowable interest deduction is capped at ₹2,00,000 per financial year. To claim the ₹2L cap, loan acquisition/construction must be completed within 5 years from the end of the financial year in which the loan was borrowed (otherwise capped at ₹30,000). 2) For let-out or rented property, there is no upper ceiling on interest deduction; however, set-off of net loss from house property against any other head of income is strictly capped at ₹2,00,000 in a single financial year, with unabsorbed loss carried forward for up to 8 assessment years. 3) Section 24(b) deduction on self-occupied property interest is available only in the Old Tax Regime. Under the New Tax Regime, loss from house property cannot be set off against salary or other income heads.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=24",
+      "regime_applicability": "old",
+      "tags": ["section 24b", "24b", "home loan interest", "housing loan", "self-occupied property", "let out property", "loss from house property"]
+    },
+    {
+      "id": "sec_10_13a_hra_rules",
+      "section": "Section 10(13A)",
+      "title": "Section 10(13A) and Rule 2A House Rent Allowance (HRA) Exemption Rules",
+      "content": "House Rent Allowance (HRA) received by salaried employees is exempt from income tax under Section 10(13A) read with Rule 2A of the Income Tax Rules. The exempt amount is the lowest of the following three calculations: 1) Actual HRA received from the employer during the relevant financial period. 2) Actual rent paid by the employee for residential accommodation minus 10% of basic salary (Basic Salary includes Dearness Allowance if forming part of retirement benefits). 3) 50% of basic salary if accommodation is situated in metro cities (Mumbai, New Delhi, Kolkata, Chennai) or 40% of basic salary for accommodation in any non-metro location. Conditions: 1) The taxpayer must actually live in rented residential premises and pay rent. 2) The taxpayer must not own any residential accommodation in the town or city of employment. 3) Landlord's PAN is mandatory if annual rent paid exceeds ₹1,00,000. HRA exemption is exclusively available under the Old Tax Regime and is not allowable under the New Tax Regime.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=10(13A)",
+      "regime_applicability": "old",
+      "tags": ["hra", "section 10(13a)", "rule 2a", "house rent allowance", "rent receipt", "landlord pan", "metro cities"]
+    },
+    {
+      "id": "sec_87a_rebate_new_regime",
+      "section": "Section 87A",
+      "title": "Section 87A Tax Rebate and Marginal Relief under New Tax Regime (Section 115BAC)",
+      "content": "For Financial Year 2025-26 (Assessment Year 2026-27), Section 87A provides substantial tax relief to resident individual taxpayers under the New Tax Regime (Section 115BAC): 1) Full Rebate: If taxable income (after standard deduction) does not exceed ₹12,00,000, the individual is eligible for a full tax rebate of 100% of tax payable up to ₹60,000, making tax liability zero. 2) Marginal Relief: If taxable income slightly exceeds ₹12,00,000, Section 87A marginal relief ensures that the total tax payable (before cess) shall not exceed the amount by which taxable income exceeds ₹12,00,000. For example, at ₹12,10,000 taxable income (excess income ₹10,000), normal slab tax would be ₹61,500; marginal relief of ₹51,500 is granted, reducing tax before cess to exactly ₹10,000 (plus 4% cess = ₹10,400). Marginal relief completely phases out at ₹12,70,588, beyond which regular slab rates apply without relief.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=87A",
+      "regime_applicability": "new",
+      "tags": ["section 87a", "87a", "rebate", "marginal relief", "new regime", "12 lakh rebate", "115bac"]
+    },
+    {
+      "id": "sec_87a_rebate_old_regime",
+      "section": "Section 87A",
+      "title": "Section 87A Tax Rebate under Old Tax Regime and Cliff-Edge Threshold",
+      "content": "Under the Old Tax Regime for Financial Year 2025-26, Section 87A offers a tax rebate of up to ₹12,500 for resident individuals whose total taxable income (net of all Chapter VI-A deductions and standard deduction) does not exceed ₹5,00,000. Because tax on income up to ₹5,00,000 in the Old Regime is ₹12,500 ((₹5L - ₹2.5L) * 5%), the Section 87A rebate wipes out 100% of tax liability, resulting in NIL tax. Crucial Difference: Unlike the New Regime, the Old Regime Section 87A does NOT provide marginal relief. If taxable income is even ₹5,00,001 (exceeding the threshold by ₹1), zero rebate is allowable, and the taxpayer must pay full tax of ₹12,500 plus 20% on the excess income plus 4% cess (creating a sharp cliff-edge tax liability of ₹13,000.21).",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=87A",
+      "regime_applicability": "old",
+      "tags": ["section 87a", "87a", "old regime rebate", "5 lakh rebate", "cliff edge"]
+    },
+    {
+      "id": "sec_16_standard_deduction",
+      "section": "Standard Deduction",
+      "title": "Section 16(ia) Standard Deduction for Salaried Employees and Pensioners",
+      "content": "Section 16(ia) of the Income Tax Act provides a flat standard deduction to all salaried individuals and pensioners against salary and pension income. The standard deduction requires no documentary proof, expense bills, or investment receipts. For Financial Year 2025-26: 1) Under the New Tax Regime (Section 115BAC), the standard deduction was raised to ₹75,000 (effective from Budget 2024 / FY 2024-25 and continuing into FY 2025-26). Combined with the ₹12L rebate threshold, salaried employees earning gross salary up to ₹12,75,000 pay zero tax in the New Regime. 2) Under the Old Tax Regime, the standard deduction remains ₹50,000. 3) Standard deduction is capped at actual gross salary if gross salary is less than ₹75,000 or ₹50,000 respectively. Self-employed professionals and business owners are not eligible for Section 16(ia) standard deduction.",
+      "financial_year": "2025-2026",
+      "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx?section=16",
+      "regime_applicability": "both",
+      "tags": ["standard deduction", "section 16", "salaried", "pensioners", "75000", "50000", "new regime standard deduction"]
+    }
+  ]
+}
