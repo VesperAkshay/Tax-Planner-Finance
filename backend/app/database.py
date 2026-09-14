@@ -25,6 +25,21 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
+# Sync engine and session factory for synchronous SQLModel operations
+from sqlmodel import Session, create_engine
+
+sync_engine = create_engine(
+    settings.sync_database_url_resolved,
+    echo=False,
+    pool_pre_ping=True,
+)
+
+
+def get_db_session():
+    """Dependency for providing a synchronous SQLModel database session."""
+    with Session(sync_engine) as session:
+        yield session
+
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for providing an async database session."""
