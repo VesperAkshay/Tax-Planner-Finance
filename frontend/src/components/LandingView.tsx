@@ -219,10 +219,10 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
                 <Bot className="w-6 h-6 text-[#3730A3]" />
               </div>
               <h4 className="text-lg font-black uppercase font-['Space_Grotesk'] mb-2">
-                TAX AGENT CHAT
+                MR. PLANNER (AI)
               </h4>
               <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                Interactive tax assistant guides you through Section 80C, 80D, 80CCD(1B), and HRA
+                Meet Mr. Planner, your AI Tax Strategist who guides you through Section 80C, 80D, 80CCD(1B), and HRA
                 exemptions with verified deduction discovery.
               </p>
             </div>

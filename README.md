@@ -231,9 +231,9 @@ Open `http://localhost:5173` in your browser.
 | `GET` | `/api/v1/financial-snapshot` | Income, expense, savings rate, category breakdown | Yes |
 | `POST` | `/api/v1/financial-snapshot/re-categorize` | Re-run 3-tier hybrid categorization on all user transactions | Yes |
 | `GET` | `/api/v1/flags` | List reconciliation flags for current user | Yes |
-| `POST` | `/api/v1/flags/{id}/resolve` | Resolve or ignore a reconciliation flag | Yes |
-| `POST` | `/api/v1/chat` | Multi-turn conversational tax deduction assistant | Yes |
+| `POST` | `/api/v1/agent/chat` | Multi-turn conversational tax deduction assistant (Mr. Planner) | Yes |
 | `GET` | `/api/v1/tax/comparison-report` | Side-by-side Old vs New Regime calculation report | Yes |
+| `GET` | `/api/v1/tax/comparison-report/pdf` | Vector-grade Neo-Brutalist PDF Invoice & Audit Memorandum export | Yes |
 
 ---
 

@@ -392,7 +392,7 @@ export const SnapshotView: React.FC<SnapshotViewProps> = ({ onNavigateToTab }) =
                 onClick={() => onNavigateToTab('chat')}
                 className="bg-[#18153B] text-[#FACC15] px-4 py-2 border-2 border-black font-black font-mono text-xs shadow-[2px_2px_0px_0px_#000] hover:bg-black active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
               >
-                DISCUSS WITH TAX AGENT →
+                ASK MR. PLANNER →
               </button>
             )}
           </div>

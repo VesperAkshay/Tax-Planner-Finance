@@ -22,7 +22,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
     {
       role: 'assistant',
       content:
-        'Hello! I am your FY 2025–26 Tax Planning Assistant. I help you discover all qualifying exemptions and deductions under the Income Tax Act (Sections 80C, 80D, 80CCD(1B), and 10(13A) HRA). All calculations are executed by our deterministic engine with zero LLM hallucination. Tell me about your rent or investments!',
+        'Hello! I am Mr. Planner, your FY 2025–26 Tax Strategist. I help you discover all qualifying exemptions and deductions under the Income Tax Act (Sections 80C, 80D, 80CCD(1B), and 10(13A) HRA). All calculations are executed by our deterministic engine with zero hallucination. Tell me about your rent, investments, or salary!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -79,7 +79,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
         {
           role: 'assistant',
           content:
-            'I encountered an error connecting to the agent. However, your deductions are securely stored in the database.',
+            'I encountered an error connecting to Mr. Planner. However, your deductions are securely stored in your personal vault.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -89,10 +89,11 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
   };
 
   const promptSuggestions = [
-    'I pay ₹25,000 monthly rent in Mumbai (HRA claim)',
-    'I invested ₹1.5L in EPF & PPF (Section 80C)',
-    'I contributed ₹50,000 to NPS (Section 80CCD 1B)',
-    'I paid ₹25,000 health insurance premium (Section 80D)',
+    { label: '🏠 Rent & HRA', prompt: 'I pay ₹25,000 monthly rent in Mumbai (HRA claim)' },
+    { label: '📈 Section 80C', prompt: 'I invested ₹1.5L in EPF & PPF (Section 80C)' },
+    { label: '🛡️ NPS 80CCD', prompt: 'I contributed ₹50,000 to NPS (Section 80CCD 1B)' },
+    { label: '🏥 Health 80D', prompt: 'I paid ₹25,000 health insurance premium (Section 80D)' },
+    { label: '💼 In-Hand Salary', prompt: 'What is my monthly in-hand take home salary?' },
   ];
 
   return (
@@ -102,7 +103,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
           <div className="inline-flex items-center gap-2 bg-[#FACC15] px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs tracking-wider uppercase text-black">
             <Sparkles className="w-4 h-4" />
-            <span>TAX ADVISORY // AI STRATEGY ENGINE</span>
+            <span>MR. PLANNER // FY 2025–26 TAX STRATEGIST</span>
           </div>
 
           <div className="flex items-center gap-2 font-mono text-xs font-bold bg-[#3730A3] text-white px-3 py-1 border-2 border-black">
@@ -112,11 +113,11 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
         </div>
 
         <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#18153B] font-['Space_Grotesk'] uppercase leading-none">
-          TAX AGENT CHAT
+          MEET MR. PLANNER
         </h2>
         <p className="text-sm md:text-base font-medium text-gray-800 max-w-xl font-['Plus_Jakarta_Sans'] mt-2">
-          Interactive tax assistant guides you through deductions. All tax figures are computed according
-          to official FY 2025–26 statutory rules.
+          Interactive tax strategist guides you through qualifying deductions. All calculations are executed
+          by our verified deterministic engine with zero mathematical drift.
         </p>
       </div>
 
@@ -127,21 +128,25 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
           {/* Chat Header */}
           <div className="bg-[#18153B] text-white p-4 border-b-3 border-black flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#FACC15] border-2 border-black">
+              <div className="p-2 bg-[#FACC15] border-2 border-black shadow-[2px_2px_0px_0px_#000]">
                 <Bot className="w-5 h-5 text-black stroke-[2.5]" />
               </div>
               <div>
-                <h3 className="font-black text-base uppercase font-['Space_Grotesk'] text-[#FACC15]">
-                  AI TAX PLANNING ASSISTANT
+                <h3 className="font-black text-base uppercase font-['Space_Grotesk'] text-[#FACC15] flex items-center gap-2">
+                  <span>MR. PLANNER</span>
+                  <span className="bg-[#3730A3] text-white text-[10px] px-2 py-0.2 border border-white font-mono">
+                    AI STRATEGIST
+                  </span>
                 </h3>
-                <p className="text-[11px] font-mono text-gray-300">
-                  Online • FY 2025–26 Rules Active
+                <p className="text-[11px] font-mono text-gray-300 flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>ONLINE • ZERO ARITHMETIC DRIFT</span>
                 </p>
               </div>
             </div>
 
-            <span className="bg-[#F59E0B] text-black font-black text-[10px] uppercase px-2 py-0.5 border border-black font-mono">
-              AI ASSISTANT
+            <span className="bg-[#FACC15] text-black font-black text-[10px] uppercase px-2.5 py-1 border-2 border-black font-mono shadow-[2px_2px_0px_0px_#000]">
+              FY 2025–26 ACTIVE
             </span>
           </div>
 
@@ -163,6 +168,16 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
                   </div>
 
                   <div className="flex-1 min-w-0">
+                    {!isUser && (
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="bg-[#3730A3] text-white text-[10px] font-black font-mono px-2 py-0.5 border border-black uppercase shadow-[1px_1px_0px_0px_#000]">
+                          MR. PLANNER
+                        </span>
+                        <span className="text-[10px] font-mono text-gray-600 font-bold">
+                          AI STRATEGIST
+                        </span>
+                      </div>
+                    )}
                     <div
                       className={`p-4 border-2 border-black shadow-[3px_3px_0px_0px_#000] font-['Space_Grotesk'] text-sm leading-relaxed ${
                         isUser
@@ -182,14 +197,14 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
 
             {isTyping && (
               <div className="flex gap-3 max-w-[85%]">
-                <div className="w-8 h-8 border-2 border-black flex items-center justify-center bg-[#FACC15]">
-                  <Bot className="w-4 h-4 text-black" />
+                <div className="w-8 h-8 border-2 border-black flex items-center justify-center bg-[#FACC15] shadow-[2px_2px_0px_0px_#000]">
+                  <Bot className="w-4 h-4 text-black stroke-[2.5]" />
                 </div>
                 <div className="p-3 bg-[#FFFDF9] border-2 border-black shadow-[2px_2px_0px_0px_#000] font-mono text-xs font-bold flex items-center gap-2">
                   <span className="animate-bounce">●</span>
                   <span className="animate-bounce [animation-delay:0.2s]">●</span>
                   <span className="animate-bounce [animation-delay:0.4s]">●</span>
-                  <span>CONSULTING TAX RULES CORPUS...</span>
+                  <span>MR. PLANNER IS AUDITING TAX RULES...</span>
                 </div>
               </div>
             )}
@@ -201,13 +216,13 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
             <span className="text-[10px] font-black uppercase text-gray-600 flex items-center gap-1 font-mono whitespace-nowrap">
               <HelpCircle className="w-3.5 h-3.5" /> PROMPTS:
             </span>
-            {promptSuggestions.map((prompt, i) => (
+            {promptSuggestions.map((item, i) => (
               <button
                 key={i}
-                onClick={() => handleSend(prompt)}
-                className="text-[11px] font-bold bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                onClick={() => handleSend(item.prompt)}
+                className="text-[11px] font-bold bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
               >
-                {prompt}
+                {item.label}
               </button>
             ))}
           </div>
@@ -255,12 +270,18 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
               <div className="bg-[#FAF7F2] border-2 border-black p-3 shadow-[3px_3px_0px_0px_#000]">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1">
                   <span>SECTION 80C</span>
-                  <span className="text-emerald-700">CAP ₹1,50,000</span>
+                  <span className="text-emerald-700 font-mono">CAP ₹1,50,000</span>
                 </div>
                 <div className="text-xl font-black text-black">
                   ₹{(declaredDeductions.section_80c || 0).toLocaleString('en-IN')}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-1">
+                <div className="w-full bg-gray-200 h-1.5 border border-black my-1.5 overflow-hidden">
+                  <div
+                    className="bg-[#10B981] h-full"
+                    style={{ width: `${Math.min(100, ((declaredDeductions.section_80c || 0) / 150000) * 100)}%` }}
+                  />
+                </div>
+                <div className="text-[10px] text-gray-500 font-mono">
                   EPF, PPF, ELSS, Life Insurance
                 </div>
               </div>
@@ -269,12 +290,18 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
               <div className="bg-[#FAF7F2] border-2 border-black p-3 shadow-[3px_3px_0px_0px_#000]">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1">
                   <span>SECTION 80CCD(1B)</span>
-                  <span className="text-emerald-700">CAP ₹50,000</span>
+                  <span className="text-emerald-700 font-mono">CAP ₹50,000</span>
                 </div>
                 <div className="text-xl font-black text-black">
                   ₹{(declaredDeductions.section_80ccd_1b || 0).toLocaleString('en-IN')}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-1">
+                <div className="w-full bg-gray-200 h-1.5 border border-black my-1.5 overflow-hidden">
+                  <div
+                    className="bg-[#3730A3] h-full"
+                    style={{ width: `${Math.min(100, ((declaredDeductions.section_80ccd_1b || 0) / 50000) * 100)}%` }}
+                  />
+                </div>
+                <div className="text-[10px] text-gray-500 font-mono">
                   Exclusive NPS Tier-I Deduction
                 </div>
               </div>
@@ -283,12 +310,18 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
               <div className="bg-[#FAF7F2] border-2 border-black p-3 shadow-[3px_3px_0px_0px_#000]">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1">
                   <span>SECTION 80D</span>
-                  <span className="text-emerald-700">CAP ₹25,000</span>
+                  <span className="text-emerald-700 font-mono">CAP ₹25,000</span>
                 </div>
                 <div className="text-xl font-black text-black">
                   ₹{(declaredDeductions.section_80d || 0).toLocaleString('en-IN')}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-1">
+                <div className="w-full bg-gray-200 h-1.5 border border-black my-1.5 overflow-hidden">
+                  <div
+                    className="bg-[#F59E0B] h-full"
+                    style={{ width: `${Math.min(100, ((declaredDeductions.section_80d || 0) / 25000) * 100)}%` }}
+                  />
+                </div>
+                <div className="text-[10px] text-gray-500 font-mono">
                   Self &amp; Family Medical Insurance
                 </div>
               </div>
@@ -297,12 +330,12 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
               <div className="bg-[#FAF7F2] border-2 border-black p-3 shadow-[3px_3px_0px_0px_#000]">
                 <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1">
                   <span>SEC 10(13A) HRA</span>
-                  <span className="text-emerald-700">RULE 2A</span>
+                  <span className="text-emerald-700 font-mono">RULE 2A</span>
                 </div>
                 <div className="text-xl font-black text-black">
                   ₹{(declaredDeductions.section_10_13a_hra || 0).toLocaleString('en-IN')}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-1">
+                <div className="text-[10px] text-gray-500 mt-1 font-mono">
                   House Rent Exemption
                 </div>
               </div>

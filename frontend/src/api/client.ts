@@ -258,6 +258,27 @@ export class ApiClient {
     }
     return await res.json();
   }
+
+  async downloadTaxReportPdf(): Promise<void> {
+    const res = await fetch(`${API_BASE}/tax/comparison-report/pdf`, {
+      headers: this.headers(),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to download tax report PDF (${res.status})`);
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Mr_Planner_Tax_Invoice_FY2025-26.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
 }
 
 export const api = new ApiClient();

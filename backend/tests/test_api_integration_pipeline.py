@@ -285,6 +285,18 @@ def test_tax_comparison_report(client, user_a_token):
     assert report["new_regime"]["total_tax"] == 97500.0
 
 
+def test_tax_comparison_report_pdf_download(client, user_a_token):
+    pdf_res = client.get(
+        "/api/v1/tax/comparison-report/pdf?gross_income=1500000.0",
+        headers={"Authorization": f"Bearer {user_a_token}"},
+    )
+    assert pdf_res.status_code == 200
+    assert pdf_res.headers["content-type"] == "application/pdf"
+    assert "attachment" in pdf_res.headers["content-disposition"]
+    assert len(pdf_res.content) > 1000
+    assert pdf_res.content.startswith(b"%PDF")
+
+
 # ==============================================================================
 # 8. Cross-Tenant Authorization Isolation (Task 8.9)
 # ==============================================================================

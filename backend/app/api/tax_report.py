@@ -10,7 +10,7 @@ Combines:
 
 import logging
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -24,6 +24,7 @@ from app.models.user import User
 from app.models.user_declared_deduction import UserDeclaredDeduction
 from app.rag.retriever import retrieve_tax_rules
 from app.tax_engine.comparator import compare_regimes
+from app.tax_engine.pdf_invoice import generate_tax_invoice_pdf
 from app.tax_engine.rules_loader import load_tax_rules
 
 logger = logging.getLogger(__name__)
@@ -46,17 +47,15 @@ class TaxComparisonReportResponse(BaseModel):
     summary: str
 
 
-@router.get("/comparison-report", response_model=TaxComparisonReportResponse)
-def get_tax_comparison_report(
-    gross_income: Optional[float] = Query(None, ge=0.0, description="Override gross annual income"),
-    is_salaried: bool = Query(True, description="Whether salaried standard deduction applies"),
-    financial_year: str = Query("2025-2026", description="Financial year"),
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_db_session),
-) -> TaxComparisonReportResponse:
+def _build_tax_report_payload(
+    session: Session,
+    current_user: User,
+    gross_income: Optional[float] = None,
+    is_salaried: bool = True,
+    financial_year: str = "2025-2026",
+) -> Dict[str, Any]:
     """
-    Generates and persists the final Tax Comparison Report for the authenticated user (Task 8.6).
-    Applies zero LLM tax arithmetic; pure deterministic Python calculations strictly loaded from rules.
+    Shared deterministic payload generator for both JSON report and PDF invoice export.
     """
     # 1. Determine gross income from user parameter, salary slips, or credit transactions
     annual_gross = gross_income
@@ -118,7 +117,6 @@ def get_tax_comparison_report(
 
     # 4. Attach grounded RAG citations from Phase 6
     citations: List[Dict[str, Any]] = []
-    # Standard deduction citation
     sd_chunk = retrieve_tax_rules("standard deduction salaried employees", top_k=1, section_filter="Standard Deduction")
     if sd_chunk:
         citations.append({
@@ -127,7 +125,6 @@ def get_tax_comparison_report(
             "source_url": sd_chunk[0]["source_url"],
         })
 
-    # Citations for claimed deductions
     if deductions_dict.get("section_80c", 0) > 0:
         c_chunk = retrieve_tax_rules("80C deduction limit", top_k=1, section_filter="80C")
         if c_chunk:
@@ -158,7 +155,6 @@ def get_tax_comparison_report(
         if hra_chunk:
             citations.append({"section": "Section 10(13A)", "title": hra_chunk[0]["title"], "source_url": hra_chunk[0]["source_url"]})
 
-    # Section 87A rebate citation
     r87_chunk = retrieve_tax_rules("Section 87A rebate marginal relief", top_k=1, section_filter="Section 87A")
     if r87_chunk:
         citations.append({"section": "Section 87A", "title": r87_chunk[0]["title"], "source_url": r87_chunk[0]["source_url"]})
@@ -208,17 +204,95 @@ def get_tax_comparison_report(
 
     session.commit()
 
+    return {
+        "annual_gross": annual_gross,
+        "is_salaried": is_salaried,
+        "financial_year": financial_year,
+        "comparison": comparison,
+        "old_res": old_res,
+        "new_res": new_res,
+        "deductions_dict": deductions_dict,
+        "citations": citations,
+    }
+
+
+@router.get("/comparison-report", response_model=TaxComparisonReportResponse)
+def get_tax_comparison_report(
+    gross_income: Optional[float] = Query(None, ge=0.0, description="Override gross annual income"),
+    is_salaried: bool = Query(True, description="Whether salaried standard deduction applies"),
+    financial_year: str = Query("2025-2026", description="Financial year"),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
+) -> TaxComparisonReportResponse:
+    """
+    Generates and persists the final Tax Comparison Report for the authenticated user (Task 8.6).
+    Applies zero LLM tax arithmetic; pure deterministic Python calculations strictly loaded from rules.
+    """
+    payload = _build_tax_report_payload(
+        session=session,
+        current_user=current_user,
+        gross_income=gross_income,
+        is_salaried=is_salaried,
+        financial_year=financial_year,
+    )
+    comparison = payload["comparison"]
+
     return TaxComparisonReportResponse(
         user_id=current_user.id,
-        financial_year=financial_year,
-        gross_income=annual_gross,
-        is_salaried=is_salaried,
+        financial_year=payload["financial_year"],
+        gross_income=payload["annual_gross"],
+        is_salaried=payload["is_salaried"],
         recommended_regime=comparison["recommended"],
         tax_savings=comparison["savings"],
         breakeven_deductions=comparison["breakeven_deductions"],
-        old_regime=old_res,
-        new_regime=new_res,
-        deductions_applied=deductions_dict,
-        citations=citations,
+        old_regime=payload["old_res"],
+        new_regime=payload["new_res"],
+        deductions_applied=payload["deductions_dict"],
+        citations=payload["citations"],
         summary=comparison["summary"],
     )
+
+
+@router.get("/comparison-report/pdf")
+def get_tax_comparison_report_pdf(
+    gross_income: Optional[float] = Query(None, ge=0.0, description="Override gross annual income"),
+    is_salaried: bool = Query(True, description="Whether salaried standard deduction applies"),
+    financial_year: str = Query("2025-2026", description="Financial year"),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
+) -> Response:
+    """
+    Generates a high-resolution, vector-grade Neo-Brutalist PDF Invoice Memo
+    comparing Old vs New Tax Regimes side-by-side for direct download (Phase 12).
+    """
+    payload = _build_tax_report_payload(
+        session=session,
+        current_user=current_user,
+        gross_income=gross_income,
+        is_salaried=is_salaried,
+        financial_year=financial_year,
+    )
+
+    pdf_bytes = generate_tax_invoice_pdf(
+        user_email=current_user.email,
+        user_pan=current_user.pan,
+        user_id=current_user.id,
+        financial_year=payload["financial_year"],
+        gross_income=payload["annual_gross"],
+        comparison=payload["comparison"],
+        deductions_applied=payload["deductions_dict"],
+        citations=payload["citations"],
+    )
+
+    clean_fy = financial_year.replace("-", "_")
+    filename = f"Mr_Planner_Tax_Invoice_FY{clean_fy}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache",
+        },
+    )
+

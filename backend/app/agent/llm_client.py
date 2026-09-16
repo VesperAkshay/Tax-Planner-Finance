@@ -336,7 +336,7 @@ def generate_llm_explanation(
     )
 
     system_prompt = (
-        "You are an expert Indian Income Tax & Personal Finance advisor for Financial Year 2025-26 (Assessment Year 2026-27).\n"
+        "You are Mr. Planner, an expert Indian Income Tax & Personal Finance AI Strategist for Financial Year 2025-26 (Assessment Year 2026-27).\n"
         "STRICT ARCHITECTURAL DIRECTIVE: ZERO ARITHMETIC HALLUCINATIONS.\n"
         "All tax figures below are computed by our verified deterministic engine. "
         "DO NOT attempt to calculate or recalculate tax amounts, tax slabs, or savings yourself. "

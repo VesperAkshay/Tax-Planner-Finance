@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       icon: <GitCompare className="w-4 h-4" />,
       badge: flagCount > 0 ? flagCount : undefined,
     },
-    { key: 'chat', label: '4. Tax Agent Chat', icon: <MessageSquareCode className="w-4 h-4" /> },
+    { key: 'chat', label: '4. Mr. Planner (AI)', icon: <MessageSquareCode className="w-4 h-4" /> },
     { key: 'report', label: '5. Final Tax Report', icon: <FileCheck2 className="w-4 h-4" /> },
   ];
 
