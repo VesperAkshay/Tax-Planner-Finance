@@ -39,18 +39,75 @@ export interface SalarySlipUploadResponse {
 
 export interface CategorySpending {
   category_name: string;
+  total_amount?: number;
+  percentage?: number;
+  transaction_count?: number;
+  amount?: number;
+  percentage_of_total?: number;
+}
+
+export interface BudgetRuleDiagnostic {
+  needs_amount: number;
+  needs_pct: number;
+  wants_amount: number;
+  wants_pct: number;
+  savings_amount: number;
+  savings_pct: number;
+  status: string;
+  advice: string;
+}
+
+export interface TopMerchantItem {
+  merchant: string;
+  total_spent: number;
+  transaction_count: number;
+  category: string;
+}
+
+export interface RecurringSubscriptionItem {
+  name: string;
   amount: number;
-  percentage_of_total: number;
+  category: string;
+  frequency: string;
+}
+
+export interface TaxDeductibleSpendItem {
+  section: string;
+  title: string;
+  amount: number;
+  transaction_count: number;
+  description: string;
+}
+
+export interface SnapshotTransactionItem {
+  id: number;
+  date: string;
+  description: string;
+  merchant: string;
+  amount: number;
+  transaction_type: string;
+  category: string;
+  needs_review: boolean;
 }
 
 export interface FinancialSnapshot {
+  user_id?: number;
   total_income: number;
   total_expenses: number;
   net_savings: number;
   savings_rate: number;
+  daily_burn_rate?: number;
   category_spending: CategorySpending[];
+  top_categories?: CategorySpending[];
+  budget_rule_diagnostic?: BudgetRuleDiagnostic;
+  top_merchants?: TopMerchantItem[];
+  recurring_subscriptions?: RecurringSubscriptionItem[];
+  tax_deductible_spends?: TaxDeductibleSpendItem[];
+  uncategorized_count?: number;
+  needs_review_count?: number;
   total_transactions_analyzed: number;
-  date_range: {
+  recent_transactions?: SnapshotTransactionItem[];
+  date_range?: {
     start: string | null;
     end: string | null;
   };
@@ -77,35 +134,61 @@ export interface AgentChatMessage {
 
 export interface TaxRegimeBreakdown {
   regime: 'new' | 'old';
+  financial_year?: string;
   gross_income: number;
-  exemptions_and_deductions: number;
   standard_deduction: number;
   taxable_income: number;
-  gross_tax: number;
-  rebate_87a: number;
-  marginal_relief_87a: number;
-  net_tax_before_cess: number;
+  tax_before_rebate?: number;
+  rebate_87a?: number;
+  marginal_relief?: number;
+  tax_after_rebate?: number;
   cess: number;
-  total_tax_liability: number;
-  effective_tax_rate: number;
+  cess_rate?: number;
+  total_tax?: number;
+  effective_tax_rate?: number;
+  total_deductions?: number;
+  slab_breakdown?: Array<{
+    min: number;
+    max: number | null;
+    rate: number;
+    taxable_in_slab?: number;
+    slab_tax?: number;
+  }>;
+  // Fallback aliases:
+  total_tax_liability?: number;
+  gross_tax?: number;
+  exemptions_and_deductions?: number;
+  marginal_relief_87a?: number;
+  net_tax_before_cess?: number;
 }
 
 export interface DeductionItem {
   section: string;
-  name: string;
-  amount_declared: number;
-  max_allowed_limit: number;
-  citation: string;
+  name?: string;
+  amount_declared?: number;
+  max_allowed_limit?: number;
+  citation?: string;
 }
 
 export interface TaxComparisonReport {
   user_id: number;
   financial_year: string;
-  assessment_year: string;
-  recommended_regime: 'new' | 'old';
+  gross_income: number;
+  is_salaried: boolean;
+  recommended_regime: 'new' | 'old' | string;
   tax_savings: number;
-  new_regime: TaxRegimeBreakdown;
+  breakeven_deductions?: number;
   old_regime: TaxRegimeBreakdown;
-  declared_deductions: DeductionItem[];
-  missing_deductions_suggestions: string[];
+  new_regime: TaxRegimeBreakdown;
+  deductions_applied?: Record<string, any>;
+  citations?: Array<{
+    section: string;
+    title: string;
+    source_url: string;
+    citation_markdown?: string;
+  }>;
+  summary?: string;
+  assessment_year?: string;
+  declared_deductions?: DeductionItem[];
+  missing_deductions_suggestions?: string[];
 }

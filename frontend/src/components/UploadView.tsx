@@ -71,7 +71,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="inline-flex items-center gap-2 bg-[#FACC15] px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs tracking-wider uppercase">
             <Sparkles className="w-4 h-4" />
-            <span>PHASE 9.1 // DOCUMENT INGESTION PIPELINE</span>
+            <span>DOCUMENT INTAKE // VERIFIED FINANCIAL PARSER</span>
           </div>
           <div className="font-mono text-xs font-bold text-gray-700 bg-white px-3 py-1 border border-black shadow-[2px_2px_0px_0px_#000]">
             SECURE DOCUMENT INGESTION
@@ -275,7 +275,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
                 INGESTION &amp; PARSER STATUS
               </h3>
               <p className="text-xs font-mono text-gray-700">
-                Verified against database models and balance reconciler engine.
+                Verified against parsed document records and balance reconciliation engine.
               </p>
             </div>
           </div>

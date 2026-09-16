@@ -161,6 +161,19 @@ export class ApiClient {
     return await res.json();
   }
 
+  async reCategorizeTransactions(): Promise<{ total_processed: number; updated_count: number; message: string }> {
+    const res = await fetch(`${API_BASE}/financial-snapshot/re-categorize`, {
+      method: 'POST',
+      headers: this.headers(),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Re-categorization failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
   async getReconciliationFlags(): Promise<ReconciliationFlag[]> {
     const res = await fetch(`${API_BASE}/reconciliation/flags`, {
       headers: this.headers(),

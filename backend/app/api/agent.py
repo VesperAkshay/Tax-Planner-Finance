@@ -17,6 +17,7 @@ from app.agent.llm_client import extract_deductions_from_text, generate_llm_expl
 from app.agent.persistence import persist_all_elicited_deductions
 from app.api.auth import get_current_user
 from app.database import get_db_session
+from app.models.account import Account
 from app.models.salary_slip import SalarySlip
 from app.models.transaction import Transaction
 from app.models.user import User
@@ -114,10 +115,22 @@ def chat_with_tax_agent(
     existing_deductions = session.exec(
         select(UserDeclaredDeduction).where(UserDeclaredDeduction.user_id == current_user.id)
     ).all()
+    section_to_key = {
+        "80C": "80c",
+        "80D": "80d",
+        "80CCD(1B)": "80ccd_1b",
+        "80G": "80g",
+        "24B": "24b",
+        "HRA": "hra",
+    }
     for ed in existing_deductions:
-        sec_key = ed.section_code.lower().replace("-", "_").replace(" ", "_")
+        clean_sec = (ed.section or "").strip().upper()
+        sec_key = section_to_key.get(clean_sec, clean_sec.lower().replace("-", "_").replace(" ", "_"))
         if sec_key not in combined_responses:
-            combined_responses[sec_key] = ed.declared_amount
+            if ed.metadata_json and isinstance(ed.metadata_json, dict):
+                combined_responses[sec_key] = ed.metadata_json
+            else:
+                combined_responses[sec_key] = ed.amount
 
     # 3. Run LangGraph Tax Planning Agent (Phase 7)
     final_state = run_tax_planning_agent(
@@ -137,7 +150,29 @@ def chat_with_tax_agent(
             financial_year=final_state.financial_year,
         )
 
-    # 5. Generate conversational explanation via OpenRouter / LLM with deterministic fallback
+    # 5. Fetch bank cashflow stats to equip assistant with full financial profile
+    user_txns = session.exec(
+        select(Transaction).join(Account).where(Account.user_id == current_user.id)
+    ).all()
+    total_credits = sum(t.amount for t in user_txns if t.transaction_type == "credit")
+    total_debits = sum(t.amount for t in user_txns if t.transaction_type == "debit")
+    net_cashflow = total_credits - total_debits
+
+    financial_profile = {
+        "monthly_gross": slips[0].gross_pay if slips else (derived_gross / 12.0 if derived_gross else 0.0),
+        "monthly_net": slips[0].net_pay if slips else 0.0,
+        "monthly_basic": slips[0].basic if slips else (annual_basic / 12.0 if slips else 0.0),
+        "monthly_hra": slips[0].hra if slips else (annual_hra / 12.0 if slips else 0.0),
+        "monthly_pf": slips[0].employee_pf if slips else (annual_pf / 12.0 if slips else 0.0),
+        "monthly_pt": slips[0].professional_tax if slips and slips[0].professional_tax is not None else 200.0,
+        "annual_gross": derived_gross or 0.0,
+        "total_credits": total_credits,
+        "total_debits": total_debits,
+        "net_cashflow": net_cashflow,
+        "txns_count": len(user_txns),
+    }
+
+    # 6. Generate conversational explanation via OpenRouter / LLM with deterministic fallback
     llm_message = None
     if payload.message and payload.message.strip():
         llm_message = generate_llm_explanation(
@@ -147,7 +182,14 @@ def chat_with_tax_agent(
             citations=final_state.citations,
             declared_deductions=final_state.declared_deductions,
             gross_income=derived_gross,
+            financial_profile=financial_profile,
         )
+
+    ca_disclaimer = (
+        "\n\n⚠️ **Disclaimer**: *This analysis is an automated suggestion based on your uploaded records "
+        "and Income Tax Act rules (FY 2025–26). Please consult a certified Chartered Accountant (CA) "
+        "or tax professional for official tax filing and personalized planning.*"
+    )
 
     if llm_message:
         bot_message = llm_message
@@ -160,9 +202,10 @@ def chat_with_tax_agent(
                 f"Based on your profile and deductions, the **{rec} Regime** is recommended. "
                 f"You save ₹{savings:,.2f} in taxes. "
                 f"{report.get('summary', '')}"
+                f"{ca_disclaimer}"
             )
         else:
-            bot_message = "Your financial inputs have been processed."
+            bot_message = f"Your financial inputs have been processed.{ca_disclaimer}"
 
     return AgentChatResponse(
         session_id=payload.session_id or "default_session",

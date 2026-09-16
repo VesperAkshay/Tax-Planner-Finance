@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { AgentChatMessage } from '../types';
+import { ChatMessageRenderer } from './ChatMessageRenderer';
 
 interface AgentChatViewProps {
   onDeductionsUpdated?: () => void;
@@ -101,7 +102,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
           <div className="inline-flex items-center gap-2 bg-[#FACC15] px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs tracking-wider uppercase text-black">
             <Sparkles className="w-4 h-4" />
-            <span>PHASE 9.4 // CONVERSATIONAL TAX AGENT</span>
+            <span>TAX ADVISORY // AI STRATEGY ENGINE</span>
           </div>
 
           <div className="flex items-center gap-2 font-mono text-xs font-bold bg-[#3730A3] text-white px-3 py-1 border-2 border-black">
@@ -161,7 +162,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
                     {isUser ? <UserIcon className="w-4 h-4" /> : <Bot className="w-4 h-4 stroke-[2.5]" />}
                   </div>
 
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div
                       className={`p-4 border-2 border-black shadow-[3px_3px_0px_0px_#000] font-['Space_Grotesk'] text-sm leading-relaxed ${
                         isUser
@@ -169,7 +170,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
                           : 'bg-[#FFFDF9] text-black'
                       }`}
                     >
-                      {m.content}
+                      <ChatMessageRenderer content={m.content} isUser={isUser} />
                     </div>
                     <span className="text-[10px] font-mono text-gray-500 mt-1 block">
                       {m.timestamp}
@@ -246,7 +247,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
               </h3>
             </div>
             <p className="text-xs font-mono text-gray-700 mb-6 font-semibold">
-              Persisted in database table <code>user_declared_deductions</code>.
+              Verified deductions securely linked to your tax profile.
             </p>
 
             <div className="space-y-4 font-mono">

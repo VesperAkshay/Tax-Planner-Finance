@@ -1,5 +1,12 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
+import sys
 from typing import AsyncGenerator
+
+# Ensure backend directory is on sys.path so 'app' is always importable
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware

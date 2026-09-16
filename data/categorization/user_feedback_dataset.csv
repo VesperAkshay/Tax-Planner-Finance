@@ -1,0 +1,5 @@
+timestamp,user_id,description,confirmed_category,original_predicted_category,original_confidence
+2026-09-16T12:22:50.463601+00:00,12,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-16T12:22:50.466604+00:00,12,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-16T12:40:59.659383+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-16T12:40:59.662736+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5

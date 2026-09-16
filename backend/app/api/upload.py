@@ -191,20 +191,26 @@ async def upload_bank_statement(
         all_categories = {c.name.lower(): c.id for c in session.exec(select(Category)).all()}
         categorizer = get_categorizer()
 
-        # 7. Categorize and insert transactions
+        # 7. Batch Categorize across Tier 1 (Patterns) -> Tier 2 (XGBoost) -> Tier 3 (LLM)
+        descriptions = [r.description for r in parse_res.rows]
+        cat_results = categorizer.categorize_batch(
+            descriptions,
+            use_llm_fallback=True,
+            user_id=current_user.id,
+        )
+
         db_txns: List[Transaction] = []
-        for row in parse_res.rows:
-            # Phase 3 ML Categorization with confidence thresholding
-            cat_res = categorizer.categorize(row.description)
+        for row, cat_res in zip(parse_res.rows, cat_results):
             assigned_cat_name = cat_res.category
             cat_id = all_categories.get(assigned_cat_name.lower())
+            clean_desc = cat_res.clean_merchant or getattr(row, "cleaned_description", None) or row.description
 
             txn = Transaction(
                 account_id=acc.id,
                 upload_id=upload_rec.id,
                 date=row.date,
                 description=row.description,
-                cleaned_description=getattr(row, "cleaned_description", None) or row.description,
+                cleaned_description=clean_desc,
                 amount=row.amount,
                 transaction_type=row.transaction_type,
                 balance=row.balance,

@@ -9,6 +9,7 @@ import { SnapshotView } from './components/SnapshotView';
 import { ReconciliationView } from './components/ReconciliationView';
 import { AgentChatView } from './components/AgentChatView';
 import { TaxReportView } from './components/TaxReportView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './api/client';
 import type { User } from './types';
 import {
@@ -119,32 +120,34 @@ export const App: React.FC = () => {
                 )}
               </div>
               <div className="text-gray-600 font-bold">
-                PRIVATE VAULT ID #{currentUser.id}
+                SECURE ENCRYPTED VAULT
               </div>
             </div>
 
-            {/* Dynamic View Switched by Tabs */}
-            {activeTab === 'upload' && (
-              <UploadView
-                onUploadSuccess={() => {
-                  loadFlags();
-                }}
-              />
-            )}
+            {/* Dynamic View Switched by Tabs with ErrorBoundary protection */}
+            <ErrorBoundary key={activeTab}>
+              {activeTab === 'upload' && (
+                <UploadView
+                  onUploadSuccess={() => {
+                    loadFlags();
+                  }}
+                />
+              )}
 
-            {activeTab === 'snapshot' && <SnapshotView />}
+              {activeTab === 'snapshot' && <SnapshotView onNavigateToTab={setActiveTab} />}
 
-            {activeTab === 'reconciliation' && (
-              <ReconciliationView
-                onFlagUpdate={() => {
-                  loadFlags();
-                }}
-              />
-            )}
+              {activeTab === 'reconciliation' && (
+                <ReconciliationView
+                  onFlagUpdate={() => {
+                    loadFlags();
+                  }}
+                />
+              )}
 
-            {activeTab === 'chat' && <AgentChatView />}
+              {activeTab === 'chat' && <AgentChatView />}
 
-            {activeTab === 'report' && <TaxReportView />}
+              {activeTab === 'report' && <TaxReportView />}
+            </ErrorBoundary>
 
             {/* Feature Highlights Grid with Brutalist Stickers */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
