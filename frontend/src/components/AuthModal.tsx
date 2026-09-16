@@ -204,9 +204,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="mt-6 pt-4 border-t-2 border-dashed border-black flex items-center justify-between text-[10px] font-mono text-gray-600">
           <span className="flex items-center gap-1 font-bold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            NEON DB MULTI-TENANT
+            BANK-GRADE ENCRYPTION
           </span>
-          <span className="font-bold">ZERO LLM MATH</span>
+          <span className="font-bold">100% EXACT STATUTORY MATH</span>
         </div>
       </div>
     </div>

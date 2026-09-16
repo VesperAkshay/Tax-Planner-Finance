@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <p className="text-xs font-mono text-gray-700 font-semibold hidden sm:block">
-              Zero LLM Tax Arithmetic • Multi-Tenant Isolated
+              100% Exact Math Guarantee • Private &amp; Encrypted Vault
             </p>
           </div>
         </div>

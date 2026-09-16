@@ -119,7 +119,7 @@ export const App: React.FC = () => {
                 )}
               </div>
               <div className="text-gray-600 font-bold">
-                NEON ROW-LEVEL SCOPE ID #{currentUser.id}
+                PRIVATE VAULT ID #{currentUser.id}
               </div>
             </div>
 
@@ -153,11 +153,11 @@ export const App: React.FC = () => {
                   <Zap className="w-6 h-6 text-black stroke-[2.5]" />
                 </div>
                 <h4 className="text-xl font-black uppercase font-['Space_Grotesk'] mb-2">
-                  ZERO LLM ARITHMETIC
+                  EXACT STATUTORY MATH
                 </h4>
                 <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                  All tax liability figures are computed exclusively by AST-verified pure Python
-                  functions with 100% statement test coverage.
+                  All tax liability figures are computed using pure mathematical logic adhering directly
+                  to Finance Act statutory slabs with zero guesswork.
                 </p>
               </div>
 
@@ -179,11 +179,11 @@ export const App: React.FC = () => {
                   <Lock className="w-6 h-6 text-white stroke-[2.5]" />
                 </div>
                 <h4 className="text-xl font-black uppercase font-['Space_Grotesk'] mb-2">
-                  MULTI-TENANT ISOLATED
+                  PRIVATE DATA VAULT
                 </h4>
                 <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                  Strict row-level tenant security in Neon PostgreSQL. User B cannot access User A's
-                  data under any circumstances.
+                  Bank-grade security and complete data isolation. Your uploads, records, and deductions
+                  are strictly accessible only by your account.
                 </p>
               </div>
             </div>
@@ -219,12 +219,12 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-4 text-xs font-mono text-gray-300">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Neon PostgreSQL
+              Bank-Grade Encryption
             </span>
             <span>•</span>
-            <span>Docling Parsers</span>
+            <span>Document OCR</span>
             <span>•</span>
-            <span>LangGraph Agent</span>
+            <span>Interactive Tax Advisory</span>
           </div>
         </div>
       </footer>

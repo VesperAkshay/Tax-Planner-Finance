@@ -74,7 +74,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
             <span>PHASE 9.1 // DOCUMENT INGESTION PIPELINE</span>
           </div>
           <div className="font-mono text-xs font-bold text-gray-700 bg-white px-3 py-1 border border-black shadow-[2px_2px_0px_0px_#000]">
-            REAL BACKEND INGESTION ACTIVE
+            SECURE DOCUMENT INGESTION
           </div>
         </div>
 
@@ -82,8 +82,8 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
           INGEST STATEMENTS &amp; SALARY SLIPS
         </h2>
         <p className="text-sm md:text-base font-medium text-gray-800 max-w-2xl leading-relaxed font-['Plus_Jakarta_Sans']">
-          Docling &amp; CSV parsers ingest multi-bank transactions, extract monthly salary components, and
-          execute automatic balance continuity reconciliation ($\Delta \le ₹1.00$).
+          Intelligent document intake reads multi-bank statements, extracts salary slip components, and
+          checks balance continuity within ₹1.00 tolerance.
         </p>
       </div>
 

@@ -106,7 +106,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
 
           <div className="flex items-center gap-2 font-mono text-xs font-bold bg-[#3730A3] text-white px-3 py-1 border-2 border-black">
             <ShieldCheck className="w-4 h-4 text-[#FACC15]" />
-            <span>AST-VERIFIED ZERO LLM ARITHMETIC</span>
+            <span>100% EXACT STATUTORY MATH</span>
           </div>
         </div>
 
@@ -114,8 +114,8 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
           TAX AGENT CHAT
         </h2>
         <p className="text-sm md:text-base font-medium text-gray-800 max-w-xl font-['Plus_Jakarta_Sans'] mt-2">
-          LangGraph state machine guides you through deductions. Every number returned is computed by
-          the Phase 5 deterministic tax rules engine.
+          Interactive tax assistant guides you through deductions. All tax figures are computed according
+          to official FY 2025–26 statutory rules.
         </p>
       </div>
 
@@ -134,13 +134,13 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
                   AI TAX PLANNING ASSISTANT
                 </h3>
                 <p className="text-[11px] font-mono text-gray-300">
-                  Online • RAG Corpus FY 2025–26 Indexed
+                  Online • FY 2025–26 Rules Active
                 </p>
               </div>
             </div>
 
             <span className="bg-[#F59E0B] text-black font-black text-[10px] uppercase px-2 py-0.5 border border-black font-mono">
-              LANGGRAPH V2
+              AI ASSISTANT
             </span>
           </div>
 

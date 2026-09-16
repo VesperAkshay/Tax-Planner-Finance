@@ -195,7 +195,7 @@ export const SnapshotView: React.FC = () => {
               CATEGORY SPENDING BREAKDOWN
             </h3>
             <p className="text-xs font-mono text-gray-700 mt-1">
-              Classified via 384-d MiniLM embeddings + Logistic Regression classifier.
+              Classified automatically across 12 standard financial categories.
             </p>
           </div>
           <span className="bg-[#FACC15] text-black text-xs font-mono font-black px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000]">
@@ -246,8 +246,8 @@ export const SnapshotView: React.FC = () => {
       <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000] flex items-center gap-3">
         <AlertCircle className="w-5 h-5 text-[#3730A3] flex-shrink-0" />
         <p className="text-xs font-bold text-gray-800 font-mono">
-          Self-transfers between user accounts have been isolated by Phase 2 reconciler to prevent
-          double-counting in expenditure calculations.
+          Self-transfers between your own accounts are automatically detected and isolated to prevent
+          duplicate expense counting.
         </p>
       </div>
     </div>

@@ -7,7 +7,6 @@ import {
   Bot,
   Scissors,
 } from 'lucide-react';
-import { TestimonialCard } from './TestimonialCard';
 
 interface LandingViewProps {
   onOpenAuth: (mode: 'login' | 'register') => void;
@@ -25,9 +24,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
             <span>★</span>
             <span>BATCH NO: FY2025-26-AY26</span>
             <span>★</span>
-            <span>FACTORY SEALED PYTHON DETERMINISTIC ENGINE</span>
+            <span>OFFICIAL STATUTORY RATE ENGINE</span>
             <span>★</span>
-            <span>ZERO LLM ARITHMETIC GUARANTEE</span>
+            <span>100% EXACT STATUTORY MATH GUARANTEE</span>
             <span>★</span>
           </div>
         </div>
@@ -44,7 +43,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
           </div>
 
           <div className="font-mono text-xs font-black bg-white border-2 border-black px-3 py-1 shadow-[2px_2px_0px_0px_#000]">
-            SERIAL: TP-NEON-2026
+            EDITION: SALARIED-FY26
           </div>
         </div>
 
@@ -139,7 +138,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
 
             <div className="pt-2 text-[10px] leading-tight text-gray-600">
               * Percentage Daily Values are based on the Finance Act 2024 / 2025 statutory schedules.
-              Calculations are computed purely via AST-verified Python functions.
+              Calculations follow exact statutory provisions with 100% mathematical accuracy.
             </div>
           </div>
         </div>
@@ -179,7 +178,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
                 INGESTION &amp; OCR
               </h4>
               <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                Docling &amp; CSV parsers ingest multi-bank statements (HDFC, ICICI, SBI, Axis) and
+                Smart document intake parses multi-bank statements (HDFC, ICICI, SBI, Axis) and
                 salary slips, extracting exact earnings, PF, and tax debits.
               </p>
             </div>
@@ -198,11 +197,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
                 <Sparkles className="w-6 h-6 text-[#F59E0B]" />
               </div>
               <h4 className="text-lg font-black uppercase font-['Space_Grotesk'] mb-2">
-                ML CATEGORIZATION
+                EXPENSE CATEGORIZATION
               </h4>
               <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                384-dimensional MiniLM embeddings classify transactions into 12 categories. Confidence
-                below 0.60 is flagged for active learning review.
+                Automated intelligence categorizes transactions into 12 spending categories, flagging
+                low-confidence items for your review.
               </p>
             </div>
             <span className="mt-4 pt-3 border-t-2 border-gray-200 text-[11px] font-mono font-bold text-emerald-800">
@@ -223,12 +222,12 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
                 TAX AGENT CHAT
               </h4>
               <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                LangGraph state machine guides you through Section 80C, 80D, 80CCD(1B), and HRA
-                exemptions. Calculations are strictly executed by pure code.
+                Interactive tax assistant guides you through Section 80C, 80D, 80CCD(1B), and HRA
+                exemptions with verified deduction discovery.
               </p>
             </div>
             <span className="mt-4 pt-3 border-t-2 border-gray-200 text-[11px] font-mono font-bold text-emerald-800">
-              ✓ Zero LLM Arithmetic AST
+              ✓ Exact Math Guarantee
             </span>
           </div>
 
@@ -256,32 +255,18 @@ export const LandingView: React.FC<LandingViewProps> = ({ onOpenAuth }) => {
         </div>
       </div>
 
-      {/* Community Testimonials & Social Proof (with White dot active, Blue dot inactive) */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <span className="bg-[#F59E0B] text-black text-xs font-black font-mono px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000]">
-            VERIFIED TAXPAYER REPORTS
-          </span>
-          <h3 className="text-2xl font-black uppercase font-['Space_Grotesk'] text-[#18153B]">
-            WHAT SALARIED PROFESSIONALS SAY
-          </h3>
-        </div>
-
-        <TestimonialCard />
-      </div>
-
       {/* Big Packaging CTA Bar at Bottom */}
       <div className="bg-[#FACC15] border-4 border-black p-8 shadow-[8px_8px_0px_0px_#000] flex flex-wrap items-center justify-between gap-6">
         <div>
           <span className="bg-black text-white text-xs font-black font-mono px-2.5 py-1 uppercase">
-            INSTANT MULTI-TENANT ACCESS
+            INSTANT PRIVATE VAULT ACCESS
           </span>
           <h3 className="text-3xl md:text-4xl font-black uppercase font-['Space_Grotesk'] text-black mt-2">
             READY TO UNBOX YOUR FY 2025–26 SAVINGS?
           </h3>
           <p className="text-sm font-bold text-black max-w-xl mt-1">
-            Create your private account in seconds. Data is securely partitioned in our Neon
-            PostgreSQL instance.
+            Create your private account in seconds. Your financial records remain completely private and
+            encrypted.
           </p>
         </div>
 
