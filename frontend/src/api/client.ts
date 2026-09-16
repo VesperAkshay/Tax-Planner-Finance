@@ -117,7 +117,7 @@ export class ApiClient {
       formData.append('bank_format', bankFormat);
     }
 
-    const res = await fetch(`${API_BASE}/statement`, {
+    const res = await fetch(`${API_BASE}/upload/statement`, {
       method: 'POST',
       headers: this.headers(true),
       body: formData,
@@ -136,7 +136,7 @@ export class ApiClient {
     if (month) formData.append('month', String(month));
     if (year) formData.append('year', String(year));
 
-    const res = await fetch(`${API_BASE}/salary-slip`, {
+    const res = await fetch(`${API_BASE}/upload/salary-slip`, {
       method: 'POST',
       headers: this.headers(true),
       body: formData,
@@ -162,7 +162,7 @@ export class ApiClient {
   }
 
   async getReconciliationFlags(): Promise<ReconciliationFlag[]> {
-    const res = await fetch(`${API_BASE}/flags`, {
+    const res = await fetch(`${API_BASE}/reconciliation/flags`, {
       headers: this.headers(),
     });
 
@@ -173,39 +173,65 @@ export class ApiClient {
     return await res.json();
   }
 
+  async runReconciliation(): Promise<unknown> {
+    const res = await fetch(`${API_BASE}/reconciliation/run`, {
+      method: 'POST',
+      headers: this.headers(),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to run reconciliation pipeline (${res.status})`);
+    }
+    return await res.json();
+  }
+
   async resolveFlag(
     flagId: number,
     resolution: string,
     note?: string
   ): Promise<{ success: boolean; flag: ReconciliationFlag }> {
-    const res = await fetch(`${API_BASE}/flags/${flagId}/resolve`, {
+    const action = resolution === 'resolve' || resolution === 'resolved' ? 'resolved' : 'ignored';
+    const userNote = note && note.trim().length > 0 ? note : 'User marked as resolved in UI';
+
+    const res = await fetch(`${API_BASE}/reconciliation/flags/${flagId}/resolve`, {
       method: 'POST',
       headers: this.headers(),
-      body: JSON.stringify({ resolution, note }),
+      body: JSON.stringify({ action, user_note: userNote }),
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `Failed to resolve flag (${res.status})`);
     }
-    return await res.json();
+    const data = await res.json();
+    return { success: true, flag: data };
   }
 
   async sendChatMessage(
     message: string,
     history: { role: string; content: string }[]
   ): Promise<{ reply: string; deductions_updated?: Record<string, number> }> {
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch(`${API_BASE}/agent/chat`, {
       method: 'POST',
       headers: this.headers(),
-      body: JSON.stringify({ message, history }),
+      body: JSON.stringify({
+        message,
+        history,
+        user_responses: {},
+        session_id: 'default_session',
+      }),
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `Agent communication failed (${res.status})`);
     }
-    return await res.json();
+    const data = await res.json();
+    return {
+      reply: data.message || data.reply || 'Calculations updated.',
+      deductions_updated: data.declared_deductions || data.deductions_updated,
+    };
   }
 
   async getTaxComparisonReport(): Promise<TaxComparisonReport> {

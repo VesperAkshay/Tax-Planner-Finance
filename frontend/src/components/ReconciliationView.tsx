@@ -34,6 +34,21 @@ export const ReconciliationView: React.FC<ReconciliationViewProps> = ({ onFlagUp
     }
   };
 
+  const handleRerun = async () => {
+    setLoading(true);
+    try {
+      await api.runReconciliation();
+      const data = await api.getReconciliationFlags();
+      setFlags(data);
+      if (onFlagUpdate) onFlagUpdate();
+    } catch (e) {
+      console.error('Reconciliation run error', e);
+      await loadFlags();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResolve = async (flagId: number, resolution: 'resolve' | 'ignore') => {
     setResolvingId(flagId);
     try {
@@ -70,10 +85,11 @@ export const ReconciliationView: React.FC<ReconciliationViewProps> = ({ onFlagUp
           </div>
 
           <button
-            onClick={loadFlags}
-            className="flex items-center gap-2 bg-[#FAF7F2] hover:bg-gray-100 text-black px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs font-mono"
+            onClick={handleRerun}
+            disabled={loading}
+            className="flex items-center gap-2 bg-[#FAF7F2] hover:bg-gray-100 text-black px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs font-mono disabled:opacity-50"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             RE-RUN ENGINE CHECK
           </button>
         </div>

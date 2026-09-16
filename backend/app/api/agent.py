@@ -13,12 +13,14 @@ from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
 from app.agent.graph import run_tax_planning_agent
+from app.agent.llm_client import extract_deductions_from_text, generate_llm_explanation
 from app.agent.persistence import persist_all_elicited_deductions
 from app.api.auth import get_current_user
 from app.database import get_db_session
 from app.models.salary_slip import SalarySlip
 from app.models.transaction import Transaction
 from app.models.user import User
+from app.models.user_declared_deduction import UserDeclaredDeduction
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ router = APIRouter(prefix="/agent", tags=["Tax Agent"])
 class AgentChatRequest(BaseModel):
     message: Optional[str] = Field(default="", description="User natural language message or query")
     user_responses: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Elicited deductions payload")
+    history: Optional[List[Dict[str, str]]] = Field(default_factory=list, description="Conversation history")
     session_id: Optional[str] = Field(default="default_session", description="Conversation session ID")
     gross_income: Optional[float] = Field(default=None, ge=0.0, description="Gross annual income in INR")
     is_salaried: bool = Field(default=True, description="Whether standard deduction applies")
@@ -102,16 +105,30 @@ def chat_with_tax_agent(
         else:
             derived_gross = 0.0
 
-    # 2. Run LangGraph Tax Planning Agent (Phase 7)
+    # 2. Extract deductions from user message & merge with existing inputs
+    extracted = extract_deductions_from_text(payload.message or "")
+    combined_responses = dict(payload.user_responses or {})
+    combined_responses.update(extracted)
+
+    # Pre-populate any existing deductions already saved in DB
+    existing_deductions = session.exec(
+        select(UserDeclaredDeduction).where(UserDeclaredDeduction.user_id == current_user.id)
+    ).all()
+    for ed in existing_deductions:
+        sec_key = ed.section_code.lower().replace("-", "_").replace(" ", "_")
+        if sec_key not in combined_responses:
+            combined_responses[sec_key] = ed.declared_amount
+
+    # 3. Run LangGraph Tax Planning Agent (Phase 7)
     final_state = run_tax_planning_agent(
         gross_income=derived_gross,
-        user_responses=payload.user_responses or {},
+        user_responses=combined_responses,
         salary_slip_data=salary_slip_data,
         is_salaried=payload.is_salaried,
         user_id=current_user.id,
     )
 
-    # 3. Persist elicited deductions into user_declared_deductions (Task 7.3)
+    # 4. Persist elicited deductions into user_declared_deductions (Task 7.3)
     if final_state.declared_deductions:
         persist_all_elicited_deductions(
             session=session,
@@ -120,18 +137,32 @@ def chat_with_tax_agent(
             financial_year=final_state.financial_year,
         )
 
-    # 4. Generate user response message
-    report = final_state.final_report
-    if report:
-        rec = report.get("recommended_regime", "new").upper()
-        savings = report.get("tax_savings", 0.0)
-        bot_message = (
-            f"Based on your profile and deductions, the **{rec} Regime** is recommended. "
-            f"You save ₹{savings:,.2f} in taxes. "
-            f"{report.get('summary', '')}"
+    # 5. Generate conversational explanation via OpenRouter / LLM with deterministic fallback
+    llm_message = None
+    if payload.message and payload.message.strip():
+        llm_message = generate_llm_explanation(
+            user_query=payload.message,
+            history=payload.history or [],
+            comparison=final_state.comparison_result or {},
+            citations=final_state.citations,
+            declared_deductions=final_state.declared_deductions,
+            gross_income=derived_gross,
         )
+
+    if llm_message:
+        bot_message = llm_message
     else:
-        bot_message = "Your financial inputs have been processed."
+        report = final_state.final_report
+        if report:
+            rec = report.get("recommended_regime", "new").upper()
+            savings = report.get("tax_savings", 0.0)
+            bot_message = (
+                f"Based on your profile and deductions, the **{rec} Regime** is recommended. "
+                f"You save ₹{savings:,.2f} in taxes. "
+                f"{report.get('summary', '')}"
+            )
+        else:
+            bot_message = "Your financial inputs have been processed."
 
     return AgentChatResponse(
         session_id=payload.session_id or "default_session",
