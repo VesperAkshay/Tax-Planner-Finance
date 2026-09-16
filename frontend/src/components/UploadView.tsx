@@ -64,45 +64,6 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
     }
   };
 
-  const loadDemoData = async () => {
-    setIsUploadingStmt(true);
-    setIsUploadingSalary(true);
-    setTimeout(() => {
-      setStmtResult({
-        upload_id: 101,
-        account_id: 1,
-        file_name: 'hdfc_bank_statement_fy2526.csv',
-        file_type: 'csv',
-        parse_status: 'completed',
-        parse_confidence: 0.985,
-        balance_reconciled: true,
-        opening_balance: 150000,
-        closing_balance: 420000,
-        statement_start_date: '2025-04-01',
-        statement_end_date: '2026-03-31',
-        transactions_parsed: 142,
-        needs_review: false,
-      });
-      setSalaryResult({
-        salary_slip_id: 201,
-        file_name: 'october_2025_payslip.pdf',
-        month: 10,
-        year: 2025,
-        gross_salary: 150000,
-        net_pay: 118000,
-        basic_pay: 75000,
-        hra: 35000,
-        provident_fund: 9000,
-        tax_deducted: 12500,
-        parse_confidence: 0.96,
-        matched_to_statement: true,
-      });
-      setIsUploadingStmt(false);
-      setIsUploadingSalary(false);
-      onUploadSuccess();
-    }, 600);
-  };
-
   return (
     <div className="space-y-8">
       {/* Hero Banner with Neo-Brutalist Sticker Graphics */}
@@ -112,14 +73,9 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
             <Sparkles className="w-4 h-4" />
             <span>PHASE 9.1 // DOCUMENT INGESTION PIPELINE</span>
           </div>
-
-          <button
-            onClick={loadDemoData}
-            className="flex items-center gap-2 bg-[#3730A3] text-white px-4 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#4338CA] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all font-black text-xs tracking-wider"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            LOAD PRE-PARSED DEMO FIXTURES
-          </button>
+          <div className="font-mono text-xs font-bold text-gray-700 bg-white px-3 py-1 border border-black shadow-[2px_2px_0px_0px_#000]">
+            REAL BACKEND INGESTION ACTIVE
+          </div>
         </div>
 
         <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#18153B] font-['Space_Grotesk'] uppercase leading-none mb-3">

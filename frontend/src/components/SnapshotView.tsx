@@ -7,6 +7,7 @@ import {
   Calendar,
   AlertCircle,
   Sparkles,
+  PieChart,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { FinancialSnapshot } from '../types';
@@ -35,8 +36,42 @@ export const SnapshotView: React.FC = () => {
     return (
       <div className="bg-[#FFFDF9] border-4 border-black p-12 text-center shadow-[6px_6px_0px_0px_#000]">
         <span className="font-black text-lg tracking-wider animate-pulse font-mono">
-          CALCULATING FINANCIAL SNAPSHOT...
+          CALCULATING REAL FINANCIAL SNAPSHOT...
         </span>
+      </div>
+    );
+  }
+
+  if (snapshot.total_transactions_analyzed === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000]">
+          <div className="inline-flex items-center gap-2 bg-[#3730A3] text-white px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs tracking-wider uppercase mb-2">
+            <Sparkles className="w-4 h-4 text-[#FACC15]" />
+            <span>PHASE 9.2 // CASHFLOW &amp; SPENDING ANALYTICS</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#18153B] font-['Space_Grotesk'] uppercase leading-none">
+            FINANCIAL SNAPSHOT
+          </h2>
+          <p className="text-sm font-medium text-gray-800 max-w-xl font-['Plus_Jakarta_Sans'] mt-2">
+            Derived directly from your verified statement uploads with zero fake metrics.
+          </p>
+        </div>
+
+        <div className="bg-[#FFFDF9] border-4 border-black p-10 shadow-[6px_6px_0px_0px_#000] text-center">
+          <div className="p-4 bg-[#FACC15] border-2 border-black inline-block mb-4">
+            <PieChart className="w-8 h-8 text-black" />
+          </div>
+          <h3 className="text-2xl font-black uppercase font-['Space_Grotesk'] mb-2">
+            NO TRANSACTIONS INGESTED YET
+          </h3>
+          <p className="text-xs font-mono text-gray-700 max-w-md mx-auto mb-4 font-bold">
+            Your user vault is completely isolated. Go to Tab 1 (Ingest Docs) to upload your bank statement CSV/PDF and generate your real cashflow metrics!
+          </p>
+          <div className="font-mono text-xs bg-[#FAF7F2] border-2 border-black p-3 max-w-md mx-auto">
+            TOTAL INCOME: ₹0.00 • TOTAL EXPENSES: ₹0.00 • SAVINGS: 0%
+          </div>
+        </div>
       </div>
     );
   }

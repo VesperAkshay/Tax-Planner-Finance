@@ -39,8 +39,42 @@ export const TaxReportView: React.FC = () => {
     return (
       <div className="bg-[#FFFDF9] border-4 border-black p-12 text-center shadow-[6px_6px_0px_0px_#000]">
         <span className="font-black text-lg tracking-wider animate-pulse font-mono">
-          GENERATING COMPARISON REPORT...
+          GENERATING REAL COMPARISON REPORT...
         </span>
+      </div>
+    );
+  }
+
+  if (report.new_regime.gross_income === 0 && report.old_regime.gross_income === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000]">
+          <div className="inline-flex items-center gap-2 bg-[#FACC15] px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs tracking-wider uppercase text-black mb-2">
+            <Sparkles className="w-4 h-4" />
+            <span>PHASE 9.5 // REGIME COMPARISON &amp; VERIFIED ADVISORY</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#18153B] font-['Space_Grotesk'] uppercase leading-none">
+            TAX REGIME COMPARISON REPORT
+          </h2>
+          <p className="text-sm font-medium text-gray-800 max-w-xl font-['Plus_Jakarta_Sans'] mt-2">
+            Computes statutory tax liability under Section 115BAC vs Old Regime with zero fake data.
+          </p>
+        </div>
+
+        <div className="bg-[#FFFDF9] border-4 border-black p-10 shadow-[6px_6px_0px_0px_#000] text-center">
+          <div className="p-4 bg-[#FACC15] border-2 border-black inline-block mb-4">
+            <FileCheck className="w-8 h-8 text-black" />
+          </div>
+          <h3 className="text-2xl font-black uppercase font-['Space_Grotesk'] mb-2">
+            NO SALARY OR INCOME PARSED YET
+          </h3>
+          <p className="text-xs font-mono text-gray-700 max-w-md mx-auto mb-4 font-bold">
+            Upload your bank statement or salary slip in Tab 1 (Ingest Docs) to calculate your exact FY 2025–26 tax liabilities under both regimes!
+          </p>
+          <div className="font-mono text-xs bg-[#FAF7F2] border-2 border-black p-3 max-w-md mx-auto">
+            TAXABLE INCOME: ₹0.00 • STATUTORY TAX: ₹0.00
+          </div>
+        </div>
       </div>
     );
   }
