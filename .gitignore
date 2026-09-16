@@ -43,6 +43,8 @@ htmlcov/
 
 # Project specific
 PROGRESS.md
+EVALUATION.md
+evaluation.md
 tax-planner-and-fiance-project.md
 tax-planner-and-finance-project.md
 tax-planner*.md
