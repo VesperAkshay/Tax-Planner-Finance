@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 class TransactionBase(SQLModel):
     account_id: int = Field(foreign_key="accounts.id", index=True, nullable=False)
     upload_id: Optional[int] = Field(default=None, foreign_key="statement_uploads.id", index=True)
+    financial_year: Optional[str] = Field(default=None, index=True, max_length=20)
     date: dt_date = Field(index=True, nullable=False)
     description: str = Field(nullable=False, max_length=1000)
     cleaned_description: Optional[str] = Field(default=None, max_length=1000)
@@ -56,6 +57,7 @@ class TransactionRead(TransactionBase):
 
 class TransactionUpdate(SQLModel):
     date: Optional[dt_date] = None
+    financial_year: Optional[str] = None
     description: Optional[str] = None
     cleaned_description: Optional[str] = None
     amount: Optional[float] = None

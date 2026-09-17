@@ -13,6 +13,7 @@ def compute_new_regime_tax(
     gross_income: float,
     rules: Dict[str, Any],
     is_salaried: bool = True,
+    deductions: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Computes tax liability under the New Tax Regime (Section 115BAC) as a pure function.
@@ -21,6 +22,7 @@ def compute_new_regime_tax(
         gross_income: Total gross annual income in INR (float >= 0)
         rules: Parsed tax rules dictionary (e.g. from data/tax_rules/fy_2025_26.json)
         is_salaried: Whether standard deduction for salaried individuals applies
+        deductions: Optional dictionary of deductions (e.g. 80CCD(2) employer NPS allowed under 115BAC)
 
     Returns:
         Structured breakdown of taxable income, slab-by-slab tax, 87A rebate,
@@ -32,7 +34,25 @@ def compute_new_regime_tax(
 
     # 1. Standard Deduction (purely from rules config)
     std_deduction_amount = float(new_reg["standard_deduction"]) if is_salaried else 0.0
-    taxable_income = max(0.0, gross - std_deduction_amount)
+
+    # 2. Section 80CCD(2) (Employer NPS contribution is allowed under Section 115BAC)
+    ded_dict = deductions or {}
+    allowed_80ccd2 = 0.0
+    if "section_80ccd_2" in ded_dict or "80ccd_2" in ded_dict:
+        val_80ccd2 = ded_dict.get("section_80ccd_2", ded_dict.get("80ccd_2"))
+        if isinstance(val_80ccd2, dict):
+            raw_80ccd2 = float(val_80ccd2.get("amount", 0.0))
+            basic_sal = float(val_80ccd2.get("basic_salary", gross))
+            is_govt = bool(val_80ccd2.get("is_govt", False))
+        else:
+            raw_80ccd2 = float(val_80ccd2 or 0.0)
+            basic_sal = gross
+            is_govt = False
+        cap_pct = 0.14 if is_govt else 0.10
+        cap_80ccd2 = basic_sal * cap_pct
+        allowed_80ccd2 = min(max(0.0, raw_80ccd2), cap_80ccd2)
+
+    taxable_income = max(0.0, gross - std_deduction_amount - allowed_80ccd2)
 
     # 2. Slab-by-Slab Calculation (purely from rules["new_regime"]["slabs"])
     slabs_config = new_reg["slabs"]

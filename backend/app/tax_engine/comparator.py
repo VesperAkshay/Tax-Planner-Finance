@@ -85,6 +85,7 @@ def compare_regimes(
         gross_income=gross,
         rules=rules_cfg,
         is_salaried=is_salaried,
+        deductions=deductions,
     )
 
     # 2. Compute Old Regime Tax

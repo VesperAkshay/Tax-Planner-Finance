@@ -136,6 +136,52 @@
       "section_80ttb": {
         "cap": 50000.0,
         "description": "Deduction for interest on deposits (savings & FD) for senior citizens"
+      },
+      "section_80ccd_2": {
+        "cap_percentage_private": 0.10,
+        "cap_percentage_govt": 0.14,
+        "description": "Employer contribution to NPS under Section 80CCD(2)"
+      },
+      "section_80gg": {
+        "monthly_cap": 5000.0,
+        "annual_cap": 60000.0,
+        "income_percentage_cap": 0.25,
+        "rent_excess_percentage": 0.10,
+        "description": "Deduction for rent paid by employees not receiving HRA"
+      },
+      "section_80eea": {
+        "cap": 150000.0,
+        "description": "Interest on loan for affordable housing"
+      },
+      "section_80e": {
+        "cap": null,
+        "description": "Interest on education loan for higher studies (no monetary upper limit)"
+      },
+      "section_80g": {
+        "description": "Donations to eligible charitable funds and institutions",
+        "qualifying_limit_percentage": 0.10
+      },
+      "section_80ggc": {
+        "cap": null,
+        "description": "Contributions to political parties made via non-cash banking channels"
+      },
+      "section_80dd": {
+        "normal_cap": 75000.0,
+        "severe_cap": 125000.0,
+        "description": "Maintenance and medical treatment of dependent with disability"
+      },
+      "section_80ddb": {
+        "normal_cap": 40000.0,
+        "senior_cap": 100000.0,
+        "description": "Medical treatment for specified chronic ailments"
+      },
+      "section_80u": {
+        "normal_cap": 75000.0,
+        "severe_cap": 125000.0,
+        "description": "Deduction for resident individual with disability"
+      },
+      "section_10_5": {
+        "description": "Leave Travel Concession / Allowance exemption on actual domestic travel expenses"
       }
     }
   }

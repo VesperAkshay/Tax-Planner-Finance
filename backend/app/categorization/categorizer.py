@@ -127,16 +127,28 @@ class TransactionCategorizer:
             matched = match_merchant_pattern(desc)
             if matched:
                 cat, merchant, conf = matched
-                results[idx] = CategorizationResult(
-                    category=cat,
-                    raw_predicted_category=cat,
-                    confidence=conf,
-                    needs_review=False,
-                    is_thresholded=False,
-                    threshold=effective_threshold,
-                    clean_merchant=merchant,
-                    source="pattern",
-                )
+                if conf < effective_threshold:
+                    results[idx] = CategorizationResult(
+                        category=UNCATEGORIZED_CATEGORY,
+                        raw_predicted_category=cat,
+                        confidence=conf,
+                        needs_review=True,
+                        is_thresholded=True,
+                        threshold=effective_threshold,
+                        clean_merchant=merchant,
+                        source="pattern",
+                    )
+                else:
+                    results[idx] = CategorizationResult(
+                        category=cat,
+                        raw_predicted_category=cat,
+                        confidence=conf,
+                        needs_review=False,
+                        is_thresholded=False,
+                        threshold=effective_threshold,
+                        clean_merchant=merchant,
+                        source="pattern",
+                    )
             else:
                 unmatched_indices.append(idx)
 
@@ -194,12 +206,22 @@ class TransactionCategorizer:
                         if pos < len(llm_preds):
                             lp = llm_preds[pos]
                             cat = lp.get("category", UNCATEGORIZED_CATEGORY)
+                            conf = round(float(lp.get("confidence", 0.90)), 4)
+                            if conf < effective_threshold or cat == UNCATEGORIZED_CATEGORY:
+                                assigned_cat = UNCATEGORIZED_CATEGORY
+                                needs_rev = True
+                                is_thresh = True
+                            else:
+                                assigned_cat = cat
+                                needs_rev = bool(lp.get("needs_review", False))
+                                is_thresh = False
+
                             results[orig_idx] = CategorizationResult(
-                                category=cat,
+                                category=assigned_cat,
                                 raw_predicted_category=cat,
-                                confidence=round(float(lp.get("confidence", 0.90)), 4),
-                                needs_review=bool(lp.get("needs_review", cat == UNCATEGORIZED_CATEGORY)),
-                                is_thresholded=bool(cat == UNCATEGORIZED_CATEGORY),
+                                confidence=conf,
+                                needs_review=needs_rev,
+                                is_thresholded=is_thresh,
                                 threshold=effective_threshold,
                                 clean_merchant=lp.get("merchant", descriptions[orig_idx][:30]),
                                 source="llm",
@@ -257,6 +279,22 @@ class TransactionCategorizer:
             annotated.append((row, res))
 
         return annotated
+
+    def apply_to_parsed_row(
+        self,
+        row: ParsedTransactionRow,
+        threshold: Optional[float] = None,
+        use_llm_fallback: bool = True,
+        user_id: int = 1,
+    ) -> Tuple[ParsedTransactionRow, CategorizationResult]:
+        """Convenience method to categorize a single ParsedTransactionRow."""
+        annotated = self.apply_to_parsed_rows(
+            [row],
+            threshold=threshold,
+            use_llm_fallback=use_llm_fallback,
+            user_id=user_id,
+        )
+        return annotated[0]
 
 
 _CATEGORIZER_SINGLETON: Optional[TransactionCategorizer] = None

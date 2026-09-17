@@ -170,10 +170,57 @@ export interface DeductionItem {
   citation?: string;
 }
 
+export interface FilingDeadlineInfo {
+  deadline_date: string;
+  days_remaining: number;
+  assessment_year: string;
+  is_overdue: boolean;
+  warning_level: 'green' | 'amber' | 'red';
+}
+
+export interface RealWorldFlags {
+  savings_interest?: {
+    total_interest: number;
+    interest_transactions_count: number;
+    eligible_deduction: number;
+    section: string;
+    is_senior_citizen: boolean;
+  };
+  capital_gains?: {
+    has_capital_gains_activity: boolean;
+    detected_sources: string[];
+    transaction_count: number;
+    advisory_warning: string;
+    itr_form_recommendation: string;
+  };
+  salary_arrears?: {
+    has_arrears: boolean;
+    arrears_transactions_count: number;
+    section_89_relief_advisory: string;
+  };
+  forex_transactions?: {
+    count: number;
+  };
+  sample_insufficiency?: {
+    is_insufficient: boolean;
+    transaction_count: number;
+  };
+}
+
+export interface AISChecklistItem {
+  id: string;
+  name: string;
+  description: string;
+  status: 'matched' | 'action_needed' | 'verified' | string;
+  action_needed: string;
+}
+
 export interface TaxComparisonReport {
   user_id: number;
   financial_year: string;
   gross_income: number;
+  salary_income?: number;
+  savings_interest_income?: number;
   is_salaried: boolean;
   recommended_regime: 'new' | 'old' | string;
   tax_savings: number;
@@ -191,4 +238,90 @@ export interface TaxComparisonReport {
   assessment_year?: string;
   declared_deductions?: DeductionItem[];
   missing_deductions_suggestions?: string[];
+  // v1.1 Statutory Governance & Real-World Features
+  catalog_viewed?: boolean;
+  is_final?: boolean;
+  report_status?: 'draft' | 'final' | string;
+  real_world_flags?: RealWorldFlags;
+  ais_26as_checklist?: {
+    title: string;
+    items: AISChecklistItem[];
+  };
+  filing_deadline?: FilingDeadlineInfo;
+}
+
+export interface DeductionCatalogItem {
+  id: string;
+  section_code: string;
+  display_name: string;
+  description: string;
+  applicable_regimes: 'old_only' | 'both' | string;
+  cap_type: 'fixed' | 'percentage' | 'formula' | string;
+  cap_amount: number | null;
+  cap_formula: string | null;
+  requires_eligibility_check: boolean;
+  declared_amount: number | null;
+  declared_status: string | null;
+  source: string | null;
+  elicitation_state: string | null;
+  skip_reason: string | null;
+  remaining_cap: number | null;
+  used_percentage: number | null;
+  is_editable: boolean;
+}
+
+export interface CatalogListResponse {
+  financial_year: string;
+  total_sections: number;
+  declared_count: number;
+  total_declared_deductions: number;
+  catalog_viewed: boolean;
+  catalog_viewed_at: string | null;
+  sections: DeductionCatalogItem[];
+}
+
+export interface SelfAddDeductionResponse {
+  success: boolean;
+  message: string;
+  section_code: string;
+  amount: number;
+  source: string;
+  remaining_cap: number | null;
+  cap_amount: number | null;
+}
+
+export interface YearOverYearComparison {
+  current_year: {
+    financial_year: string;
+    gross_income: number;
+    old_regime_total_liability: number;
+    new_regime_total_liability: number;
+    recommended_regime: string;
+    tax_savings: number;
+  };
+  prior_year: {
+    financial_year: string;
+    gross_income: number;
+    old_regime_total_liability: number;
+    new_regime_total_liability: number;
+    recommended_regime: string;
+    tax_savings: number;
+  } | null;
+  deltas?: {
+    gross_income_delta: number;
+    gross_income_pct_change: number;
+    tax_liability_delta: number;
+    tax_liability_pct_change: number;
+  };
+  has_prior_year_data: boolean;
+  analysis_summary: string;
+}
+
+export interface CustomBankMapping {
+  date_col: string;
+  narration_col: string;
+  debit_col?: string;
+  credit_col?: string;
+  amount_col?: string;
+  balance_col?: string;
 }

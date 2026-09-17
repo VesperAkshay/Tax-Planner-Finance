@@ -10,10 +10,12 @@ import {
   LogOut,
   LogIn,
   UserPlus,
+  BookOpen,
+  Database,
 } from 'lucide-react';
 import type { User } from '../types';
 
-export type TabKey = 'upload' | 'snapshot' | 'reconciliation' | 'chat' | 'report';
+export type TabKey = 'upload' | 'snapshot' | 'reconciliation' | 'catalog' | 'chat' | 'report';
 
 interface NavbarProps {
   activeTab: TabKey;
@@ -22,6 +24,7 @@ interface NavbarProps {
   onLogout: () => void;
   onOpenAuth: (mode: 'login' | 'register') => void;
   flagCount: number;
+  onOpenLifecycleModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -31,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onOpenAuth,
   flagCount,
+  onOpenLifecycleModal,
 }) => {
   const navItems: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: 'upload', label: '1. Ingest Docs', icon: <UploadCloud className="w-4 h-4" /> },
@@ -41,8 +45,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       icon: <GitCompare className="w-4 h-4" />,
       badge: flagCount > 0 ? flagCount : undefined,
     },
-    { key: 'chat', label: '4. Mr. Planner (AI)', icon: <MessageSquareCode className="w-4 h-4" /> },
-    { key: 'report', label: '5. Final Tax Report', icon: <FileCheck2 className="w-4 h-4" /> },
+    { key: 'catalog', label: '4. Deduction Catalog', icon: <BookOpen className="w-4 h-4" /> },
+    { key: 'chat', label: '5. Mr. Planner (AI)', icon: <MessageSquareCode className="w-4 h-4" /> },
+    { key: 'report', label: '6. Final Tax Report', icon: <FileCheck2 className="w-4 h-4" /> },
   ];
 
   return (
@@ -78,6 +83,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>ACTIVE VAULT</span>
               </div>
 
+              {/* Data Lifecycle / Privacy Vault Button */}
+              {onOpenLifecycleModal && (
+                <button
+                  onClick={onOpenLifecycleModal}
+                  className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer"
+                  title="Data Export, Reset & Right-to-Erasure"
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">VAULT DATA</span>
+                </button>
+              )}
+
               {/* Logged in User Badge */}
               <div className="flex items-center bg-[#FFFDF9] border-2 border-black shadow-[3px_3px_0px_0px_#000] px-3 py-1.5 gap-2 text-xs font-bold">
                 <UserIcon className="w-4 h-4 text-[#3730A3]" />
@@ -89,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Logout Button */}
               <button
                 onClick={onLogout}
-                className="flex items-center gap-1.5 bg-[#FB7185] hover:bg-rose-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all font-black text-xs font-mono uppercase"
+                className="flex items-center gap-1.5 bg-[#FB7185] hover:bg-rose-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all font-black text-xs font-mono uppercase cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">LOCK VAULT</span>

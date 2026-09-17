@@ -15,7 +15,13 @@ from app.models import (
     Transaction,
     User,
     UserDeclaredDeduction,
+    DeductionCatalog,
+    DeductionSource,
+    DeductionStatus,
+    ElicitationProgress,
+    ElicitationStateEnum,
 )
+from app.db.seed_catalog import seed_deduction_catalog
 
 
 @pytest.fixture(name="db_session")
@@ -262,6 +268,83 @@ def test_insert_and_read_all_ten_tables(db_session: Session):
     assert comp_read is not None
     assert comp_read.recommended_regime == "new"
     assert comp_read.tax_savings == 104520.0
+
+    # 11. DeductionCatalog (v1.1)
+    cat_item = DeductionCatalog(
+        section_code="80D",
+        display_name="Health insurance (self/family)",
+        description="Health insurance premium",
+        applicable_regimes="old_only",
+        cap_type="age_based",
+        cap_amount=25000.0,
+        requires_eligibility_check=False,
+    )
+    db_session.add(cat_item)
+    db_session.commit()
+    db_session.refresh(cat_item)
+    assert cat_item.id is not None
+
+    cat_read = db_session.exec(select(DeductionCatalog).where(DeductionCatalog.section_code == "80D")).first()
+    assert cat_read is not None
+    assert cat_read.display_name == "Health insurance (self/family)"
+    assert cat_read.cap_amount == 25000.0
+
+    # 12. ElicitationProgress (FK -> User) (v1.1)
+    prog = ElicitationProgress(
+        user_id=user.id,
+        financial_year="2025-2026",
+        section_code="80D",
+        state=ElicitationStateEnum.pending,
+    )
+    db_session.add(prog)
+    db_session.commit()
+    db_session.refresh(prog)
+    assert prog.id is not None
+
+    prog_read = db_session.exec(select(ElicitationProgress).where(ElicitationProgress.id == prog.id)).first()
+    assert prog_read is not None
+    assert prog_read.state == ElicitationStateEnum.pending
+    assert prog_read.section_code == "80D"
+
+
+def test_v1_1_deduction_catalog_seeding(db_session: Session):
+    """Confirm deduction catalog seeder populates all 18 canonical sections."""
+    seeded_count = seed_deduction_catalog(db_session)
+    assert seeded_count == 18
+
+    # Query all seeded sections
+    sections = db_session.exec(select(DeductionCatalog)).all()
+    assert len(sections) == 18
+    sec_codes = {s.section_code for s in sections}
+    expected_codes = {
+        "80C", "80CCD(1B)", "80CCD(2)", "80D", "80D (parents)",
+        "80DD", "80DDB", "80E", "80EEA", "80G", "80GG", "80GGC",
+        "80TTA", "80TTB", "80U", "24(b)", "10(13A)", "10(5)",
+    }
+    assert sec_codes == expected_codes
+
+    # Confirm 80CCD(2) applies to both regimes
+    nps_employer = db_session.exec(select(DeductionCatalog).where(DeductionCatalog.section_code == "80CCD(2)")).first()
+    assert nps_employer is not None
+    assert nps_employer.applicable_regimes == "both"
+
+    # Confirm sections with eligibility check flag
+    eligibility_sections = {s.section_code for s in sections if s.requires_eligibility_check}
+    assert eligibility_sections == {"80DD", "80DDB", "80EEA", "80G", "80U"}
+
+
+def test_foreign_key_rejects_orphaned_elicitation_progress(db_session: Session):
+    """Confirm orphaned elicitation_progress with invalid user_id is rejected."""
+    orphaned = ElicitationProgress(
+        user_id=999999,
+        financial_year="2025-2026",
+        section_code="80C",
+        state=ElicitationStateEnum.pending,
+    )
+    db_session.add(orphaned)
+    with pytest.raises(IntegrityError):
+        db_session.commit()
+    db_session.rollback()
 
 
 def test_foreign_key_rejects_orphaned_account(db_session: Session):

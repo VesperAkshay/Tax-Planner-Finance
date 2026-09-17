@@ -16,17 +16,32 @@ import {
   ChevronUp,
   ShieldCheck,
   RefreshCw,
+  Clock,
+  AlertTriangle,
+  TrendingUp,
+  CheckSquare,
+  ListChecks,
+  BookOpen,
 } from 'lucide-react';
 import { api } from '../api/client';
-import type { TaxComparisonReport } from '../types';
+import type { TaxComparisonReport, YearOverYearComparison } from '../types';
 
-export const TaxReportView: React.FC = () => {
+interface TaxReportViewProps {
+  onNavigateToCatalog?: () => void;
+}
+
+export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalog }) => {
   const [report, setReport] = useState<TaxComparisonReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showSlabsBreakdown, setShowSlabsBreakdown] = useState(false);
-  const [activeTabMode, setActiveTabMode] = useState<'comparison' | 'invoice_memo'>('comparison');
+  const [activeTabMode, setActiveTabMode] = useState<'comparison' | 'invoice_memo' | 'yoy'>('comparison');
+
+  // YoY Comparison state (Phase 17)
+  const [yoyData, setYoyData] = useState<YearOverYearComparison | null>(null);
+  const [loadingYoy, setLoadingYoy] = useState(false);
+  const [yoyError, setYoyError] = useState<string | null>(null);
 
   useEffect(() => {
     loadReport();
@@ -43,6 +58,20 @@ export const TaxReportView: React.FC = () => {
       setError(e instanceof Error ? e.message : 'Failed to generate tax comparison report');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadYoyData = async () => {
+    setLoadingYoy(true);
+    setYoyError(null);
+    try {
+      const data = await api.getYearOverYearComparison('2025-2026');
+      setYoyData(data);
+    } catch (e: unknown) {
+      console.error('Failed to load YoY comparison:', e);
+      setYoyError(e instanceof Error ? e.message : 'Failed to load Year-Over-Year comparison');
+    } finally {
+      setLoadingYoy(false);
     }
   };
 
@@ -228,8 +257,142 @@ export const TaxReportView: React.FC = () => {
           >
             🧾 INVOICE AUDIT MEMO
           </button>
+          <button
+            onClick={() => {
+              setActiveTabMode('yoy');
+              if (!yoyData) loadYoyData();
+            }}
+            className={`px-3 py-1.5 border-2 border-black font-black uppercase cursor-pointer transition-all ${
+              activeTabMode === 'yoy'
+                ? 'bg-[#18153B] text-white shadow-[2px_2px_0px_0px_#000]'
+                : 'bg-white text-black hover:bg-gray-100'
+            }`}
+          >
+            📈 YEAR-OVER-YEAR (YoY)
+          </button>
         </div>
+
+        {/* Filing Deadline Countdown Banner (Phase 17) */}
+        {report.filing_deadline && (
+          <div
+            className={`p-3 border-2 border-black flex flex-wrap items-center justify-between gap-3 font-mono text-xs shadow-[3px_3px_0px_0px_#000] mt-4 ${
+              report.filing_deadline.warning_level === 'red'
+                ? 'bg-red-100 text-red-950'
+                : report.filing_deadline.warning_level === 'amber'
+                ? 'bg-amber-100 text-amber-950'
+                : 'bg-emerald-100 text-emerald-950'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <span className="font-bold">
+                ITR STATUTORY FILING DEADLINE ({report.filing_deadline.assessment_year}):{' '}
+                <span className="font-black">{report.filing_deadline.deadline_date}</span>
+              </span>
+            </div>
+            <span className="bg-white px-2.5 py-0.5 border border-black font-black">
+              {report.filing_deadline.days_remaining} DAYS REMAINING
+            </span>
+          </div>
+        )}
       </div>
+
+      {/* Catalog Checkpoint & Draft vs Final Report Gating (Phase 14) */}
+      {report.report_status === 'draft' ? (
+        <div className="bg-amber-100 border-4 border-black p-5 shadow-[6px_6px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-6 h-6 text-amber-900 flex-shrink-0" />
+            <div>
+              <span className="font-black text-amber-950 uppercase text-sm block">
+                ⚠️ DRAFT COMPUTATION — STATUTORY CATALOG REVIEW PENDING
+              </span>
+              <span className="text-amber-900 font-semibold leading-relaxed">
+                Review all 18 personal statutory sections (80C, 80D, 80CCD, 80G, HRA, 80TTA, etc.) in the deduction catalog
+                to ensure you don't miss qualifying tax offsets before locking your final audit report.
+              </span>
+            </div>
+          </div>
+          {onNavigateToCatalog && (
+            <button
+              onClick={onNavigateToCatalog}
+              className="flex items-center gap-2 bg-[#FACC15] hover:bg-yellow-400 text-black px-4 py-2 border-2 border-black font-black uppercase shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>REVIEW DEDUCTION CATALOG (18 SECTIONS)</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="bg-emerald-100 border-3 border-black p-3.5 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between font-mono text-xs text-emerald-950">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-700" />
+            <span className="font-black uppercase text-sm">
+              ✅ FINAL STATUTORY AUDIT MEMORANDUM — CATALOG CHECKPOINT SATISFIED
+            </span>
+          </div>
+          <span className="bg-emerald-300 text-emerald-950 text-xs font-black px-2 py-0.5 border border-black font-mono">
+            AUDITED
+          </span>
+        </div>
+      )}
+
+      {/* Real-World Detectors & Advisories (Phase 17) */}
+      {report.real_world_flags?.capital_gains?.has_capital_gains_activity && (
+        <div className="bg-red-50 border-4 border-black p-5 shadow-[6px_6px_0px_0px_#000] font-mono text-xs space-y-2">
+          <div className="flex items-center gap-2 text-red-900 font-black text-sm uppercase">
+            <AlertCircle className="w-5 h-5 text-red-700 flex-shrink-0" />
+            <span>STATUTORY COMPLIANCE ALERT: CAPITAL GAINS / BROKER ACTIVITY DETECTED</span>
+          </div>
+          <p className="text-red-950 font-semibold leading-relaxed">
+            {report.real_world_flags.capital_gains.advisory_warning}
+          </p>
+          <div className="bg-white border-2 border-black p-2 text-[11px] font-bold text-gray-800 flex flex-wrap items-center justify-between gap-2">
+            <span>
+              Detected Entities: {report.real_world_flags.capital_gains.detected_sources?.join(', ') || 'Stock / MF Broker'}
+            </span>
+            <span className="bg-red-200 text-red-950 px-2 py-0.5 border border-black font-black uppercase">
+              {report.real_world_flags.capital_gains.itr_form_recommendation || 'FILE FORM ITR-2'}
+            </span>
+          </div>
+          <p className="text-[10px] text-gray-600 font-bold">
+            Note: In strict accordance with our Zero LLM Tax Arithmetic and statutory scope guarantee, capital gains tax is not computed here.
+          </p>
+        </div>
+      )}
+
+      {report.real_world_flags?.salary_arrears?.has_arrears && (
+        <div className="bg-blue-50 border-4 border-black p-5 shadow-[6px_6px_0px_0px_#000] font-mono text-xs space-y-2">
+          <div className="flex items-center gap-2 text-[#18153B] font-black text-sm uppercase">
+            <Info className="w-5 h-5 text-[#3730A3] flex-shrink-0" />
+            <span>SECTION 89 STATUTORY RELIEF: SALARY ARREARS DETECTED</span>
+          </div>
+          <p className="text-blue-950 font-semibold leading-relaxed">
+            {report.real_world_flags.salary_arrears.section_89_relief_advisory}
+          </p>
+          <div className="bg-white border-2 border-black p-2 text-[11px] font-bold text-[#3730A3]">
+            Filing Action: Submit Form 10E on the Income Tax Department portal prior to filing your tax return to claim tax relief.
+          </div>
+        </div>
+      )}
+
+      {report.savings_interest_income && report.savings_interest_income > 0 && (
+        <div className="bg-[#FAF7F2] border-3 border-black p-3.5 shadow-[4px_4px_0px_0px_#000] font-mono text-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+            <div>
+              <span className="font-black text-[#18153B] uppercase">
+                SAVINGS BANK INTEREST: ₹{report.savings_interest_income.toLocaleString('en-IN')}
+              </span>
+              <span className="text-gray-700 font-semibold block text-[11px]">
+                Added to Gross Total Income and independently claimed under Section 80TTA (Old Regime limit ₹10,000).
+              </span>
+            </div>
+          </div>
+          <span className="bg-[#FACC15] text-black font-black px-2 py-1 border border-black text-[11px]">
+            SECTION 80TTA APPLIED
+          </span>
+        </div>
+      )}
 
       {/* Grand Winner Announcement Banner */}
       <div
@@ -554,6 +717,151 @@ export const TaxReportView: React.FC = () => {
         </div>
       )}
 
+      {/* VIEW MODE 3: Year-Over-Year Multi-Year Comparison (Phase 17) */}
+      {activeTabMode === 'yoy' && (
+        <div className="bg-[#FFFDF9] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000] space-y-6 font-mono">
+          <div className="flex items-center justify-between border-b-3 border-black pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[#FACC15] border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+                <TrendingUp className="w-6 h-6 text-black" />
+              </div>
+              <div>
+                <h3 className="font-black text-xl md:text-2xl uppercase font-['Space_Grotesk']">
+                  MULTI-YEAR TAX &amp; FINANCIAL PROGRESSION
+                </h3>
+                <span className="text-xs text-gray-700 font-bold">
+                  FY 2025–26 vs Prior Financial Year Analysis
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={loadYoyData}
+              disabled={loadingYoy}
+              className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-gray-100 text-black px-3 py-1.5 border-2 border-black text-xs font-bold shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingYoy ? 'animate-spin' : ''}`} />
+              <span>REFRESH YOY</span>
+            </button>
+          </div>
+
+          {loadingYoy && (
+            <div className="p-8 text-center">
+              <RefreshCw className="w-8 h-8 mx-auto animate-spin mb-2 text-[#3730A3]" />
+              <span className="font-bold text-sm">Computing Year-Over-Year Variance...</span>
+            </div>
+          )}
+
+          {yoyError && (
+            <div className="p-4 bg-red-100 border-2 border-black text-red-900 font-bold">
+              {yoyError}
+            </div>
+          )}
+
+          {!loadingYoy && yoyData && (
+            <div className="space-y-6">
+              {!yoyData.has_prior_year_data ? (
+                <div className="bg-[#FAF7F2] border-3 border-black p-6 shadow-[4px_4px_0px_0px_#000] space-y-4">
+                  <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                    <Info className="w-5 h-5 text-amber-700 flex-shrink-0" />
+                    <span>PRIOR YEAR (FY 2024-25) DATA NOT DETECTED IN VAULT</span>
+                  </div>
+                  <p className="text-xs text-gray-700 leading-relaxed font-semibold">
+                    You currently have data for <span className="font-black text-black">FY 2025–26</span>.
+                    To unlock multi-year tax variance tracking, upload previous year bank statements or salary slips in Tab 1.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div className="bg-white border-2 border-black p-4">
+                      <span className="text-[10px] text-gray-600 uppercase block font-bold">FY 2025-26 GROSS INCOME</span>
+                      <span className="text-2xl font-black text-[#18153B]">
+                        ₹{yoyData.current_year.gross_income.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                    <div className="bg-white border-2 border-black p-4">
+                      <span className="text-[10px] text-gray-600 uppercase block font-bold">NEW REGIME LIABILITY</span>
+                      <span className="text-2xl font-black text-[#3730A3]">
+                        ₹{yoyData.current_year.new_regime_total_liability.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                    <div className="bg-white border-2 border-black p-4">
+                      <span className="text-[10px] text-gray-600 uppercase block font-bold">OPTIMAL REGIME</span>
+                      <span className="text-2xl font-black text-emerald-700 uppercase">
+                        {yoyData.current_year.recommended_regime} REGIME
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000]">
+                      <span className="text-[10px] text-gray-600 uppercase font-bold block">GROSS INCOME YOY</span>
+                      <span className="text-2xl font-black text-[#18153B] block mt-1">
+                        ₹{yoyData.current_year.gross_income.toLocaleString('en-IN')}
+                      </span>
+                      {yoyData.deltas && (
+                        <div className="text-xs font-black mt-2 text-emerald-700 flex items-center gap-1">
+                          <span>{yoyData.deltas.gross_income_delta >= 0 ? '▲ +' : '▼ -'}₹{Math.abs(yoyData.deltas.gross_income_delta).toLocaleString('en-IN')}</span>
+                          <span className="bg-emerald-200 px-1 py-0.2 border border-black text-[10px]">
+                            {yoyData.deltas.gross_income_pct_change >= 0 ? '+' : ''}{yoyData.deltas.gross_income_pct_change.toFixed(1)}%
+                          </span>
+                        </div>
+                      )}
+                      <span className="text-[10px] text-gray-500 block mt-1">
+                        Prior: ₹{(yoyData.prior_year?.gross_income || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000]">
+                      <span className="text-[10px] text-gray-600 uppercase font-bold block">NEW REGIME TAX YOY</span>
+                      <span className="text-2xl font-black text-[#3730A3] block mt-1">
+                        ₹{yoyData.current_year.new_regime_total_liability.toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-[10px] text-gray-500 block mt-3">
+                        Prior: ₹{(yoyData.prior_year?.new_regime_total_liability || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000]">
+                      <span className="text-[10px] text-gray-600 uppercase font-bold block">OLD REGIME TAX YOY</span>
+                      <span className="text-2xl font-black text-amber-900 block mt-1">
+                        ₹{yoyData.current_year.old_regime_total_liability.toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-[10px] text-gray-500 block mt-3">
+                        Prior: ₹{(yoyData.prior_year?.old_regime_total_liability || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000]">
+                      <span className="text-[10px] text-gray-600 uppercase font-bold block">REGIME RECOMMENDATION</span>
+                      <span className="text-xl font-black text-emerald-700 uppercase block mt-1">
+                        {yoyData.current_year.recommended_regime} REGIME
+                      </span>
+                      <span className="text-[10px] text-gray-600 block mt-3">
+                        Prior: {yoyData.prior_year?.recommended_regime?.toUpperCase() || 'N/A'} REGIME
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000] flex items-start gap-3">
+                    <Lightbulb className="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-black text-sm uppercase block mb-1">
+                        MULTI-YEAR TRAJECTORY SUMMARY
+                      </span>
+                      <p className="text-xs text-gray-800 leading-relaxed font-semibold">
+                        {yoyData.analysis_summary}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Slabs Breakdown Matrix (Expandable Audit View) */}
       <div className="bg-[#FFFDF9] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b-3 border-black pb-3 mb-4">
@@ -625,6 +933,48 @@ export const TaxReportView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Statutory AIS & Form 26AS Pre-Filing Checklist (Phase 17) */}
+      {report.ais_26as_checklist?.items && report.ais_26as_checklist.items.length > 0 && (
+        <div className="bg-[#FFFDF9] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000]">
+          <div className="flex items-center gap-2.5 border-b-3 border-black pb-3 mb-6">
+            <ListChecks className="w-6 h-6 text-[#3730A3]" />
+            <div>
+              <h3 className="text-xl md:text-2xl font-black uppercase font-['Space_Grotesk']">
+                AIS &amp; FORM 26AS PRE-FILING STATUTORY RECONCILIATION
+              </h3>
+              <p className="text-xs font-mono text-gray-700">
+                Key compliance checks to verify against your Income Tax Department e-filing portal profile before ITR submission.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+            {report.ais_26as_checklist.items.map((item) => (
+              <div
+                key={item.id}
+                className="bg-[#FAF7F2] border-2 border-black p-4 shadow-[3px_3px_0px_0px_#000] flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-black text-sm uppercase text-[#18153B]">{item.name}</span>
+                    <span className="bg-emerald-200 text-emerald-950 text-[10px] font-black px-1.5 py-0.5 border border-black">
+                      {item.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 font-semibold mb-3 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+                <div className="bg-white border border-black p-2 text-[11px] font-bold text-gray-800 flex items-center justify-between">
+                  <span>Action: {item.action_needed}</span>
+                  <CheckSquare className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Statutory Citations Grounding from ChromaDB */}
       {citations.length > 0 && (

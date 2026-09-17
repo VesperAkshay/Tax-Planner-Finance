@@ -1,6 +1,6 @@
 from datetime import date as dt_date
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-from sqlmodel import col, select
+from sqlmodel import Session, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.account import Account
@@ -170,5 +170,50 @@ async def detect_and_update_self_transfers_db(
             session.add(d_tx)
             session.add(c_tx)
         await session.commit()
+
+    return pairs
+
+
+def detect_and_update_self_transfers_sync(
+    session: Session,
+    user_id: int,
+    max_day_difference: int = 0,
+) -> List[Tuple[Transaction, Transaction]]:
+    """
+    Synchronous database service function for self-transfer detection (Tasks 2.8 & 15.3).
+    Queries all accounts for the user, loads active transactions,
+    runs detection, marks `is_self_transfer = True`, links to 'Self-Transfer' category,
+    and persists updates to the database across incremental uploads.
+    """
+    # 1. Fetch user's account IDs
+    account_stmt = select(Account.id).where(Account.user_id == user_id)
+    user_account_ids = list(session.exec(account_stmt).all())
+
+    if len(user_account_ids) < 2:
+        return []
+
+    # 2. Look up 'Self-Transfer' category ID if present
+    cat_stmt = select(Category.id).where(col(Category.name).ilike("Self-Transfer"))
+    self_transfer_cat_id = session.exec(cat_stmt).first()
+
+    # 3. Query transactions across all user accounts
+    tx_stmt = select(Transaction).where(
+        col(Transaction.account_id).in_(user_account_ids)
+    )
+    all_transactions = list(session.exec(tx_stmt).all())
+
+    # 4. Detect self-transfers
+    pairs = detect_self_transfers(
+        transactions=all_transactions,
+        max_day_difference=max_day_difference,
+        self_transfer_category_id=self_transfer_cat_id,
+    )
+
+    # 5. Save changes to DB
+    if pairs:
+        for d_tx, c_tx in pairs:
+            session.add(d_tx)
+            session.add(c_tx)
+        session.commit()
 
     return pairs

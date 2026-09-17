@@ -16,6 +16,7 @@ class ParsedTransactionRow(BaseModel):
     parse_confidence: float = Field(ge=0.0, le=1.0, default=0.95)
     needs_review: bool = False
     raw_row: Optional[Dict[str, Any]] = None
+    cleaned_description: Optional[str] = None
 
     def model_post_init(self, __context: Any) -> None:
         if self.parse_confidence < DEFAULT_REVIEW_THRESHOLD:
@@ -59,6 +60,7 @@ class StatementParseResult(BaseModel):
     is_scanned: bool = False
     warnings: List[str] = []
     raw_tables_count: int = 0
+    raw_metadata: Optional[Dict[str, Any]] = None
 
     def to_statement_upload_dict(
         self, user_id: Optional[int] = None, account_id: Optional[int] = None

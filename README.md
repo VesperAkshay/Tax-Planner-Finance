@@ -17,38 +17,41 @@ The system is architected around a strict separation of concerns between natural
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion["1. Document Ingestion Pipeline"]
-        A["Bank Statement (CSV / PDF)"] --> B["Multi-Bank / Docling Parser"]
-        C["Salary Slip (PDF / Image)"] --> D["Salary Slip Parser"]
-        B --> E["Balance Continuity Check (Δ ≤ ₹1.00)"]
-        B --> F["3-Tier Hybrid Spending Categorizer<br/>(Patterns ➔ XGBoost ➔ LLM)"]
-        D --> G["Salary Component Extractor (Basic, HRA, PF, TDS)"]
+    subgraph Ingestion["1. Robust Document Ingestion Pipeline"]
+        A["Bank Statement (CSV / PDF)"] --> B["Pre-Classifier & Input Robustness Check"]
+        B -->|Adversarial / Password Check| C["Multi-Bank / Docling Parser / Custom Mapping"]
+        D["Salary Slip (PDF / Image)"] --> E["Salary Slip Parser"]
+        C --> F["Balance Continuity Check (Δ ≤ ₹1.00)"]
+        C --> G["3-Tier Hybrid Spending Categorizer<br/>(Patterns ➔ XGBoost ➔ LLM)"]
+        E --> H["Salary Component Extractor (Basic, HRA, PF, TDS)"]
     end
 
-    subgraph Reconciliation["2. Reconciliation Engine"]
-        E --> H["Cross-Account Self-Transfer Isolator"]
-        G & B --> I["Salary Credit Matcher (Tolerance: max(₹500, 1%))"]
-        I --> J["Reconciliation Flags & Resolution"]
+    subgraph Reconciliation["2. Reconciliation & Compliance Detectors"]
+        F --> I["Cross-Account Self-Transfer Isolator"]
+        H & C --> J["Salary Credit Matcher (Tolerance: max(₹500, 1%))"]
+        C --> K["Real-World Detectors (80TTA Interest, Capital Gains, Salary Arrears)"]
     end
 
-    subgraph Discovery["3. Deduction Discovery & Advisory"]
-        K["Taxpayer Input"] --> L["LangGraph Conversational Agent"]
-        M["Curated Tax Rules Corpus (ChromaDB)"] -->|Semantic Top-K| L
-        L --> N["Persisted Declared Deductions (user_declared_deductions)"]
+    subgraph Discovery["3. Deduction Discovery & Statutory Catalog"]
+        L["Mr. Planner Agent (Proactive Stateful Elicitation)"] --> M["Completion Gated Progress"]
+        N["18-Section Statutory Catalog (`/catalog`)"] --> O["Catalog Checkpoint Gating (Draft vs Final)"]
+        P["Tax Corpus (ChromaDB)"] -->|Semantic Top-K| L
+        M & O --> Q["Persisted Declared Deductions (user_declared_deductions)"]
     end
 
     subgraph TaxEngine["4. Deterministic Tax Rules Engine (Zero LLM Math)"]
-        N & G --> O["Regime Comparator"]
-        O --> P["New Regime Engine (Section 115BAC)"]
-        O --> Q["Old Regime Engine (Chapter VI-A)"]
-        P --> R["Section 87A Rebate & Marginal Relief (Income ≤ ₹12L)"]
-        Q --> S["Section 10(13A) Rule 2A HRA & VI-A Caps"]
-        R & S --> T["4% Health & Education Cess"]
-        T --> U["Final Side-by-Side Comparison Report"]
+        Q & H & K --> R["Regime Comparator"]
+        R --> S["New Regime Engine (Section 115BAC + 80CCD(2))"]
+        R --> T["Old Regime Engine (All 18 Chapter VI-A Sections)"]
+        S --> U["Section 87A Rebate & Marginal Relief (Income ≤ ₹12L)"]
+        T --> V["Section 10(13A) Rule 2A HRA, 80TTA & Caps"]
+        U & V --> W["4% Health & Education Cess"]
+        W --> X["Side-by-Side Report & YoY Analysis"]
     end
 
-    subgraph Presentation["5. Presentation Layer"]
-        U --> V["Neo-Brutalist Dashboard (React + Tailwind v4)"]
+    subgraph Presentation["5. Presentation & Export Layer"]
+        X --> Y["Neo-Brutalist Dashboard (React + Tailwind v4)"]
+        X --> Z["Vector-Grade Audit Memorandum PDF / Full ZIP Export"]
     end
 ```
 
@@ -74,19 +77,19 @@ To eliminate computational drift, the platform enforces a **Zero LLM Tax Arithme
 ## 3. Scope & Explicit Non-Goals
 
 ### Supported Scope (In-Scope)
-- **Target Audience**: Salaried individuals tax-resident in India for Financial Year 2025–26 (Assessment Year 2026–27).
+- **Target Audience**: Salaried individuals tax-resident in India for Financial Year 2025–26 (Assessment Year 2026–27) with multi-year historical comparison support.
 - **Regimes Covered**:
-  - **New Tax Regime (Section 115BAC)**: Enhanced standard deduction of ₹75,000, revised slab schedules up to ₹24L, and full Section 87A rebate for taxable income up to ₹12,00,000 with marginal relief.
-  - **Old Tax Regime**: Standard deduction of ₹50,000, Section 87A rebate for income up to ₹5,00,000, Section 80C (capped at ₹1.5L), Section 80D (health insurance), Section 80CCD(1B) (NPS ₹50k), Section 80G, Section 24(b) housing loan interest, and Section 10(13A) House Rent Allowance under Rule 2A.
-- **Document Formats**:
-  - Bank Statements: HDFC, ICICI, SBI, Axis, Kotak (CSV and PDF with OCR fallback).
+  - **New Tax Regime (Section 115BAC)**: Enhanced standard deduction of ₹75,000, revised slab schedules up to ₹24L, full Section 87A rebate for taxable income up to ₹12,00,000 with marginal relief, and employer NPS under Section 80CCD(2).
+  - **Old Tax Regime**: Standard deduction of ₹50,000, Section 87A rebate for income up to ₹5,00,000, and all 18 statutory Chapter VI-A sections (80C, 80CCD(1B), 80CCD(2), 80D self/family, 80D senior parents, Section 10(13A) HRA under Rule 2A, 80GG, 24(b) home loan interest, 80EEA, 80E, 80G, 80GGC, 80TTA, 80TTB, 80DD, 80DDB, 80U, and 10(5) LTA).
+- **Document Formats & Ingestion**:
+  - Bank Statements: HDFC, ICICI, SBI, Axis, Kotak, and custom bank CSVs (with running balance delta inference), plus digital and scanned PDFs with OCR fallback.
   - Salary Slips: Standard corporate PDF and scanned image slips.
 
 ### Explicit Non-Goals (Out-of-Scope)
 1. **Multiple Concurrent Employers**: Assumes a single primary salaried employer per financial year.
 2. **Business / Professional Income (PGBP)**: Does not calculate presumptive taxation under Section 44AD/44ADA or corporate balance sheets.
-3. **Capital Gains Filing**: Does not ingest broker P&L reports (Zerodha, Groww) or compute grandfathered LTCG/STCG schedules.
-4. **Foreign Assets / Schedule FA**: Designed strictly for domestic salaried income.
+3. **Capital Gains Filing**: Informational advisory only. The system detects broker transactions / mutual fund redemptions (CAMS, Zerodha, Groww) and flags a warning that the taxpayer must file Form ITR-2; it explicitly performs **zero capital gains tax arithmetic**.
+4. **Foreign Assets / Schedule FA**: Flags foreign currency / forex transactions for manual review, but does not prepare Schedule FA filings.
 5. **Direct ITD E-Filing**: This is an advisory, reconciliation, and planning tool; it does not submit XML/JSON tax returns directly to the Income Tax Department e-filing portal.
 
 ---
@@ -159,6 +162,51 @@ flowchart TD
 - **Color Theme**: Indigo, Merry Gold (Marigold), Electric Yellow, and Chameli White.
 - **User Journey**: Unauthenticated landing page $\rightarrow$ Secure Sign In / Registration Modal $\rightarrow$ Private User Vault Dashboard with 5 interactive views.
 
+### 4.7 Mr. Planner & Neo-Brutalist Invoice PDF Engine (Phase 12)
+- **Mr. Planner Conversational Persona**: Guided tax planning assistant backed by deterministic state guards and RAG citations.
+- **Vector-Grade PDF Audit Memorandum**: Built with ReportLab 5, rendering a physical CA-grade audit invoice on Chameli cream `#FAF7F2` paper, drop-shadow offset frames, dual-regime side-by-side comparative ledger, slabs audit breakdown, AIS/26AS checklist, and official CA advisory stamps.
+- **Streaming Export**: Dedicated endpoint (`GET /api/v1/tax/comparison-report/pdf`) generating downloadable, print-ready vector PDF memoranda.
+
+### 4.8 Proactive Stateful Elicitation Engine (Phase 13)
+- **Turn-by-Turn Canonical Progression**: Walks the taxpayer systematically through statutory deduction categories in priority order (80C, 80CCD(1B), 80D self/family, 80D senior parents, Section 10(13A) HRA, Section 24(b), 80G).
+- **Contextual Auto-Skips**: Automatically evaluates preconditions from uploaded salary slips (e.g. automatically skips Section 80GG when employer HRA is already present in payslips).
+- **Completion Gate**: Intercepts premature computation requests (e.g. *"Calculate my tax now"*) and prompts the user to resolve pending deductions first, ensuring optimization accuracy.
+- **Cross-Session Resumption**: Persists state in `elicitation_progress` table, allowing taxpayers to leave and resume their deduction interview anytime.
+
+### 4.9 Comprehensive 18-Section Statutory Deduction Catalog (Phase 14)
+- **Full Statutory Coverage**: Dedicated `deduction_catalog` database repository seeded with all 18 personal tax deduction sections under Chapter VI-A & Section 10 (80C, 80CCD(1B), 80CCD(2), 80D, 80D parents, 10(13A), 80GG, 24(b), 80EEA, 80E, 80G, 80GGC, 80TTA, 80TTB, 80DD, 80DDB, 80U, 10(5) LTA).
+- **Interactive Catalog API**: `GET /api/v1/catalog` exposes limits, eligibility conditions, regime applicability, and official ITD portal citations.
+- **Direct Declarations**: Direct declaration endpoint (`POST /api/v1/catalog/declare`) for self-service tax input.
+- **Catalog Checkpoint Gating**: Requires explicit catalog review (`POST /api/v1/catalog/viewed`); comparisons output `report_status = "draft"` until the catalog is reviewed, ensuring no deduction is overlooked before finalization.
+
+### 4.10 Account Lifecycle, Overlap Deduplication & Right-to-Erasure (Phase 15)
+- **SHA-256 Upload Deduplication**: Hashes every incoming file to reject duplicate statement uploads with HTTP 409 Conflict.
+- **Overlapping Statement Deduplication**: Detects date overlaps across statements and deduplicates transactions at the row level, preventing double-counting of spending or balances.
+- **Granular Scoped Deletion**: Allows users to delete individual uploads (`DELETE /api/v1/lifecycle/upload/{upload_id}`) with cascade to transactions, or wipe entire financial years (`DELETE /api/v1/lifecycle/financial-year/{financial_year}`).
+- **Right-to-Erasure (Full Account Wipe)**: `DELETE /api/v1/lifecycle/account` completely purges user accounts and all cascading data with zero orphaned records.
+- **Complete ZIP Data Export**: `GET /api/v1/lifecycle/export` generates an instant ZIP archive containing `transactions.csv`, `declared_deductions.json`, `export_summary.json`, and the PDF tax audit memorandum.
+
+### 4.11 Input Robustness, Adversarial Document Rejection & Custom Bank Mapping (Phase 16)
+- **Pre-Classification Guardrails**: Rejects non-financial PDFs (resumes, menus) and non-financial CSVs (contact lists, recipes) with HTTP 422 before expensive parsing operations.
+- **Password-Protected PDF Detection**: Inspects byte trailers for `/Encrypt` dictionaries, returning clear HTTP 422 instructions to upload an unlocked statement.
+- **Custom Bank CSV Mapping with Running Balance Inference**: Supports arbitrary bank CSV structures by accepting custom column mappings. Disambiguates single-column debit/credit conventions deterministically by analyzing running balance deltas ($\Delta \text{Balance} = \text{Balance}_t - \text{Balance}_{t-1}$).
+- **Data Quality Alerts**: Flags Forex / non-INR transactions and warns users on statements with fewer than 2 transactions.
+
+### 4.12 Real-World Tax Intelligence & Compliance Modules (Phase 17)
+- **Savings Bank Interest Ingestion (80TTA / 80TTB)**: Automatically detects quarterly savings bank interest credits, feeds them as reportable taxable other income into Gross Total Income, and independently claims the eligible deduction under Section 80TTA (up to ₹10,000) or Section 80TTB (up to ₹50,000 for senior citizens).
+- **Capital Gains / Wrong ITR Form Advisory**: Scans bank transactions for mutual fund redemptions and broker payouts (CAMS, Karvy, Zerodha, Groww, Upstox, AngelOne), issuing an advisory warning that the taxpayer must file Form ITR-2 rather than ITR-1 (strictly zero capital gains tax calculation to preserve statutory compliance).
+- **Salary Arrears & Section 89 Relief**: Detects salary spikes ($\ge 1.75\times$ baseline median) or explicit arrears keywords, prompting the taxpayer to submit Form 10E for Section 89 relief.
+- **Statutory AIS & Form 26AS Reconciliation Checklist**: Automated pre-filing checklist rendered on both the dashboard and PDF export to reconcile TDS credits, high-value financial transactions, and dividend income against the Income Tax portal.
+- **July 31 Filing Deadline Countdown**: Real-time statutory countdown badge displaying days remaining until the July 31 filing deadline for the Assessment Year.
+- **Year-Over-Year (YoY) Multi-Year Comparison**: `GET /api/v1/tax/year-over-year` endpoint comparing income growth, deduction utilization, and tax liability differentials across multiple financial years.
+
+### 4.13 Complete Frontend Dashboard v1.1 Experience
+- **18-Section Statutory Deduction Catalog (`/catalog`)**: Neo-Brutalist statutory browser with real-time cap consumption progress bars, eligible checkmarks, direct declarations, regime applicability badges, official income-tax department links, and one-click "Confirm Catalog Reviewed" checkpoint completion.
+- **Vault & Account Lifecycle Management**: Interactive modal for on-demand ZIP data archive export, scoped statement upload deletion by ID with cascading transaction purge, single-financial-year resets, and double-confirmed GDPR/DPDP-compliant permanent account wipes.
+- **Custom Bank CSV Mapping Interface**: Embedded schema mapper in the statement upload card allowing users to designate custom Date, Narration, Amount (Debit/Credit or Single Column with Balance Delta Inference), and Balance columns.
+- **Real-World Compliance Warnings & Checklists**: Automated advisory banners alerting users of Section 80TTA interest eligibility, capital gains broker redemptions recommending Form ITR-2, one-time salary arrears spikes recommending Form 10E, and an interactive 4-point AIS / Form 26AS pre-filing checklist.
+- **Proactive Elicitation Quick Chips**: One-click prompt chips in Mr. Planner chat ("Not Applicable (₹0)", "Claim Maximum Cap", "Skip Section", "Calculate Tax") and draft-to-final report unlocking.
+
 ---
 
 ## 5. Quickstart Guide
@@ -191,14 +239,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES=1440
 # Run database migrations
 uv run alembic upgrade head
 
-# Seed canonical categories
+# Seed canonical categories and statutory deduction catalog
 uv run python backend/app/seed.py
 ```
 
 ### 3. Run Backend Test Suite
 ```bash
 # Execute unit and integration tests
-uv run pytest backend/tests/test_api_integration_pipeline.py -v
+uv run pytest backend/tests/ -v
 ```
 
 ### 4. Start FastAPI Server
@@ -234,16 +282,30 @@ Open `http://localhost:5173` in your browser.
 | `POST` | `/api/v1/agent/chat` | Multi-turn conversational tax deduction assistant (Mr. Planner) | Yes |
 | `GET` | `/api/v1/tax/comparison-report` | Side-by-side Old vs New Regime calculation report | Yes |
 | `GET` | `/api/v1/tax/comparison-report/pdf` | Vector-grade Neo-Brutalist PDF Invoice & Audit Memorandum export | Yes |
+| `GET` | `/api/v1/tax/year-over-year` | Multi-year comparative analysis (income, deductions, tax variance) | Yes |
+| `GET` | `/api/v1/catalog` | List all 18 statutory deduction catalog items with limits & citations | Yes |
+| `POST` | `/api/v1/catalog/declare` | Directly declare or update statutory deduction amount | Yes |
+| `POST` | `/api/v1/catalog/viewed` | Mark catalog as viewed / reviewed (unlocks Final report status) | Yes |
+| `DELETE` | `/api/v1/lifecycle/upload/{upload_id}` | Scoped statement deletion with cascade to child transactions | Yes |
+| `DELETE` | `/api/v1/lifecycle/financial-year/{financial_year}` | Scoped deletion of all user records for a specific financial year | Yes |
+| `DELETE` | `/api/v1/lifecycle/account` | Full right-to-erasure account wipe (erases user and all linked records) | Yes |
+| `GET` | `/api/v1/lifecycle/export` | Export complete data archive (ZIP containing CSV, JSONs, and PDF) | Yes |
 
 ---
 
 ## 7. Quality Assurance & Evaluation Artifacts
 
-Comprehensive empirical evaluation reports are available in the repository:
+Comprehensive empirical evaluation reports and test suites are available in the repository:
 - [`backend/tests/parsing_accuracy_report.md`](file:///F:/TaxPlanner/backend/tests/parsing_accuracy_report.md): 100% parsing accuracy report across all statement and payslip fixtures.
 - [`backend/tests/categorization_eval_report.md`](file:///F:/TaxPlanner/backend/tests/categorization_eval_report.md): 91.67% holdout test evaluation and 12x12 confusion matrix.
 - [`backend/tests/rag_retrieval_eval_report.md`](file:///F:/TaxPlanner/backend/tests/rag_retrieval_eval_report.md): 10/10 statutory query benchmark retrieval evaluation.
 - [`backend/tests/agent_eval_report.md`](file:///F:/TaxPlanner/backend/tests/agent_eval_report.md): Zero currency arithmetic AST verification and ₹0.00 hand-calc validation.
+- **Phase 13 (Proactive Stateful Elicitation)**: [`test_phase13_proactive_agent.py`](file:///F:/TaxPlanner/backend/tests/test_phase13_proactive_agent.py) (6/6 tests passed).
+- **Phase 14 (18-Section Statutory Catalog & Engine)**: [`test_phase14_catalog.py`](file:///F:/TaxPlanner/backend/tests/test_phase14_catalog.py) (14/14 tests passed).
+- **Phase 15 (Lifecycle, Overlap Deduplication & Export)**: [`test_phase15_lifecycle.py`](file:///F:/TaxPlanner/backend/tests/test_phase15_lifecycle.py) (6/6 tests passed).
+- **Phase 16 (Input Robustness & Custom Bank CSV Mapping)**: [`test_phase16_robustness.py`](file:///F:/TaxPlanner/backend/tests/test_phase16_robustness.py) (6/6 tests passed).
+- **Phase 17 (Real-World Detectors, 80TTA, YoY Comparison)**: [`test_phase17_real_world.py`](file:///F:/TaxPlanner/backend/tests/test_phase17_real_world.py) (6/6 tests passed).
+- **Full Test Suite Status**: **61/61 automated tests passing** across all modules with strict zero LLM tax arithmetic invariants enforced.
 
 ---
 

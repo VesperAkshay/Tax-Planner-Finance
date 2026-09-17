@@ -30,22 +30,80 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
   const [stmtResult, setStmtResult] = useState<StatementUploadResponse | null>(null);
   const [salaryResult, setSalaryResult] = useState<SalarySlipUploadResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
+
+  // Custom bank CSV mapping state (Phase 16)
+  const [customDateCol, setCustomDateCol] = useState('Date');
+  const [customNarrationCol, setCustomNarrationCol] = useState('Narration');
+  const [customSignMode, setCustomSignMode] = useState<'separate' | 'single'>('separate');
+  const [customDebitCol, setCustomDebitCol] = useState('Debit');
+  const [customCreditCol, setCustomCreditCol] = useState('Credit');
+  const [customAmountCol, setCustomAmountCol] = useState('Amount');
+  const [customBalanceCol, setCustomBalanceCol] = useState('Balance');
+
+  // Deletion state
+  const [isDeletingUpload, setIsDeletingUpload] = useState(false);
 
   const handleUploadStatement = async () => {
     if (!statementFile) return;
     setIsUploadingStmt(true);
     setErrorMsg(null);
+    setSuccessNotice(null);
+
+    let mappingPayload: Record<string, string> | undefined = undefined;
+    if (bankFormat === 'custom') {
+      mappingPayload = {
+        date: customDateCol.trim(),
+        description: customNarrationCol.trim(),
+      };
+      if (customSignMode === 'separate') {
+        if (customDebitCol.trim()) mappingPayload.debit = customDebitCol.trim();
+        if (customCreditCol.trim()) mappingPayload.credit = customCreditCol.trim();
+      } else {
+        if (customAmountCol.trim()) mappingPayload.amount = customAmountCol.trim();
+      }
+      if (customBalanceCol.trim()) mappingPayload.balance = customBalanceCol.trim();
+    }
+
     try {
       const res = await api.uploadStatement(
         statementFile,
-        bankFormat === 'auto' ? undefined : bankFormat
+        bankFormat === 'auto' || bankFormat === 'custom' ? undefined : bankFormat,
+        mappingPayload,
+        true
       );
       setStmtResult(res);
+      setSuccessNotice(`Statement parsed successfully! Upload ID: ${res.upload_id}`);
       onUploadSuccess();
     } catch (e: unknown) {
-      setErrorMsg(e instanceof Error ? e.message : 'Upload failed');
+      const msg = e instanceof Error ? e.message : 'Upload failed';
+      if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('encrypted')) {
+        setErrorMsg('🔒 Password-Protected PDF: The uploaded PDF is password-protected. Please unlock or decrypt your PDF statement before uploading.');
+      } else if (msg.toLowerCase().includes('duplicate') || msg.toLowerCase().includes('409') || msg.toLowerCase().includes('already uploaded')) {
+        setErrorMsg('📋 Duplicate Upload Detected: This exact bank statement has already been uploaded previously (SHA-256 hash verified).');
+      } else if (msg.toLowerCase().includes('non-financial') || msg.toLowerCase().includes('does not appear to be a financial')) {
+        setErrorMsg('🛑 Unrecognized Document: The uploaded file does not look like a bank statement or salary slip. Please upload a valid financial statement.');
+      } else {
+        setErrorMsg(msg);
+      }
     } finally {
       setIsUploadingStmt(false);
+    }
+  };
+
+  const handleDeleteCurrentUpload = async () => {
+    if (!stmtResult) return;
+    if (!confirm(`Delete Upload #${stmtResult.upload_id} and all its transactions?`)) return;
+    setIsDeletingUpload(true);
+    try {
+      await api.deleteUpload(stmtResult.upload_id);
+      setSuccessNotice(`Upload #${stmtResult.upload_id} successfully deleted from your vault.`);
+      setStmtResult(null);
+      onUploadSuccess();
+    } catch (e: unknown) {
+      setErrorMsg(e instanceof Error ? e.message : 'Failed to delete upload');
+    } finally {
+      setIsDeletingUpload(false);
     }
   };
 
@@ -129,8 +187,108 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
                 <option value="icici">ICICI Bank</option>
                 <option value="sbi">State Bank of India (SBI)</option>
                 <option value="axis">Axis Bank</option>
+                <option value="custom">⚙️ Custom Bank CSV (Column Mapper)</option>
               </select>
             </div>
+
+            {/* Expandable Custom Bank CSV Column Mapping Form */}
+            {bankFormat === 'custom' && (
+              <div className="mb-4 p-3 bg-[#FAF7F2] border-2 border-black font-mono text-xs space-y-2.5 shadow-[2px_2px_0px_0px_#000]">
+                <span className="font-black uppercase text-[#3730A3] block">
+                  ⚙️ CUSTOM CSV COLUMN MAPPING:
+                </span>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-gray-700">Date Col:</label>
+                    <input
+                      type="text"
+                      value={customDateCol}
+                      onChange={(e) => setCustomDateCol(e.target.value)}
+                      className="w-full bg-white border border-black p-1 font-bold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-gray-700">Narration Col:</label>
+                    <input
+                      type="text"
+                      value={customNarrationCol}
+                      onChange={(e) => setCustomNarrationCol(e.target.value)}
+                      className="w-full bg-white border border-black p-1 font-bold outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <label className="block text-[10px] font-black uppercase text-gray-700 mb-1">
+                    Sign Convention:
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="signMode"
+                        checked={customSignMode === 'separate'}
+                        onChange={() => setCustomSignMode('separate')}
+                      />
+                      <span className="font-bold text-[11px]">Separate Debit / Credit</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="signMode"
+                        checked={customSignMode === 'single'}
+                        onChange={() => setCustomSignMode('single')}
+                      />
+                      <span className="font-bold text-[11px]">Single Amount (Balance Delta)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {customSignMode === 'separate' ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-gray-700">Debit Col:</label>
+                      <input
+                        type="text"
+                        value={customDebitCol}
+                        onChange={(e) => setCustomDebitCol(e.target.value)}
+                        className="w-full bg-white border border-black p-1 font-bold outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-gray-700">Credit Col:</label>
+                      <input
+                        type="text"
+                        value={customCreditCol}
+                        onChange={(e) => setCustomCreditCol(e.target.value)}
+                        className="w-full bg-white border border-black p-1 font-bold outline-none"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-gray-700">Amount Col:</label>
+                    <input
+                      type="text"
+                      value={customAmountCol}
+                      onChange={(e) => setCustomAmountCol(e.target.value)}
+                      className="w-full bg-white border border-black p-1 font-bold outline-none"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-gray-700">Balance Col (optional):</label>
+                  <input
+                    type="text"
+                    value={customBalanceCol}
+                    onChange={(e) => setCustomBalanceCol(e.target.value)}
+                    className="w-full bg-white border border-black p-1 font-bold outline-none"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Brutalist File Dropzone */}
             <div className="border-3 border-dashed border-black bg-[#FAF7F2] p-6 text-center shadow-[3px_3px_0px_0px_#000] mb-4 relative">
@@ -324,6 +482,24 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
                     )}
                   </div>
                 </div>
+
+                <div className="bg-[#FAF7F2] border-2 border-black p-3 shadow-[3px_3px_0px_0px_#000] flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-600 block">
+                      UPLOAD RECORD ID
+                    </span>
+                    <span className="text-xl font-black text-[#18153B]">
+                      #{stmtResult.upload_id}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleDeleteCurrentUpload}
+                    disabled={isDeletingUpload}
+                    className="mt-2 bg-red-100 hover:bg-red-200 text-red-900 border border-black px-2 py-1 text-[10px] font-black uppercase cursor-pointer disabled:opacity-50"
+                  >
+                    {isDeletingUpload ? 'DELETING...' : 'DELETE THIS UPLOAD'}
+                  </button>
+                </div>
               </>
             )}
 
@@ -341,6 +517,13 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {successNotice && (
+        <div className="bg-emerald-100 border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000] text-emerald-950 font-mono font-bold flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-700" />
+          <span>{successNotice}</span>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 from datetime import datetime as dt_datetime
+from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Optional
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
@@ -9,11 +10,22 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
+class DeductionSource(str, Enum):
+    agent_elicited = "agent_elicited"
+    catalog_self_added = "catalog_self_added"
+
+
+class DeductionStatus(str, Enum):
+    declared = "declared"
+    not_applicable = "not_applicable"
+
+
 class UserDeclaredDeductionBase(SQLModel):
     financial_year: str = Field(default="2025-2026", index=True, max_length=20)
     section: str = Field(index=True, nullable=False, max_length=50)  # e.g. 80C, 80D, 80CCD(1B), 80G, 24b, HRA
-    amount: float = Field(ge=0.0, nullable=False)
-    source: str = Field(default="agent_elicited", max_length=50)  # agent_elicited, manual, auto_derived
+    amount: float = Field(default=0.0, ge=0.0, nullable=False)
+    source: DeductionSource = Field(default=DeductionSource.agent_elicited)
+    status: DeductionStatus = Field(default=DeductionStatus.declared)
     metadata_json: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
 
 
@@ -42,5 +54,6 @@ class UserDeclaredDeductionRead(UserDeclaredDeductionBase):
 
 class UserDeclaredDeductionUpdate(SQLModel):
     amount: Optional[float] = None
-    source: Optional[str] = None
+    source: Optional[DeductionSource] = None
+    status: Optional[DeductionStatus] = None
     metadata_json: Optional[Dict[str, Any]] = None

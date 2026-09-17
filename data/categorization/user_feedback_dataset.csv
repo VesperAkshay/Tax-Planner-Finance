@@ -3,3 +3,60 @@ timestamp,user_id,description,confirmed_category,original_predicted_category,ori
 2026-09-16T12:22:50.466604+00:00,12,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
 2026-09-16T12:40:59.659383+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
 2026-09-16T12:40:59.662736+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T07:21:42.773280+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T07:21:42.774784+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T10:01:47.576187+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T10:01:47.618134+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T10:03:01.676050+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T10:03:01.677146+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T10:04:47.861765+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T10:04:47.864229+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T10:07:03.003493+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T10:07:03.006880+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T10:27:02.909144+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T10:27:02.912409+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:05:50.598913+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:05:50.601383+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:07:57.756210+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T17:07:57.757275+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:24.923081+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:24.923683+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:24.924170+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:24.924745+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:24.925126+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:36.780694+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:36.781273+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:50.921621+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:11:50.922874+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:14:58.043596+00:00,1,POS STORE 987342,Shopping,Uncategorized,0.5
+2026-09-17T17:15:00.730968+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:15:00.731448+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:15:00.731847+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:15:00.732319+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:15:00.732718+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:15:13.666461+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:15:13.667044+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:16:52.463359+00:00,1,POS STORE 987342,Shopping,Uncategorized,0.5
+2026-09-17T17:16:56.628550+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:16:56.629237+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:16:56.629719+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:16:56.630268+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:16:56.630842+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:17:08.372600+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:17:08.373530+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:17:21.920926+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:17:21.921821+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T17:18:05.130620+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T17:18:05.131301+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:08.641172+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:08.643814+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:08.644298+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:08.644858+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:08.645348+00:00,1,Unknown Narration,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:19.885040+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:19.886423+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:34.464492+00:00,1,CONSULTING INCOME CLIENT ALPHA,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:34.465778+00:00,1,SAVINGS INTEREST CREDIT,Miscellaneous,Uncategorized,0.5
+2026-09-17T18:22:41.909949+00:00,1,POS STORE 987342,Shopping,Uncategorized,0.5
+2026-09-17T18:24:13.647468+00:00,1,USD 45.00 AWS Cloud Hosting FX MARKUP,Subscriptions,Uncategorized,0.5
+2026-09-17T18:24:13.652055+00:00,1,Hotel Booking Paris EUR 120.00 INTL POS,Miscellaneous,Uncategorized,0.5

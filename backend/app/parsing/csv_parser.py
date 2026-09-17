@@ -129,10 +129,12 @@ class CSVBankParser:
         file_path: Union[str, Path],
         bank_id: Optional[str] = None,
         encoding: str = "utf-8",
+        custom_mapping: Optional[Dict[str, str]] = None,
     ) -> StatementParseResult:
         """
         Parses a bank CSV file into a StatementParseResult.
         If bank_id is omitted, automatically sniffs the format.
+        Supports custom_mapping for user-defined column mappings (Task 16.3).
         """
         path = Path(file_path).resolve()
         if not path.exists():
@@ -146,6 +148,7 @@ class CSVBankParser:
             file_name=path.name,
             file_path=str(path),
             bank_id=bank_id,
+            custom_mapping=custom_mapping,
         )
 
     def parse_content(
@@ -154,8 +157,9 @@ class CSVBankParser:
         file_name: str = "statement.csv",
         file_path: str = "",
         bank_id: Optional[str] = None,
+        custom_mapping: Optional[Dict[str, str]] = None,
     ) -> StatementParseResult:
-        """Parses CSV raw string content."""
+        """Parses CSV raw string content with optional custom column mapping (Task 16.3)."""
         result = StatementParseResult(
             file_path=file_path,
             file_name=file_name,
@@ -164,7 +168,32 @@ class CSVBankParser:
         )
 
         adapter: Optional[BankAdapterConfig] = None
-        if bank_id:
+        if custom_mapping:
+            has_separate = bool(custom_mapping.get("debit") or custom_mapping.get("credit"))
+            has_type = bool(custom_mapping.get("type"))
+            if has_separate:
+                sign_conv = SignConvention.SEPARATE_COLUMNS
+            elif has_type:
+                sign_conv = SignConvention.TYPE_INDICATOR
+            else:
+                sign_conv = SignConvention.SIGNED_AMOUNT
+
+            adapter = BankAdapterConfig(
+                bank_id="custom_mapping",
+                bank_name="Custom User Mapping",
+                date_column=custom_mapping.get("date", "Date"),
+                description_column=custom_mapping.get("description", "Description"),
+                amount_column=custom_mapping.get("amount"),
+                debit_column=custom_mapping.get("debit"),
+                credit_column=custom_mapping.get("credit"),
+                type_column=custom_mapping.get("type"),
+                balance_column=custom_mapping.get("balance"),
+                reference_column=custom_mapping.get("reference"),
+                sign_convention=sign_conv,
+                header_signatures=[],
+                header_row_identifier=custom_mapping.get("date"),
+            )
+        elif bank_id:
             adapter = self.registry.get(bank_id)
             if not adapter:
                 result.warnings.append(f"Specified bank_id '{bank_id}' not found in registry.")
@@ -175,9 +204,15 @@ class CSVBankParser:
                 adapter, score = sniff_res
 
         if not adapter:
+            # Extract available column headers for user fallback guidance (Task 16.3)
+            lines = [line.strip() for line in content.splitlines() if line.strip()]
+            first_line = lines[0] if lines else ""
+            available_cols = [c.strip() for c in first_line.split(",") if c.strip()]
+
             result.parse_confidence = 0.0
             result.needs_review = True
             result.warnings.append("Could not identify bank CSV format (no matching adapter).")
+            result.raw_metadata = {"available_columns": available_cols}
             return result
 
         lines = content.splitlines()
@@ -312,6 +347,17 @@ class CSVBankParser:
                     raw_row=dict(raw_row.dropna()) if hasattr(raw_row, "dropna") else None,
                 )
             )
+
+        # Disambiguate transaction direction using running balance deltas when balance is tracked
+        for i in range(1, len(rows)):
+            prev_b = rows[i - 1].balance
+            curr_b = rows[i].balance
+            if prev_b is not None and curr_b is not None:
+                delta = round(curr_b - prev_b, 2)
+                if abs(delta + rows[i].amount) <= 0.05:
+                    rows[i].transaction_type = "debit"
+                elif abs(delta - rows[i].amount) <= 0.05:
+                    rows[i].transaction_type = "credit"
 
         result.rows = rows
         return reconcile_statement_balance(result)

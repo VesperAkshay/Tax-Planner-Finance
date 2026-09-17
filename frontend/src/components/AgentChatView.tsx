@@ -15,9 +15,13 @@ import { ChatMessageRenderer } from './ChatMessageRenderer';
 
 interface AgentChatViewProps {
   onDeductionsUpdated?: () => void;
+  onNavigateToCatalog?: () => void;
 }
 
-export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdated }) => {
+export const AgentChatView: React.FC<AgentChatViewProps> = ({
+  onDeductionsUpdated,
+  onNavigateToCatalog,
+}) => {
   const [messages, setMessages] = useState<AgentChatMessage[]>([
     {
       role: 'assistant',
@@ -211,10 +215,49 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({ onDeductionsUpdate
             <div ref={chatEndRef} />
           </div>
 
+          {/* Proactive Elicitation Quick Answer Chips */}
+          <div className="px-3 pt-2.5 pb-1.5 bg-[#FAF7F2] border-t-2 border-black overflow-x-auto flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase text-[#3730A3] flex items-center gap-1 font-mono whitespace-nowrap">
+              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" /> QUICK REPLIES:
+            </span>
+            <button
+              onClick={() => handleSend('Not Applicable')}
+              className="text-[11px] font-bold bg-[#FAF7F2] hover:bg-gray-200 text-black px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap cursor-pointer"
+            >
+              Not Applicable (₹0)
+            </button>
+            <button
+              onClick={() => handleSend("I don't have this deduction, skip to next")}
+              className="text-[11px] font-bold bg-[#FAF7F2] hover:bg-gray-200 text-black px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap cursor-pointer"
+            >
+              Skip Section
+            </button>
+            <button
+              onClick={() => handleSend('I invested the maximum statutory limit')}
+              className="text-[11px] font-bold bg-[#FAF7F2] hover:bg-emerald-100 text-black px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap cursor-pointer"
+            >
+              Claim Maximum Cap
+            </button>
+            <button
+              onClick={() => handleSend('Calculate my final tax')}
+              className="text-[11px] font-black bg-[#FACC15] hover:bg-yellow-400 text-black px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap cursor-pointer"
+            >
+              Calculate Tax
+            </button>
+            {onNavigateToCatalog && (
+              <button
+                onClick={onNavigateToCatalog}
+                className="text-[11px] font-black bg-[#3730A3] text-white hover:bg-[#4338CA] px-2.5 py-1 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap cursor-pointer"
+              >
+                Browse Full Catalog (18 Sections) →
+              </button>
+            )}
+          </div>
+
           {/* Quick Prompts */}
-          <div className="p-3 bg-[#FAF7F2] border-t-2 border-black overflow-x-auto flex items-center gap-2">
+          <div className="p-3 bg-[#FAF7F2] border-t border-gray-300 overflow-x-auto flex items-center gap-2">
             <span className="text-[10px] font-black uppercase text-gray-600 flex items-center gap-1 font-mono whitespace-nowrap">
-              <HelpCircle className="w-3.5 h-3.5" /> PROMPTS:
+              <HelpCircle className="w-3.5 h-3.5" /> TOPICS:
             </span>
             {promptSuggestions.map((item, i) => (
               <button

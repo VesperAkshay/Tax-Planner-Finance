@@ -9,6 +9,8 @@ import { SnapshotView } from './components/SnapshotView';
 import { ReconciliationView } from './components/ReconciliationView';
 import { AgentChatView } from './components/AgentChatView';
 import { TaxReportView } from './components/TaxReportView';
+import { DeductionCatalogView } from './components/DeductionCatalogView';
+import { LifecycleModal } from './components/LifecycleModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './api/client';
 import type { User } from './types';
@@ -22,6 +24,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('upload');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [flagCount, setFlagCount] = useState<number>(0);
   const [initializing, setInitializing] = useState(true);
@@ -96,6 +99,7 @@ export const App: React.FC = () => {
         onLogout={handleLogout}
         onOpenAuth={handleOpenAuth}
         flagCount={flagCount}
+        onOpenLifecycleModal={() => setLifecycleModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -104,7 +108,7 @@ export const App: React.FC = () => {
         {!currentUser ? (
           <LandingView onOpenAuth={handleOpenAuth} />
         ) : (
-          /* If user IS logged in: Show real Dashboard with 5 Views */
+          /* If user IS logged in: Show real Dashboard with 6 Views */
           <div className="space-y-8">
             {/* User Vault Header Strip */}
             <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
@@ -144,9 +148,29 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {activeTab === 'chat' && <AgentChatView />}
+              {activeTab === 'catalog' && (
+                <DeductionCatalogView
+                  onCatalogUpdated={() => {
+                    loadFlags();
+                  }}
+                  onNavigateToReport={() => setActiveTab('report')}
+                />
+              )}
 
-              {activeTab === 'report' && <TaxReportView />}
+              {activeTab === 'chat' && (
+                <AgentChatView
+                  onDeductionsUpdated={() => {
+                    loadFlags();
+                  }}
+                  onNavigateToCatalog={() => setActiveTab('catalog')}
+                />
+              )}
+
+              {activeTab === 'report' && (
+                <TaxReportView
+                  onNavigateToCatalog={() => setActiveTab('catalog')}
+                />
+              )}
             </ErrorBoundary>
 
             {/* Feature Highlights Grid with Brutalist Stickers */}
@@ -200,6 +224,17 @@ export const App: React.FC = () => {
         onClose={() => setAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
         initialMode={authMode}
+      />
+
+      {/* Data Lifecycle & Privacy Vault Modal (Phase 15) */}
+      <LifecycleModal
+        isOpen={lifecycleModalOpen}
+        onClose={() => setLifecycleModalOpen(false)}
+        onAccountDeleted={handleLogout}
+        onDataReset={() => {
+          loadFlags();
+          setActiveTab('upload');
+        }}
       />
 
       {/* Neo-Brutalist Packaging Footer */}

@@ -1,0 +1,84 @@
+{
+  "fixture_type": "salary_slip",
+  "employer_name": "Apex Global Technologies (India) Private Limited",
+  "employee_name": "Vikramaditya Singhania",
+  "employee_id": "AGT-DIR-9082",
+  "designation": "Principal Architect & Engineering Director",
+  "department": "Cloud Systems & AI Platform",
+  "pan": "ABCPS1234K",
+  "uan": "101482910382",
+  "bank_account_number": "50100482910384",
+  "month": 5,
+  "year": 2025,
+  "financial_year": "2025-2026",
+  "earnings": {
+    "basic_salary": 185000.0,
+    "hra": 74000.0,
+    "lta": 15000.0,
+    "special_allowance": 48500.0,
+    "performance_bonus": 45000.0,
+    "conveyance_allowance": 5000.0,
+    "telephone_allowance": 3500.0,
+    "books_and_periodicals": 2500.0,
+    "uniform_allowance": 2000.0,
+    "meal_allowance": 3000.0,
+    "shift_allowance": 2500.0,
+    "child_education_allowance": 1000.0,
+    "total_other_allowances": 64500.0,
+    "gross_pay": 387000.0
+  },
+  "deductions": {
+    "employee_pf": 22200.0,
+    "employer_pf": 22200.0,
+    "professional_tax": 200.0,
+    "tds": 68500.0,
+    "voluntary_pf": 10000.0,
+    "group_insurance": 2850.0,
+    "labour_welfare_fund": 20.0,
+    "salary_advance": 5000.0,
+    "other_deductions_misc": 12500.0,
+    "total_other_deductions": 30370.0,
+    "total_deductions": 121270.0
+  },
+  "net_pay": 265730.0,
+  "attendance": {
+    "calendar_days": 31.0,
+    "payable_days": 30.0,
+    "loss_of_pay_days": 1.0,
+    "earned_leave_balance": 13.5,
+    "sick_leave_balance": 6.0,
+    "casual_leave_balance": 4.0
+  },
+  "annexure_tax_declarations": {
+    "standard_deduction_old": 50000.0,
+    "standard_deduction_new": 75000.0,
+    "section_80ccd_2_employer_nps": 222000.0,
+    "section_80c": {
+      "declared": 0.0,
+      "status_new_regime": "N/A (Disallowed)",
+      "cap": 150000.0
+    },
+    "section_80d": {
+      "declared": 0.0,
+      "status_new_regime": "N/A (Disallowed)",
+      "cap": 25000.0
+    },
+    "section_80ccd_1b": {
+      "declared": 0.0,
+      "status_new_regime": "N/A (Disallowed)",
+      "cap": 50000.0
+    },
+    "section_10_13a_hra": {
+      "declared": 0.0,
+      "status_new_regime": "N/A (Disallowed)"
+    }
+  },
+  "annual_projections": {
+    "projected_annual_gross": 4644000.0,
+    "taxable_income_old": 4372000.0,
+    "taxable_income_new": 4347000.0,
+    "total_tax_old": 1187347.0,
+    "total_tax_new": 982800.0,
+    "annual_tax_savings_new_regime": 204547.0
+  }
+}

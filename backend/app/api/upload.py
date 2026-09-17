@@ -8,7 +8,9 @@ Provides:
 - Parsing status endpoint returning parse_status, parse_confidence, and needs_review per upload.
 """
 
+from datetime import date as dt_date
 import hashlib
+import json
 import logging
 from pathlib import Path
 import tempfile
@@ -29,7 +31,22 @@ from app.models.user import User
 from app.parsing.balance_reconciler import reconcile_statement_balance
 from app.parsing.csv_parser import CSVBankParser
 from app.parsing.pdf_parser import DoclingPDFParser
+from app.parsing.pre_classifier import (
+    is_forex_transaction,
+    is_pdf_password_protected,
+    pre_classify_csv_structure,
+    pre_classify_pdf_structure,
+)
 from app.parsing.salary_slip_parser import DoclingSalarySlipParser
+from app.reconciliation.self_transfer import detect_and_update_self_transfers_sync
+from app.reconciliation.service import run_reconciliation_pipeline
+
+
+def _compute_financial_year(txn_date: dt_date) -> str:
+    """Computes Indian Financial Year (Apr 1 - Mar 31) from date."""
+    if txn_date.month >= 4:
+        return f"{txn_date.year}-{txn_date.year + 1}"
+    return f"{txn_date.year - 1}-{txn_date.year}"
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +79,9 @@ class StatementUploadResponse(BaseModel):
     transactions_count: int
     opening_balance: Optional[float] = None
     closing_balance: Optional[float] = None
+    has_forex: bool = False
+    forex_count: int = 0
+    warning: Optional[str] = None
 
 
 class ParsingStatusResponse(BaseModel):
@@ -102,6 +122,8 @@ async def upload_bank_statement(
     file: UploadFile = File(...),
     account_id: Optional[int] = Form(None),
     bank_format: Optional[str] = Form(None),
+    confirm_overlap: bool = Form(False, description="Allow ingestion when date ranges overlap with deduplication (Task 15.2 & 15.8)"),
+    column_mapping: Optional[str] = Form(None, description="Custom column mapping JSON string: {'date': '...', 'description': '...', 'amount': '...', 'balance': '...'} (Task 16.3)"),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ) -> StatementUploadResponse:
@@ -109,6 +131,8 @@ async def upload_bank_statement(
     Uploads and parses a bank statement (CSV or PDF).
     Runs Phase 2 document parsing, Phase 3 ML categorization, balance reconciliation,
     and stores parsed records in Neon DB (Task 8.1).
+    Enforces duplicate file detection, date-range overlap detection, and incremental updates (Tasks 15.2, 15.3).
+    Includes Phase 16 robustness: pre-classification, password detection, custom column mapping, and forex detection.
     """
     content = await file.read()
     if not content:
@@ -135,25 +159,83 @@ async def upload_bank_statement(
             session.commit()
             session.refresh(acc)
 
-    # 2. Save uploaded content to temporary storage for parser ingestion
+    # 2. Duplicate upload detection by file hash (Tasks 15.2 & 15.7)
     file_name = file.filename or "statement"
     suffix = Path(file_name).suffix.lower()
     file_hash = hashlib.sha256(content).hexdigest()
+
+    existing_upload = session.exec(
+        select(StatementUpload)
+        .where(StatementUpload.user_id == current_user.id)
+        .where(StatementUpload.file_hash == file_hash)
+    ).first()
+    if existing_upload:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Duplicate upload detected: This file has already been uploaded previously "
+                f"(Upload ID: {existing_upload.id}, File: '{existing_upload.file_name}')."
+            ),
+        )
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(content)
         tmp_path = Path(tmp.name)
 
     try:
-        # 3. Parse via Phase 2 pipeline
-        if suffix == ".csv":
-            csv_parser = CSVBankParser()
-            parse_res = csv_parser.parse(tmp_path, bank_id=bank_format)
-            file_type = "csv"
-        elif suffix in [".pdf", ".png", ".jpg", ".jpeg"]:
+        # 3. Pre-classification & Parsing (Tasks 16.1, 16.2, 16.3)
+        if suffix in [".pdf", ".png", ".jpg", ".jpeg"]:
+            if suffix == ".pdf":
+                if is_pdf_password_protected(tmp_path, raw_bytes=content):
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="The uploaded PDF is password-protected or encrypted. Please remove password protection before uploading.",
+                    )
+                pdf_type = pre_classify_pdf_structure(tmp_path)
+                if pdf_type == "non_financial":
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Uploaded PDF does not structurally resemble a bank statement or financial document. Required statement headers (e.g. Date, Transactions, Balance, Account) were not found.",
+                    )
             pdf_parser = DoclingPDFParser()
             parse_res = pdf_parser.parse(tmp_path)
             file_type = "pdf_text"
+        elif suffix == ".csv":
+            try:
+                content_str = content.decode("utf-8", errors="replace")
+            except Exception:
+                content_str = ""
+
+            if not pre_classify_csv_structure(content_str):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Uploaded CSV does not appear to be a valid financial statement. Expected columns matching Date, Narration/Description, and Amount/Balance were not found.",
+                )
+
+            custom_map = None
+            if column_mapping:
+                try:
+                    custom_map = json.loads(column_mapping)
+                except Exception as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid JSON provided for column_mapping: {e}",
+                    )
+
+            csv_parser = CSVBankParser()
+            parse_res = csv_parser.parse(tmp_path, bank_id=bank_format, custom_mapping=custom_map)
+
+            if parse_res.parse_confidence == 0.0 and not parse_res.rows:
+                available_cols = parse_res.raw_metadata.get("available_columns", []) if parse_res.raw_metadata else []
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail={
+                        "error": "unsupported_bank_format",
+                        "message": "CSV bank format could not be automatically identified. Please provide column_mapping.",
+                        "available_columns": available_cols,
+                    },
+                )
+            file_type = "csv"
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -164,7 +246,39 @@ async def upload_bank_statement(
         parse_res = reconcile_statement_balance(parse_res)
         balance_reconciled = bool(parse_res.balance_reconciled)
 
-        # 5. Insert StatementUpload record
+        # 5. Determine statement date range
+        start_date = parse_res.statement_start_date
+        end_date = parse_res.statement_end_date
+        if (not start_date or not end_date) and parse_res.rows:
+            row_dates = [r.date for r in parse_res.rows if getattr(r, "date", None)]
+            if row_dates:
+                start_date = start_date or min(row_dates)
+                end_date = end_date or max(row_dates)
+
+        # Detect overlapping date ranges across different files for the same account (Task 15.2 & 15.8)
+        overlapping_upload = None
+        if start_date and end_date:
+            overlapping_upload = session.exec(
+                select(StatementUpload)
+                .where(StatementUpload.account_id == acc.id)
+                .where(StatementUpload.statement_start_date != None)
+                .where(StatementUpload.statement_end_date != None)
+                .where(StatementUpload.statement_start_date <= end_date)
+                .where(StatementUpload.statement_end_date >= start_date)
+            ).first()
+
+        is_overlap_confirmed = str(confirm_overlap).strip().lower() in ("true", "1", "yes", "t")
+        if overlapping_upload and not is_overlap_confirmed:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Warning: Statement date range ({start_date} to {end_date}) overlaps with prior upload "
+                    f"(Upload ID: {overlapping_upload.id}, {overlapping_upload.statement_start_date} to {overlapping_upload.statement_end_date}). "
+                    "Provide confirm_overlap=true to proceed with deduplicated ingestion."
+                ),
+            )
+
+        # 6. Insert StatementUpload record
         confidence_val = float(parse_res.parse_confidence) if parse_res.parse_confidence is not None else 1.0
         upload_rec = StatementUpload(
             user_id=current_user.id,
@@ -178,8 +292,10 @@ async def upload_bank_statement(
             balance_reconciled=balance_reconciled,
             opening_balance=parse_res.opening_balance,
             closing_balance=parse_res.closing_balance,
-            statement_start_date=parse_res.statement_start_date,
-            statement_end_date=parse_res.statement_end_date,
+            statement_start_date=start_date,
+            statement_end_date=end_date,
+            date_range_start=start_date,
+            date_range_end=end_date,
             needs_review=(confidence_val < 0.85 or not balance_reconciled),
             raw_metadata={"file_name": parse_res.file_name, "raw_row_count": len(parse_res.rows)},
         )
@@ -187,11 +303,11 @@ async def upload_bank_statement(
         session.commit()
         session.refresh(upload_rec)
 
-        # 6. Load Category cache for ID resolution
+        # 7. Load Category cache for ID resolution
         all_categories = {c.name.lower(): c.id for c in session.exec(select(Category)).all()}
         categorizer = get_categorizer()
 
-        # 7. Batch Categorize across Tier 1 (Patterns) -> Tier 2 (XGBoost) -> Tier 3 (LLM)
+        # Batch Categorize across Tier 1 (Patterns) -> Tier 2 (XGBoost) -> Tier 3 (LLM)
         descriptions = [r.description for r in parse_res.rows]
         cat_results = categorizer.categorize_batch(
             descriptions,
@@ -199,15 +315,36 @@ async def upload_bank_statement(
             user_id=current_user.id,
         )
 
+        forex_count = 0
         db_txns: List[Transaction] = []
         for row, cat_res in zip(parse_res.rows, cat_results):
+            # Check duplicate transaction to prevent double counting in overlapping statements (Task 15.8)
+            if overlapping_upload or is_overlap_confirmed:
+                existing_txn = session.exec(
+                    select(Transaction)
+                    .where(Transaction.account_id == acc.id)
+                    .where(Transaction.date == row.date)
+                    .where(Transaction.amount == row.amount)
+                    .where(Transaction.transaction_type == row.transaction_type)
+                    .where(Transaction.description == row.description)
+                ).first()
+                if existing_txn:
+                    continue
+
+            # Forex detection (Task 16.5)
+            is_forex = is_forex_transaction(row.description)
+            if is_forex:
+                forex_count += 1
+
             assigned_cat_name = cat_res.category
             cat_id = all_categories.get(assigned_cat_name.lower())
             clean_desc = cat_res.clean_merchant or getattr(row, "cleaned_description", None) or row.description
+            fin_year = _compute_financial_year(row.date) if getattr(row, "date", None) else "2025-2026"
 
             txn = Transaction(
                 account_id=acc.id,
                 upload_id=upload_rec.id,
+                financial_year=fin_year,
                 date=row.date,
                 description=row.description,
                 cleaned_description=clean_desc,
@@ -221,12 +358,26 @@ async def upload_bank_statement(
                 balance_reconciled=balance_reconciled,
                 category_confidence=cat_res.confidence,
                 is_self_transfer=getattr(row, "is_self_transfer", False),
-                needs_review=(row.needs_review or cat_res.needs_review),
+                needs_review=(row.needs_review or cat_res.needs_review or is_forex),
             )
             db_txns.append(txn)
             session.add(txn)
 
+        if forex_count > 0:
+            upload_rec.needs_review = True
+            session.add(upload_rec)
+
         session.commit()
+
+        # 8. Incremental uploads: re-run self-transfer & reconciliation across combined dataset (Task 15.3)
+        detect_and_update_self_transfers_sync(session=session, user_id=current_user.id)
+        run_reconciliation_pipeline(session=session, user_id=current_user.id, auto_commit=True)
+
+        upload_warning = None
+        if len(db_txns) <= 1:
+            upload_warning = "Statement contains fewer than 2 transactions. Downstream spending statistics may not be representative."
+        elif forex_count > 0:
+            upload_warning = f"Detected {forex_count} non-INR / Forex transaction(s). Please verify INR conversion rates for tax reporting."
 
         return StatementUploadResponse(
             upload_id=upload_rec.id,
@@ -240,6 +391,9 @@ async def upload_bank_statement(
             transactions_count=len(db_txns),
             opening_balance=upload_rec.opening_balance,
             closing_balance=upload_rec.closing_balance,
+            has_forex=(forex_count > 0),
+            forex_count=forex_count,
+            warning=upload_warning,
         )
 
     finally:
@@ -262,6 +416,7 @@ async def upload_salary_slip(
     """
     Uploads and extracts structured compensation data from a salary slip (Task 8.1).
     Extracts Basic, HRA, Gross Pay, Net Pay, and Employee PF into the salary_slips table.
+    Enforces password detection and pre-classification (Tasks 16.1, 16.2).
     """
     content = await file.read()
     if not content:
@@ -275,6 +430,19 @@ async def upload_salary_slip(
         tmp_path = Path(tmp.name)
 
     try:
+        # Pre-classification and password checks (Tasks 16.1, 16.2)
+        if suffix == ".pdf":
+            if is_pdf_password_protected(tmp_path, raw_bytes=content):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="The uploaded salary slip PDF is password-protected or encrypted. Please remove password protection before uploading.",
+                )
+            pdf_type = pre_classify_pdf_structure(tmp_path)
+            if pdf_type == "non_financial":
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Uploaded document does not structurally resemble a salary slip. Expected compensation components (Basic, HRA, Gross/Net Pay, Deductions) were not found.",
+                )
         parser = DoclingSalarySlipParser()
         slip_res = parser.parse(tmp_path)
 
@@ -308,6 +476,9 @@ async def upload_salary_slip(
         session.add(slip_rec)
         session.commit()
         session.refresh(slip_rec)
+
+        # Re-run salary reconciliation pipeline across combined dataset (Task 15.3)
+        run_reconciliation_pipeline(session=session, user_id=current_user.id, auto_commit=True)
 
         return SalarySlipUploadResponse(
             id=slip_rec.id,

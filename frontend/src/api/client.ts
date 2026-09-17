@@ -5,6 +5,9 @@ import type {
   SalarySlipUploadResponse,
   TaxComparisonReport,
   User,
+  CatalogListResponse,
+  SelfAddDeductionResponse,
+  YearOverYearComparison,
 } from '../types';
 
 const API_BASE = '/api/v1';
@@ -110,12 +113,21 @@ export class ApiClient {
     }
   }
 
-  async uploadStatement(file: File, bankFormat?: string): Promise<StatementUploadResponse> {
+  async uploadStatement(
+    file: File,
+    bankFormat?: string,
+    columnMapping?: Record<string, string>,
+    confirmOverlap: boolean = true
+  ): Promise<StatementUploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
     if (bankFormat && bankFormat !== 'auto') {
       formData.append('bank_format', bankFormat);
     }
+    if (columnMapping && Object.keys(columnMapping).length > 0) {
+      formData.append('column_mapping', JSON.stringify(columnMapping));
+    }
+    formData.append('confirm_overlap', String(confirmOverlap));
 
     const res = await fetch(`${API_BASE}/upload/statement`, {
       method: 'POST',
@@ -278,6 +290,163 @@ export class ApiClient {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+  }
+
+  // ==========================================
+  // Statutory Deduction Catalog (Phase 14)
+  // ==========================================
+
+  async getCatalog(financialYear: string = '2025-2026', markViewed: boolean = true): Promise<CatalogListResponse> {
+    const res = await fetch(
+      `${API_BASE}/catalog?financial_year=${encodeURIComponent(financialYear)}&mark_viewed=${markViewed}`,
+      { headers: this.headers() }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to fetch deduction catalog (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async declareDeduction(
+    sectionCode: string,
+    amount: number,
+    eligibilityConfirmed: boolean = true,
+    financialYear: string = '2025-2026',
+    metadataJson?: Record<string, any>
+  ): Promise<SelfAddDeductionResponse> {
+    const res = await fetch(`${API_BASE}/catalog/declare`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify({
+        section_code: sectionCode,
+        amount,
+        financial_year: financialYear,
+        eligibility_confirmed: eligibilityConfirmed,
+        metadata_json: metadataJson || null,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to declare deduction for Section ${sectionCode} (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async markCatalogViewed(financialYear: string = '2025-2026'): Promise<{
+    success: boolean;
+    catalog_viewed: boolean;
+    financial_year: string;
+    viewed_at: string;
+  }> {
+    const res = await fetch(`${API_BASE}/catalog/viewed?financial_year=${encodeURIComponent(financialYear)}`, {
+      method: 'POST',
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to satisfy catalog checkpoint (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async getCatalogCheckpoint(financialYear: string = '2025-2026'): Promise<{
+    financial_year: string;
+    catalog_viewed: boolean;
+    viewed_at: string | null;
+  }> {
+    const res = await fetch(`${API_BASE}/catalog/checkpoint?financial_year=${encodeURIComponent(financialYear)}`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to check catalog checkpoint (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  // ==========================================
+  // Real-World YoY Comparison (Phase 17)
+  // ==========================================
+
+  async getYearOverYearComparison(
+    currentFy: string = '2025-2026',
+    priorFy?: string
+  ): Promise<YearOverYearComparison> {
+    let url = `${API_BASE}/tax/year-over-year?current_fy=${encodeURIComponent(currentFy)}`;
+    if (priorFy) {
+      url += `&prior_fy=${encodeURIComponent(priorFy)}`;
+    }
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to fetch Year-Over-Year comparison (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  // ==========================================
+  // Account & Data Lifecycle (Phase 15)
+  // ==========================================
+
+  async exportDataArchive(financialYear: string = '2025-2026'): Promise<void> {
+    const res = await fetch(`${API_BASE}/lifecycle/export?financial_year=${encodeURIComponent(financialYear)}`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to generate export archive (${res.status})`);
+    }
+    const blob = await res.blob();
+    const cleanFy = financialYear.replace('-', '_');
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tax_planner_export_FY${cleanFy}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
+
+  async deleteUpload(uploadId: number): Promise<{ success: boolean; message: string; details?: any }> {
+    const res = await fetch(`${API_BASE}/lifecycle/upload/${uploadId}?confirm=true`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to delete upload ${uploadId} (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async deleteFinancialYear(financialYear: string): Promise<{ success: boolean; message: string; details?: any }> {
+    const res = await fetch(
+      `${API_BASE}/lifecycle/financial-year/${encodeURIComponent(financialYear)}?confirm=true`,
+      {
+        method: 'DELETE',
+        headers: this.headers(),
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to delete financial year data (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async deleteAccount(): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/lifecycle/account?confirm=true`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to erase account (${res.status})`);
+    }
+    this.clearToken();
+    return await res.json();
   }
 }
 

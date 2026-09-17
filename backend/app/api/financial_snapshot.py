@@ -27,6 +27,12 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.user import User
+from app.parsing.pre_classifier import is_forex_transaction
+from app.tax_engine.real_world_detectors import (
+    detect_capital_gains_activity,
+    detect_salary_arrears,
+    detect_savings_interest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +112,11 @@ class FinancialSnapshotResponse(BaseModel):
     needs_review_count: int
     total_transactions_analyzed: int
     recent_transactions: List[SnapshotTransactionItem]
+    is_sample_insufficient: bool = False
+    caveat: Optional[str] = None
+    has_forex_transactions: bool = False
+    forex_count: int = 0
+    real_world_flags: Optional[Dict[str, Any]] = None
 
 
 class ReCategorizeResponse(BaseModel):
@@ -128,7 +139,20 @@ def evaluate_budget_rule(
     needs_amt: float,
     wants_amt: float,
     net_savings: float,
+    total_transactions: int = 10,
 ) -> BudgetRuleDiagnostic:
+    if total_transactions < 2:
+        return BudgetRuleDiagnostic(
+            needs_amount=needs_amt,
+            needs_pct=0.0,
+            wants_amount=wants_amt,
+            wants_pct=0.0,
+            savings_amount=net_savings,
+            savings_pct=0.0,
+            status="Insufficient Data",
+            advice="Upload statements with at least 2 transactions to enable personalized 50/30/20 budget analysis.",
+        )
+
     base = total_income if total_income > 0 else (needs_amt + wants_amt + max(0.0, net_savings))
     if base <= 0:
         return BudgetRuleDiagnostic(
@@ -415,12 +439,35 @@ def get_financial_snapshot(
             )
         )
 
+    # Forex detection (Task 16.5)
+    forex_count = sum(1 for t in transactions if is_forex_transaction(t.description))
+    has_forex = forex_count > 0
+
+    # Sample size robustness check (Task 16.4)
+    total_txns_count = len(transactions)
+    is_sample_insufficient = total_txns_count < 2
+    caveat = (
+        "Sample contains fewer than 2 transactions. Spending trends and budget diagnostics are not statistically representative."
+        if is_sample_insufficient
+        else None
+    )
+
     diagnostic = evaluate_budget_rule(
         total_income=total_income,
         needs_amt=needs_amt,
         wants_amt=wants_amt,
         net_savings=net_savings,
+        total_transactions=total_txns_count,
     )
+
+    savings_interest_res = detect_savings_interest(transactions, is_senior_citizen=False)
+    cg_res = detect_capital_gains_activity(transactions)
+    arrears_res = detect_salary_arrears(transactions)
+    real_world_flags = {
+        "savings_interest": savings_interest_res,
+        "capital_gains": cg_res,
+        "salary_arrears": arrears_res,
+    }
 
     return FinancialSnapshotResponse(
         user_id=current_user.id,
@@ -437,8 +484,13 @@ def get_financial_snapshot(
         tax_deductible_spends=tax_deductibles,
         uncategorized_count=uncategorized_count,
         needs_review_count=needs_review_count,
-        total_transactions_analyzed=len(transactions),
+        total_transactions_analyzed=total_txns_count,
         recent_transactions=recent_txns,
+        is_sample_insufficient=is_sample_insufficient,
+        caveat=caveat,
+        has_forex_transactions=has_forex,
+        forex_count=forex_count,
+        real_world_flags=real_world_flags,
     )
 
 

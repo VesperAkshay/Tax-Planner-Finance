@@ -34,6 +34,7 @@ from app.reconciliation.schemas import (
 )
 from app.reconciliation.self_transfer import (
     detect_and_update_self_transfers_db,
+    detect_and_update_self_transfers_sync,
     detect_self_transfers,
 )
 from app.reconciliation.service import (
@@ -63,6 +64,7 @@ __all__ = [
     "VALID_STATUSES",
     "compute_reconciliation_tolerance",
     "detect_and_update_self_transfers_db",
+    "detect_and_update_self_transfers_sync",
     "detect_self_transfers",
     "filter_credits_for_month",
     "get_month_credit_window",

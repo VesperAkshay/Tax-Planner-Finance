@@ -190,21 +190,187 @@ def compute_old_regime_tax(
         }
         total_deductions += allowed_24b
 
-    # 7. Section 80G (Charitable Donations)
+    # 7. Section 80CCD(2) (Employer NPS Contribution)
+    if "section_80ccd_2" in ded_dict or "80ccd_2" in ded_dict:
+        val_80ccd2 = ded_dict.get("section_80ccd_2", ded_dict.get("80ccd_2"))
+        if isinstance(val_80ccd2, dict):
+            raw_80ccd2 = float(val_80ccd2.get("amount", 0.0))
+            basic_sal = float(val_80ccd2.get("basic_salary", gross))
+            is_govt = bool(val_80ccd2.get("is_govt", False))
+        else:
+            raw_80ccd2 = float(val_80ccd2 or 0.0)
+            basic_sal = gross
+            is_govt = False
+        cap_pct = 0.14 if is_govt else 0.10
+        cap_80ccd2 = basic_sal * cap_pct
+        allowed_80ccd2 = min(max(0.0, raw_80ccd2), cap_80ccd2)
+        deductions_breakdown["section_80ccd_2"] = {
+            "claimed": round(raw_80ccd2, 2),
+            "cap": round(cap_80ccd2, 2),
+            "allowed": round(allowed_80ccd2, 2),
+        }
+        total_deductions += allowed_80ccd2
+
+    # 8. Section 80GG (Rent Paid by Non-HRA Employees)
+    if "section_80gg" in ded_dict or "80gg" in ded_dict:
+        val_80gg = ded_dict.get("section_80gg", ded_dict.get("80gg"))
+        if isinstance(val_80gg, dict):
+            rent_paid = float(val_80gg.get("rent_paid", val_80gg.get("amount", 0.0)))
+            tot_inc = float(val_80gg.get("total_income", gross))
+        else:
+            rent_paid = float(val_80gg or 0.0)
+            tot_inc = gross
+        limit_1 = 60000.0  # ₹5,000/month
+        limit_2 = 0.25 * tot_inc
+        limit_3 = max(0.0, rent_paid - (0.10 * tot_inc))
+        allowed_80gg = min(limit_1, limit_2, limit_3)
+        deductions_breakdown["section_80gg"] = {
+            "claimed": round(rent_paid, 2),
+            "cap": limit_1,
+            "allowed": round(allowed_80gg, 2),
+        }
+        total_deductions += allowed_80gg
+
+    # 9. Section 80EEA (Interest on Loan for Affordable Housing)
+    if "section_80eea" in ded_dict or "80eea" in ded_dict:
+        raw_eea = float(ded_dict.get("section_80eea", ded_dict.get("80eea", 0.0)))
+        cap_eea = float(ded_rules.get("section_80eea", {}).get("cap", 150000.0))
+        allowed_eea = min(max(0.0, raw_eea), cap_eea)
+        deductions_breakdown["section_80eea"] = {
+            "claimed": round(raw_eea, 2),
+            "cap": cap_eea,
+            "allowed": round(allowed_eea, 2),
+        }
+        total_deductions += allowed_eea
+
+    # 10. Section 80E (Interest on Higher Education Loan)
+    if "section_80e" in ded_dict or "80e" in ded_dict:
+        raw_80e = float(ded_dict.get("section_80e", ded_dict.get("80e", 0.0)))
+        allowed_80e = max(0.0, raw_80e)
+        deductions_breakdown["section_80e"] = {
+            "claimed": round(raw_80e, 2),
+            "cap": None,
+            "allowed": round(allowed_80e, 2),
+        }
+        total_deductions += allowed_80e
+
+    # 11. Section 80G (Charitable Donations)
     if "section_80g" in ded_dict or "80g" in ded_dict or "donations" in ded_dict:
-        raw_80g = float(ded_dict.get("section_80g", ded_dict.get("80g", ded_dict.get("donations", 0.0))))
+        val_80g = ded_dict.get("section_80g", ded_dict.get("80g", ded_dict.get("donations", 0.0)))
+        if isinstance(val_80g, dict):
+            raw_80g = float(val_80g.get("amount", 0.0))
+            pct = float(val_80g.get("deduction_percentage", 100.0)) / 100.0
+        else:
+            raw_80g = float(val_80g or 0.0)
+            pct = 1.0
+        qualifying_cap = 0.10 * gross if gross > 0 else 0.0
+        eligible_amt = raw_80g * pct
+        allowed_80g = min(eligible_amt, qualifying_cap) if qualifying_cap > 0 else eligible_amt
         deductions_breakdown["section_80g"] = {
             "claimed": round(raw_80g, 2),
-            "allowed": round(max(0.0, raw_80g), 2),
+            "qualifying_cap": round(qualifying_cap, 2),
+            "allowed": round(allowed_80g, 2),
         }
-        total_deductions += max(0.0, raw_80g)
+        total_deductions += allowed_80g
 
-    # 8. Other deductions (e.g. 80TTA / 80TTB)
-    for other_key in ["section_80tta", "section_80ttb", "other_deductions"]:
-        if other_key in ded_dict:
-            raw_other = float(ded_dict[other_key])
-            deductions_breakdown[other_key] = {"claimed": round(raw_other, 2), "allowed": round(raw_other, 2)}
-            total_deductions += max(0.0, raw_other)
+    # 12. Section 80GGC (Political Contributions via Banking Channels)
+    if "section_80ggc" in ded_dict or "80ggc" in ded_dict:
+        raw_ggc = float(ded_dict.get("section_80ggc", ded_dict.get("80ggc", 0.0)))
+        allowed_ggc = min(max(0.0, raw_ggc), gross)
+        deductions_breakdown["section_80ggc"] = {
+            "claimed": round(raw_ggc, 2),
+            "cap": None,
+            "allowed": round(allowed_ggc, 2),
+        }
+        total_deductions += allowed_ggc
+
+    # 13. Section 80TTA (Savings Account Interest for Non-Seniors)
+    if "section_80tta" in ded_dict or "80tta" in ded_dict:
+        raw_tta = float(ded_dict.get("section_80tta", ded_dict.get("80tta", 0.0)))
+        cap_tta = float(ded_rules.get("section_80tta", {}).get("cap", 10000.0))
+        allowed_tta = min(max(0.0, raw_tta), cap_tta)
+        deductions_breakdown["section_80tta"] = {
+            "claimed": round(raw_tta, 2),
+            "cap": cap_tta,
+            "allowed": round(allowed_tta, 2),
+        }
+        total_deductions += allowed_tta
+
+    # 14. Section 80TTB (Savings and FD Interest for Senior Citizens)
+    if "section_80ttb" in ded_dict or "80ttb" in ded_dict:
+        raw_ttb = float(ded_dict.get("section_80ttb", ded_dict.get("80ttb", 0.0)))
+        cap_ttb = float(ded_rules.get("section_80ttb", {}).get("cap", 50000.0))
+        allowed_ttb = min(max(0.0, raw_ttb), cap_ttb)
+        deductions_breakdown["section_80ttb"] = {
+            "claimed": round(raw_ttb, 2),
+            "cap": cap_ttb,
+            "allowed": round(allowed_ttb, 2),
+        }
+        total_deductions += allowed_ttb
+
+    # 15. Section 80DD (Maintenance of Dependent with Disability)
+    if "section_80dd" in ded_dict or "80dd" in ded_dict:
+        val_dd = ded_dict.get("section_80dd", ded_dict.get("80dd"))
+        is_severe_dd = False
+        if isinstance(val_dd, dict):
+            is_severe_dd = bool(val_dd.get("is_severe", False) or val_dd.get("disability_percentage", 0) >= 80)
+        elif isinstance(val_dd, (int, float)) and float(val_dd) > 75000.0:
+            is_severe_dd = True
+        allowed_dd = 125000.0 if is_severe_dd else 75000.0
+        deductions_breakdown["section_80dd"] = {
+            "claimed": allowed_dd,
+            "allowed": allowed_dd,
+        }
+        total_deductions += allowed_dd
+
+    # 16. Section 80DDB (Medical Treatment of Specified Chronic Diseases)
+    if "section_80ddb" in ded_dict or "80ddb" in ded_dict:
+        val_ddb = ded_dict.get("section_80ddb", ded_dict.get("80ddb"))
+        if isinstance(val_ddb, dict):
+            raw_ddb = float(val_ddb.get("amount", 0.0))
+            is_senior_ddb = bool(val_ddb.get("is_senior_citizen", False))
+        else:
+            raw_ddb = float(val_ddb or 0.0)
+            is_senior_ddb = False
+        cap_ddb = 100000.0 if is_senior_ddb else 40000.0
+        allowed_ddb = min(max(0.0, raw_ddb), cap_ddb)
+        deductions_breakdown["section_80ddb"] = {
+            "claimed": round(raw_ddb, 2),
+            "cap": cap_ddb,
+            "allowed": round(allowed_ddb, 2),
+        }
+        total_deductions += allowed_ddb
+
+    # 17. Section 80U (Self Disability)
+    if "section_80u" in ded_dict or "80u" in ded_dict:
+        val_u = ded_dict.get("section_80u", ded_dict.get("80u"))
+        is_severe_u = False
+        if isinstance(val_u, dict):
+            is_severe_u = bool(val_u.get("is_severe", False) or val_u.get("disability_percentage", 0) >= 80)
+        elif isinstance(val_u, (int, float)) and float(val_u) > 75000.0:
+            is_severe_u = True
+        allowed_u = 125000.0 if is_severe_u else 75000.0
+        deductions_breakdown["section_80u"] = {
+            "claimed": allowed_u,
+            "allowed": allowed_u,
+        }
+        total_deductions += allowed_u
+
+    # 18. Section 10(5) (Leave Travel Concession / Allowance)
+    if "section_10_5" in ded_dict or "10_5" in ded_dict or "10(5)" in ded_dict or "lta" in ded_dict:
+        raw_lta = float(ded_dict.get("section_10_5", ded_dict.get("10_5", ded_dict.get("10(5)", ded_dict.get("lta", 0.0)))))
+        allowed_lta = max(0.0, raw_lta)
+        deductions_breakdown["section_10_5"] = {
+            "claimed": round(raw_lta, 2),
+            "allowed": round(allowed_lta, 2),
+        }
+        total_deductions += allowed_lta
+
+    # 19. Other miscellaneous deductions
+    if "other_deductions" in ded_dict:
+        raw_other = float(ded_dict["other_deductions"])
+        deductions_breakdown["other_deductions"] = {"claimed": round(raw_other, 2), "allowed": round(raw_other, 2)}
+        total_deductions += max(0.0, raw_other)
 
     total_deductions = round(total_deductions, 2)
     taxable_income = max(0.0, round(gross - total_deductions, 2))

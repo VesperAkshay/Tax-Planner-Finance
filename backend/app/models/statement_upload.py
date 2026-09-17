@@ -24,6 +24,8 @@ class StatementUploadBase(SQLModel):
     closing_balance: Optional[float] = Field(default=None)
     statement_start_date: Optional[dt_date] = Field(default=None)
     statement_end_date: Optional[dt_date] = Field(default=None)
+    date_range_start: Optional[dt_date] = Field(default=None)
+    date_range_end: Optional[dt_date] = Field(default=None)
     needs_review: bool = Field(default=False, index=True)
     raw_metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
 
@@ -64,5 +66,7 @@ class StatementUploadUpdate(SQLModel):
     closing_balance: Optional[float] = None
     statement_start_date: Optional[dt_date] = None
     statement_end_date: Optional[dt_date] = None
+    date_range_start: Optional[dt_date] = None
+    date_range_end: Optional[dt_date] = None
     needs_review: Optional[bool] = None
     raw_metadata: Optional[Dict[str, Any]] = None

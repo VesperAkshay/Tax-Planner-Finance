@@ -1,5 +1,21 @@
 from app.models.account import Account, AccountBase, AccountCreate, AccountRead, AccountUpdate
 from app.models.category import Category, CategoryBase, CategoryCreate, CategoryRead, CategoryUpdate
+from app.models.deduction_catalog import (
+    ApplicableRegimes,
+    DeductionCatalog,
+    DeductionCatalogBase,
+    DeductionCatalogCreate,
+    DeductionCatalogRead,
+    DeductionCatalogUpdate,
+)
+from app.models.elicitation_progress import (
+    ElicitationProgress,
+    ElicitationProgressBase,
+    ElicitationProgressCreate,
+    ElicitationProgressRead,
+    ElicitationProgressUpdate,
+    ElicitationStateEnum,
+)
 from app.models.reconciliation_flag import (
     ReconciliationFlag,
     ReconciliationFlagBase,
@@ -43,6 +59,8 @@ from app.models.transaction import (
 )
 from app.models.user import User, UserBase, UserCreate, UserRead, UserUpdate
 from app.models.user_declared_deduction import (
+    DeductionSource,
+    DeductionStatus,
     UserDeclaredDeduction,
     UserDeclaredDeductionBase,
     UserDeclaredDeductionCreate,
@@ -86,11 +104,25 @@ __all__ = [
     "ReconciliationFlagCreate",
     "ReconciliationFlagRead",
     "ReconciliationFlagResolve",
+    "DeductionCatalog",
+    "DeductionCatalogBase",
+    "DeductionCatalogCreate",
+    "DeductionCatalogRead",
+    "DeductionCatalogUpdate",
+    "ApplicableRegimes",
+    "ElicitationProgress",
+    "ElicitationProgressBase",
+    "ElicitationProgressCreate",
+    "ElicitationProgressRead",
+    "ElicitationProgressUpdate",
+    "ElicitationStateEnum",
     "UserDeclaredDeduction",
     "UserDeclaredDeductionBase",
     "UserDeclaredDeductionCreate",
     "UserDeclaredDeductionRead",
     "UserDeclaredDeductionUpdate",
+    "DeductionSource",
+    "DeductionStatus",
     "TaxRuleVersion",
     "TaxRuleVersionBase",
     "TaxRuleVersionCreate",

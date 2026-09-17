@@ -177,6 +177,9 @@ def generate_tax_invoice_pdf(
     comparison: Dict[str, Any],
     deductions_applied: Dict[str, Any],
     citations: Optional[List[Dict[str, Any]]] = None,
+    real_world_flags: Optional[Dict[str, Any]] = None,
+    ais_26as_checklist: Optional[Dict[str, Any]] = None,
+    filing_deadline: Optional[Dict[str, Any]] = None,
 ) -> bytes:
     """
     Generates an in-memory PDF byte stream for the Neo-Brutalist Tax Comparison Invoice.
@@ -301,6 +304,12 @@ def generate_tax_invoice_pdf(
         Paragraph(f"<b>PAN:</b> {pan_display}", style_meta_val),
         Paragraph("<b>STATUS:</b> <font color='#065F46'>AUDIT VERIFIED (100% MATH)</font>", style_meta_label),
     ]
+    if filing_deadline:
+        dl_date = filing_deadline.get("deadline_date", "")
+        days_rem = filing_deadline.get("days_remaining", 0)
+        header_right.append(
+            Paragraph(f"<b>ITR DEADLINE:</b> {dl_date} ({days_rem}d left)", style_meta_label)
+        )
 
     header_table = Table(
         [[header_left, header_right]],
@@ -557,6 +566,68 @@ def generate_tax_invoice_pdf(
     )
     story.append(KeepTogether([slabs_table]))
     story.append(Spacer(1, 8))
+
+    # --------------------------------------------------------------------------
+    # 4b. REAL-WORLD STATUTORY ADVISORIES & AIS / 26AS CHECKLIST (Phase 17)
+    # --------------------------------------------------------------------------
+    if real_world_flags:
+        cg_flag = real_world_flags.get("capital_gains", {})
+        if cg_flag.get("has_capital_gains_indicators"):
+            cg_p = Paragraph(
+                f"<b>⚠️ ITR-2 NOTICE (CAPITAL GAINS DETECTED):</b> {cg_flag.get('warning_message')}",
+                ParagraphStyle("cgAlert", parent=styles["Normal"], fontName=FONT_BOLD, fontSize=7.5, leading=9.5, textColor=COLOR_ROSE),
+            )
+            cg_tbl = Table([[cg_p]], colWidths=[535])
+            cg_tbl.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF1F2")),
+                ("BOX", (0, 0), (-1, -1), 1.5, COLOR_ROSE),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ]))
+            story.append(cg_tbl)
+            story.append(Spacer(1, 6))
+
+        arr_flag = real_world_flags.get("salary_arrears", {})
+        if arr_flag.get("has_arrears_indicator"):
+            arr_p = Paragraph(
+                f"<b>⚠️ SECTION 89 RELIEF ADVISORY:</b> {arr_flag.get('warning_message')}",
+                ParagraphStyle("arrAlert", parent=styles["Normal"], fontName=FONT_BOLD, fontSize=7.5, leading=9.5, textColor=COLOR_INDIGO),
+            )
+            arr_tbl = Table([[arr_p]], colWidths=[535])
+            arr_tbl.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EEF2FF")),
+                ("BOX", (0, 0), (-1, -1), 1.5, COLOR_INDIGO),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ]))
+            story.append(arr_tbl)
+            story.append(Spacer(1, 6))
+
+    if ais_26as_checklist:
+        ais_title = Paragraph(f"<b>{ais_26as_checklist.get('notice_banner')}</b>", style_th)
+        ais_rows = [[ais_title]]
+        for item in ais_26as_checklist.get("checklist_items", []):
+            item_p = Paragraph(
+                f"• <b>{item.get('title')}:</b> {item.get('description')}",
+                ParagraphStyle("aisItem", parent=styles["Normal"], fontName=FONT_REGULAR, fontSize=7, leading=9, textColor=COLOR_BLACK),
+            )
+            ais_rows.append([item_p])
+        ais_table = Table(ais_rows, colWidths=[535])
+        ais_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), COLOR_CARD_BG),
+            ("BOX", (0, 0), (-1, -1), 1.5, COLOR_BLACK),
+            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        story.append(KeepTogether([ais_table]))
+        story.append(Spacer(1, 6))
 
     # --------------------------------------------------------------------------
     # 5. AUDIT CERTIFICATION SEAL & CA DISCLAIMER
