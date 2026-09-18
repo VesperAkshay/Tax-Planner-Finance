@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     OPENROUTER_MODEL: str = "inclusionai/ling-3.0-flash-sante:free"
 
     # Storage Paths
-    CHROMA_PERSIST_DIR: str = "./data/chromadb"
+    CHROMA_PERSIST_DIR: str = "./data/chroma_db"
     TAX_RULES_DIR: str = "./data/tax_rules"
     TEST_FIXTURES_DIR: str = "./data/test_fixtures"
 

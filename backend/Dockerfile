@@ -45,13 +45,14 @@ ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH="/app/backend:/app"
 ENV PYTHONUNBUFFERED=1
 
-# Copy application code and statutory data assets
+# Copy application code and required data assets
 COPY backend/ /app/backend/
 COPY data/tax_rules/ /app/data/tax_rules/
-COPY data/chromadb/ /app/data/chromadb/
+COPY data/rag/ /app/data/rag/
+COPY data/categorization/ /app/data/categorization/
 
 # Create runtime directories for ChromaDB and file uploads with proper ownership
-RUN mkdir -p /app/data/chromadb /app/data/uploads /app/.cache && \
+RUN mkdir -p /app/data/chroma_db /app/data/chromadb /app/data/uploads /app/.cache && \
     chmod +x /app/backend/entrypoint.sh && \
     chown -R appuser:appuser /app
 
