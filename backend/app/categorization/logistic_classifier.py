@@ -6,12 +6,12 @@ Supports cross-validation, serialized artifact persistence, and confidence scori
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import joblib
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report, f1_score
-from sklearn.model_selection import train_test_split
+
+if TYPE_CHECKING:
+    from sklearn.linear_model import LogisticRegression
 
 from app.categorization.embedder import (
     TransactionEmbedder,
@@ -42,6 +42,8 @@ class LogisticRegressionClassifier:
 
     def fit(self, X: np.ndarray, y: List[str]) -> "LogisticRegressionClassifier":
         """Fits the logistic regression model on input embedding matrix X and label list y."""
+        from sklearn.linear_model import LogisticRegression
+
         X_arr = np.asarray(X, dtype=np.float32)
         y_arr = np.asarray(y, dtype=object)
 
@@ -157,6 +159,9 @@ def train_baseline_logistic(
     Returns:
         (classifier: LogisticRegressionClassifier, eval_metrics: Dict[str, Any])
     """
+    from sklearn.metrics import accuracy_score, classification_report, f1_score
+    from sklearn.model_selection import train_test_split
+
     embedder = get_transaction_embedder()
     embeddings, descriptions, categories = embedder.embed_dataset()
 

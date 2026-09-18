@@ -1,12 +1,12 @@
 from datetime import date, datetime
 from pathlib import Path
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions, RapidOcrOptions
-from docling.document_converter import DocumentConverter, PdfFormatOption
+
+if TYPE_CHECKING:
+    from docling.document_converter import DocumentConverter
 
 from app.parsing.constants import (
     AMOUNT_HEADER_PATTERNS,
@@ -113,8 +113,12 @@ class DoclingPDFParser:
         self._text_converter: Optional[DocumentConverter] = None
         self._ocr_converter: Optional[DocumentConverter] = None
 
-    def _get_converter(self, use_ocr: bool) -> DocumentConverter:
+    def _get_converter(self, use_ocr: bool):
         """Lazily initialize converters to conserve memory and startup time."""
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions, RapidOcrOptions
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+
         if use_ocr:
             if self._ocr_converter is None:
                 pipeline_options = PdfPipelineOptions()

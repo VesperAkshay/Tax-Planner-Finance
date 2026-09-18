@@ -6,13 +6,13 @@ sentence-transformers embeddings, with label encoding, serialization, and compar
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import joblib
 import numpy as np
-from sklearn.metrics import accuracy_score, classification_report, f1_score
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from xgboost import XGBClassifier
+
+if TYPE_CHECKING:
+    from sklearn.preprocessing import LabelEncoder
+    from xgboost import XGBClassifier
 
 from app.categorization.embedder import (
     TransactionEmbedder,
@@ -49,6 +49,9 @@ class XGBoostTransactionClassifier:
 
     def fit(self, X: np.ndarray, y: List[str]) -> "XGBoostTransactionClassifier":
         """Fits label encoder and XGBoost model on input embedding matrix X and category strings y."""
+        from sklearn.preprocessing import LabelEncoder
+        from xgboost import XGBClassifier
+
         X_arr = np.asarray(X, dtype=np.float32)
         y_list = list(y)
 
@@ -172,6 +175,9 @@ def train_xgboost_classifier(
     Trains the XGBoost classifier on the labeled transaction dataset.
     Performs train/test holdout evaluation and saves the model artifact.
     """
+    from sklearn.metrics import accuracy_score, classification_report, f1_score
+    from sklearn.model_selection import train_test_split
+
     embedder = get_transaction_embedder()
     embeddings, descriptions, categories = embedder.embed_dataset()
 
@@ -217,6 +223,8 @@ def compare_logistic_vs_xgboost(
     """
     Compares Baseline Logistic Regression against XGBoost on the same train/test split (Task 3.4).
     """
+    from sklearn.metrics import accuracy_score, f1_score
+    from sklearn.model_selection import train_test_split
     from app.categorization.logistic_classifier import LogisticRegressionClassifier
 
     embedder = get_transaction_embedder()

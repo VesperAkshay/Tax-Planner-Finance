@@ -5,9 +5,6 @@ import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions, RapidOcrOptions
-from docling.document_converter import DocumentConverter, PdfFormatOption
 
 from app.parsing.constants import DEFAULT_REVIEW_THRESHOLD
 from app.parsing.pdf_parser import clean_header, parse_numeric
@@ -278,6 +275,10 @@ class DoclingSalarySlipParser:
 
     def __init__(self, ocr_mode: Union[str, bool] = "auto"):
         self.ocr_mode = ocr_mode
+
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions, RapidOcrOptions
+        from docling.document_converter import DocumentConverter, PdfFormatOption
 
         pipeline_options = PdfPipelineOptions()
         pipeline_options.do_table_structure = True

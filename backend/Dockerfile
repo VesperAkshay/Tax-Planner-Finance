@@ -44,6 +44,12 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH="/app/backend:/app"
 ENV PYTHONUNBUFFERED=1
+ENV MALLOC_ARENA_MAX=2
+ENV PYTHONMALLOC=malloc
+ENV OMP_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV NUMEXPR_NUM_THREADS=1
+ENV VECLIB_MAXIMUM_THREADS=1
 
 # Copy application code and required data assets
 COPY backend/ /app/backend/

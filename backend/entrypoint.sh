@@ -14,7 +14,6 @@ alembic -c backend/alembic.ini upgrade head || {
 echo "==> Migrations completed successfully."
 
 PORT="${PORT:-8000}"
-WORKERS="${WEB_CONCURRENCY:-2}"
 
-echo "==> Launching Uvicorn ASGI server on port ${PORT} with ${WORKERS} workers..."
-exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT}" --workers "${WORKERS}"
+echo "==> Launching single-process Uvicorn ASGI server on port ${PORT}..."
+exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT}"

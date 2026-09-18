@@ -7,9 +7,11 @@ with caching and batch processing support for transaction categorization.
 
 import csv
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 import numpy as np
-from sentence_transformers import SentenceTransformer
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 # Model configuration constants
 DEFAULT_EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
@@ -31,12 +33,13 @@ class TransactionEmbedder:
     ):
         self.model_name = model_name
         self.device = device
-        self._model: Optional[SentenceTransformer] = None
+        self._model = None
 
     @property
-    def model(self) -> SentenceTransformer:
+    def model(self):
         """Lazy loads the underlying sentence-transformers model."""
         if self._model is None:
+            from sentence_transformers import SentenceTransformer
             self._model = SentenceTransformer(self.model_name, device=self.device)
         return self._model
 
