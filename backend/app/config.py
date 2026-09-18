@@ -47,16 +47,28 @@ class Settings(BaseSettings):
     @property
     def async_database_url(self) -> str:
         """Returns database URL formatted with postgresql+asyncpg driver."""
+        import urllib.parse
         url = self.DATABASE_URL
         if url.startswith("postgresql://"):
-            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        if url.startswith("postgres://"):
-            return url.replace("postgres://", "postgresql+asyncpg://", 1)
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+
+        parsed = urllib.parse.urlparse(url)
+        if parsed.query:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            if "sslmode" in query_params:
+                ssl_val = query_params.pop("sslmode")[0]
+                query_params["ssl"] = ["require" if "require" in ssl_val else ssl_val]
+            query_params.pop("channel_binding", None)
+            new_query = urllib.parse.urlencode(query_params, doseq=True)
+            url = urllib.parse.urlunparse(parsed._replace(query=new_query))
         return url
 
     @property
     def sync_database_url_resolved(self) -> str:
         """Returns database URL formatted with postgresql driver for Alembic / sync operations."""
+        import urllib.parse
         if self.SYNC_DATABASE_URL:
             url = self.SYNC_DATABASE_URL
         else:
@@ -65,11 +77,16 @@ class Settings(BaseSettings):
             url = url.replace("postgresql+asyncpg://", "postgresql://", 1)
         elif url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
-        # Ensure sslmode parameter is compatible with psycopg2 if ssl=require is used
-        if "?ssl=require" in url:
-            url = url.replace("?ssl=require", "?sslmode=require")
-        elif "&ssl=require" in url:
-            url = url.replace("&ssl=require", "&sslmode=require")
+
+        parsed = urllib.parse.urlparse(url)
+        if parsed.query:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            if "ssl" in query_params and "sslmode" not in query_params:
+                ssl_val = query_params.pop("ssl")[0]
+                query_params["sslmode"] = ["require" if "require" in ssl_val else ssl_val]
+            query_params.pop("channel_binding", None)
+            new_query = urllib.parse.urlencode(query_params, doseq=True)
+            url = urllib.parse.urlunparse(parsed._replace(query=new_query))
         return url
 
 

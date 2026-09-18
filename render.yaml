@@ -23,9 +23,8 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        sync: false # Set in Render Dashboard: postgresql+asyncpg://... (from Neon)
-      - key: SYNC_DATABASE_URL
-        sync: false # Set in Render Dashboard: postgresql://... (from Neon)
+        sync: false # Set in Render Dashboard: paste your Neon connection string here!
+      # SYNC_DATABASE_URL is optional; the app automatically normalizes DATABASE_URL for sync Alembic migrations
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "1440"
       - key: CHROMA_PERSIST_DIR
