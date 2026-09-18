@@ -12,6 +12,7 @@ import {
   UserPlus,
   BookOpen,
   Database,
+  Key,
 } from 'lucide-react';
 import type { User } from '../types';
 
@@ -25,6 +26,7 @@ interface NavbarProps {
   onOpenAuth: (mode: 'login' | 'register') => void;
   flagCount: number;
   onOpenLifecycleModal?: () => void;
+  onOpenBYOKModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -35,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   flagCount,
   onOpenLifecycleModal,
+  onOpenBYOKModal,
 }) => {
   const navItems: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: 'upload', label: '1. Ingest Docs', icon: <UploadCloud className="w-4 h-4" /> },
@@ -92,6 +95,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Database className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">VAULT DATA</span>
+                </button>
+              )}
+
+              {/* BYOK / AI Settings Button */}
+              {onOpenBYOKModal && (
+                <button
+                  onClick={onOpenBYOKModal}
+                  className="flex items-center gap-1.5 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                  title="Configure personal AI keys (OpenRouter, OpenAI, Groq, Gemini, Claude)"
+                >
+                  <Key className="w-3.5 h-3.5 text-[#3730A3]" />
+                  <span className="hidden sm:inline">AI KEYS (BYOK)</span>
                 </button>
               )}
 

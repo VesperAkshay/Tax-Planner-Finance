@@ -327,3 +327,39 @@ export interface CustomBankMapping {
   amount_col?: string;
   balance_col?: string;
 }
+
+export interface BYOKConfig {
+  has_key: boolean;
+  provider?: string;
+  model_name?: string;
+  masked_key?: string;
+  custom_base_url?: string | null;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  storage_mode?: 'vault' | 'local';
+}
+
+export interface BYOKValidateRequest {
+  provider: string;
+  api_key: string;
+  model_name?: string;
+  custom_base_url?: string;
+}
+
+export interface BYOKValidateResponse {
+  valid: boolean;
+  provider: string;
+  model_name: string;
+  latency_ms?: number;
+  message: string;
+  error?: string | null;
+}
+
+export interface BYOKSaveRequest {
+  provider: string;
+  api_key: string;
+  model_name?: string;
+  custom_base_url?: string;
+  validate_before_save?: boolean;
+}

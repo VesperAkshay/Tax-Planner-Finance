@@ -8,6 +8,10 @@ import type {
   CatalogListResponse,
   SelfAddDeductionResponse,
   YearOverYearComparison,
+  BYOKConfig,
+  BYOKValidateRequest,
+  BYOKValidateResponse,
+  BYOKSaveRequest,
 } from '../types';
 
 const API_BASE = '/api/v1';
@@ -45,6 +49,21 @@ export class ApiClient {
     if (this.token) {
       h['Authorization'] = `Bearer ${this.token}`;
     }
+
+    // Attach local browser BYOK credentials if active
+    const localByok = localStorage.getItem('taxplanner_byok_local');
+    if (localByok) {
+      try {
+        const parsed = JSON.parse(localByok);
+        if (parsed.api_key) {
+          h['X-BYOK-Key'] = parsed.api_key;
+          if (parsed.provider) h['X-BYOK-Provider'] = parsed.provider;
+          if (parsed.model_name) h['X-BYOK-Model'] = parsed.model_name;
+          if (parsed.custom_base_url) h['X-BYOK-Base-Url'] = parsed.custom_base_url;
+        }
+      } catch {}
+    }
+
     return h;
   }
 
@@ -446,6 +465,84 @@ export class ApiClient {
       throw new Error(err.detail || `Failed to erase account (${res.status})`);
     }
     this.clearToken();
+    return await res.json();
+  }
+
+  // ==========================================
+  // BYOK (Bring Your Own Key) (v1.2)
+  // ==========================================
+
+  async validateBYOK(payload: BYOKValidateRequest): Promise<BYOKValidateResponse> {
+    const res = await fetch(`${API_BASE}/byok/validate`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Validation failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async saveBYOK(payload: BYOKSaveRequest): Promise<BYOKConfig> {
+    const res = await fetch(`${API_BASE}/byok`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to save API key (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async getBYOK(): Promise<BYOKConfig> {
+    // Check if local storage mode is active first
+    const localByok = localStorage.getItem('taxplanner_byok_local');
+    if (localByok) {
+      try {
+        const parsed = JSON.parse(localByok);
+        if (parsed.api_key) {
+          const raw = String(parsed.api_key);
+          const masked = raw.length > 8 ? `${raw.slice(0, 7)}••••••••${raw.slice(-4)}` : '••••••••';
+          return {
+            has_key: true,
+            provider: parsed.provider,
+            model_name: parsed.model_name,
+            masked_key: masked,
+            custom_base_url: parsed.custom_base_url,
+            is_active: true,
+            storage_mode: 'local',
+          };
+        }
+      } catch {}
+    }
+
+    const res = await fetch(`${API_BASE}/byok`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to load BYOK configuration (${res.status})`);
+    }
+    const data = await res.json();
+    return { ...data, storage_mode: data.has_key ? 'vault' : undefined };
+  }
+
+  async deleteBYOK(): Promise<{ success: boolean; message: string }> {
+    // Remove local browser storage if present
+    localStorage.removeItem('taxplanner_byok_local');
+
+    const res = await fetch(`${API_BASE}/byok`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to delete BYOK configuration (${res.status})`);
+    }
     return await res.json();
   }
 }

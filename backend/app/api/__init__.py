@@ -8,6 +8,7 @@ from fastapi import APIRouter
 
 from app.api.agent import router as agent_router
 from app.api.auth import router as auth_router
+from app.api.byok import router as byok_router
 from app.api.catalog import router as catalog_router
 from app.api.financial_snapshot import router as financial_snapshot_router
 from app.api.lifecycle import router as lifecycle_router
@@ -25,5 +26,6 @@ api_router.include_router(agent_router)
 api_router.include_router(catalog_router)
 api_router.include_router(tax_report_router)
 api_router.include_router(lifecycle_router)
+api_router.include_router(byok_router)
 
 __all__ = ["api_router"]

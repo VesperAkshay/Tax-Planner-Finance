@@ -201,4 +201,14 @@ Status legend:
 - [x] **19.11** Config-Driven Origin Headers (`llm_client.py` and `config.py` replace hardcoded `localhost:5173` with configurable `APP_URL`).
 - [x] **19.12** Comprehensive Audit Documentation (`EVALUATION.md` updated with v1.1 Section 9 evaluation matrix).
 
+## Phase 20 — Bring Your Own Key (BYOK) Multi-Provider AI Architecture (v1.2)
+- [x] **20.1** Cryptographic Security Layer (`backend/app/agent/crypto.py` with per-user HKDF-SHA256 key derivation, AES-128-CBC Fernet authenticated encryption/decryption, and secure key masking).
+- [x] **20.2** User LLM Key Database Model (`backend/app/models/user_llm_key.py` with SQLModel schema and foreign key user relationships).
+- [x] **20.3** BYOK Management REST API (`backend/app/api/byok.py` with live pre-flight key validation measuring ping latency, encrypted vault storage, masked status endpoint, and revocation).
+- [x] **20.4** Dynamic Multi-Provider Client Dispatcher (`backend/app/agent/llm_client.py` and `backend/app/api/agent.py` supporting OpenRouter, OpenAI, Anthropic, Google Gemini, Groq Cloud, and custom OpenAI-compatible endpoints with fallback hierarchy).
+- [x] **20.5** Dual-Storage Privacy Architecture (supports both database AES-128 vault persistence and browser-only ephemeral `localStorage` with `X-BYOK-*` request headers).
+- [x] **20.6** Frontend Neo-Brutalist BYOK Modal (`frontend/src/components/BYOKModal.tsx` with provider cards, active model presets, password show/hide, live connection testing, and revocation controls).
+- [x] **20.7** UI Integration (`frontend/src/components/Navbar.tsx`, `frontend/src/components/AgentChatView.tsx`, and `frontend/src/App.tsx` with one-click access and active AI provider badges).
+- [x] **20.8 (automated test)** Automated validation test suite (`backend/tests/test_byok.py` verifying encryption, key masking, API CRUD, tenant isolation, and multi-provider dispatch).
+
 

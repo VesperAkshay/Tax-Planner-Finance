@@ -8,19 +8,22 @@ import {
   Sparkles,
   BookmarkPlus,
   HelpCircle,
+  Key,
 } from 'lucide-react';
 import { api } from '../api/client';
-import type { AgentChatMessage } from '../types';
+import type { AgentChatMessage, BYOKConfig } from '../types';
 import { ChatMessageRenderer } from './ChatMessageRenderer';
 
 interface AgentChatViewProps {
   onDeductionsUpdated?: () => void;
   onNavigateToCatalog?: () => void;
+  onOpenBYOKModal?: () => void;
 }
 
 export const AgentChatView: React.FC<AgentChatViewProps> = ({
   onDeductionsUpdated,
   onNavigateToCatalog,
+  onOpenBYOKModal,
 }) => {
   const defaultInitialMessage: AgentChatMessage = {
     role: 'assistant',
@@ -46,6 +49,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
   const [declaredDeductions, setDeclaredDeductions] = useState<Record<string, number>>({});
   const [loadingDeductions, setLoadingDeductions] = useState(true);
   const [llmOnline, setLlmOnline] = useState<boolean | null>(null); // null = not yet determined
+  const [activeByok, setActiveByok] = useState<BYOKConfig | null>(null);
 
   // Sync messages to localStorage
   useEffect(() => {
@@ -53,6 +57,17 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
       localStorage.setItem('taxplanner_chat_messages', JSON.stringify(messages));
     } catch {}
   }, [messages]);
+
+  // Load active BYOK status
+  useEffect(() => {
+    const fetchByok = async () => {
+      try {
+        const cfg = await api.getBYOK();
+        setActiveByok(cfg);
+      } catch {}
+    };
+    fetchByok();
+  }, []);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -205,6 +220,20 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {onOpenBYOKModal && (
+                <button
+                  onClick={onOpenBYOKModal}
+                  className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-[#FACC15] text-black px-2.5 py-1 border border-black font-mono font-black text-[10px] uppercase shadow-[1px_1px_0px_0px_#000] cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition-colors"
+                  title="Configure personal AI keys (BYOK)"
+                >
+                  <Key className="w-3 h-3 text-[#3730A3]" />
+                  <span>
+                    {activeByok?.has_key
+                      ? `BYOK: ${activeByok.provider?.toUpperCase()}`
+                      : 'AI KEYS (BYOK)'}
+                  </span>
+                </button>
+              )}
               {messages.length > 1 && (
                 <button
                   onClick={() => {

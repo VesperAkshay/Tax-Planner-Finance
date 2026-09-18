@@ -139,14 +139,75 @@ def extract_deductions_from_text(message: str) -> Dict[str, Any]:
     return deductions
 
 
-def get_llm_client_and_model():
+def get_llm_client_and_model(
+    byok_key: Optional[str] = None,
+    byok_provider: Optional[str] = None,
+    byok_model: Optional[str] = None,
+    byok_base_url: Optional[str] = None,
+):
     """
-    Returns (client, model_name, provider) based on environment configuration.
-    Priority: OpenRouter -> OpenAI -> Anthropic -> None.
+    Returns (client, model_name, provider) based on credentials hierarchy:
+    1. BYOK Credentials (user-supplied key via header or decrypted DB record)
+    2. Server Environment Credentials (OpenRouter -> OpenAI -> Anthropic)
+    3. None (deterministic rule-based fallback)
     """
     settings = get_settings()
 
-    # 1. OpenRouter (Supports free models out-of-the-box)
+    # 1. BYOK User Credentials
+    if byok_key and byok_key.strip():
+        prov = (byok_provider or "openai").strip().lower()
+        key = byok_key.strip()
+
+        try:
+            if prov == "anthropic":
+                import anthropic
+                client = anthropic.Anthropic(api_key=key)
+                model = byok_model.strip() if byok_model else "claude-3-5-haiku-latest"
+                return client, model, "anthropic"
+
+            from openai import OpenAI
+            base_url = byok_base_url.strip() if byok_base_url and byok_base_url.strip() else None
+
+            if prov == "openrouter":
+                base_url = base_url or "https://openrouter.ai/api/v1"
+                client = OpenAI(
+                    api_key=key,
+                    base_url=base_url,
+                    default_headers={
+                        "HTTP-Referer": settings.APP_URL,
+                        "X-Title": settings.APP_NAME,
+                    },
+                )
+                model = byok_model.strip() if byok_model else "openrouter/free"
+                return client, model, "openrouter"
+
+            elif prov == "gemini":
+                base_url = base_url or "https://generativelanguage.googleapis.com/v1beta/openai/"
+                client = OpenAI(api_key=key, base_url=base_url)
+                model = byok_model.strip() if byok_model else "gemini-1.5-flash"
+                return client, model, "openai"
+
+            elif prov == "groq":
+                base_url = base_url or "https://api.groq.com/openai/v1"
+                client = OpenAI(api_key=key, base_url=base_url)
+                model = byok_model.strip() if byok_model else "llama-3.3-70b-versatile"
+                return client, model, "openai"
+
+            elif prov == "custom":
+                base_url = base_url or "http://localhost:11434/v1"
+                client = OpenAI(api_key=key, base_url=base_url)
+                model = byok_model.strip() if byok_model else "default"
+                return client, model, "openai"
+
+            else:  # Standard OpenAI
+                client = OpenAI(api_key=key, base_url=base_url)
+                model = byok_model.strip() if byok_model else "gpt-4o-mini"
+                return client, model, "openai"
+
+        except Exception as e:
+            logger.warning("Failed to initialize BYOK client for provider %s: %s", prov, e)
+
+    # 2. OpenRouter (Supports free models out-of-the-box)
     if settings.OPENROUTER_API_KEY:
         try:
             from openai import OpenAI
@@ -163,7 +224,7 @@ def get_llm_client_and_model():
         except Exception as e:
             logger.warning("Failed to initialize OpenRouter client: %s", e)
 
-    # 2. Standard OpenAI
+    # 3. Standard OpenAI
     if settings.OPENAI_API_KEY:
         try:
             from openai import OpenAI
@@ -172,7 +233,7 @@ def get_llm_client_and_model():
         except Exception as e:
             logger.warning("Failed to initialize OpenAI client: %s", e)
 
-    # 3. Anthropic
+    # 4. Anthropic
     if settings.ANTHROPIC_API_KEY:
         try:
             import anthropic
@@ -275,9 +336,13 @@ def generate_llm_explanation(
     declared_deductions: Dict[str, Any],
     gross_income: float,
     financial_profile: Optional[Dict[str, Any]] = None,
+    byok_key: Optional[str] = None,
+    byok_provider: Optional[str] = None,
+    byok_model: Optional[str] = None,
+    byok_base_url: Optional[str] = None,
 ) -> Optional[str]:
     """
-    Calls the configured LLM (OpenRouter / OpenAI / Anthropic) to provide
+    Calls the configured LLM (BYOK / OpenRouter / OpenAI / Anthropic) to provide
     a natural language response strictly adhering to Zero LLM Arithmetic.
     Includes mandatory CA disclaimer on all tax queries.
     """
@@ -286,7 +351,12 @@ def generate_llm_explanation(
     if direct_ans:
         return direct_ans
 
-    client, model, provider = get_llm_client_and_model()
+    client, model, provider = get_llm_client_and_model(
+        byok_key=byok_key,
+        byok_provider=byok_provider,
+        byok_model=byok_model,
+        byok_base_url=byok_base_url,
+    )
     if not client or not model:
         return None
 

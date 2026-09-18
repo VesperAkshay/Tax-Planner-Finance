@@ -67,6 +67,12 @@ from app.models.user_declared_deduction import (
     UserDeclaredDeductionRead,
     UserDeclaredDeductionUpdate,
 )
+from app.models.user_llm_key import (
+    UserLLMKey,
+    UserLLMKeyBase,
+    UserLLMKeyCreate,
+    UserLLMKeyRead,
+)
 
 __all__ = [
     "User",
@@ -132,4 +138,8 @@ __all__ = [
     "TaxComputationBase",
     "TaxComputationCreate",
     "TaxComputationRead",
+    "UserLLMKey",
+    "UserLLMKeyBase",
+    "UserLLMKeyCreate",
+    "UserLLMKeyRead",
 ]

@@ -11,6 +11,7 @@ import { AgentChatView } from './components/AgentChatView';
 import { TaxReportView } from './components/TaxReportView';
 import { DeductionCatalogView } from './components/DeductionCatalogView';
 import { LifecycleModal } from './components/LifecycleModal';
+import { BYOKModal } from './components/BYOKModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './api/client';
 import type { User } from './types';
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
+  const [byokModalOpen, setByokModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [flagCount, setFlagCount] = useState<number>(0);
   const [initializing, setInitializing] = useState(true);
@@ -100,6 +102,7 @@ export const App: React.FC = () => {
         onOpenAuth={handleOpenAuth}
         flagCount={flagCount}
         onOpenLifecycleModal={() => setLifecycleModalOpen(true)}
+        onOpenBYOKModal={() => setByokModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -235,6 +238,12 @@ export const App: React.FC = () => {
           loadFlags();
           setActiveTab('upload');
         }}
+      />
+
+      {/* BYOK AI Settings Modal (v1.2) */}
+      <BYOKModal
+        isOpen={byokModalOpen}
+        onClose={() => setByokModalOpen(false)}
       />
 
       {/* Neo-Brutalist Packaging Footer */}

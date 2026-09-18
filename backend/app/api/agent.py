@@ -8,10 +8,11 @@ elicited deductions into the user_declared_deductions and elicitation_progress t
 
 import logging
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
+from app.agent.crypto import decrypt_api_key
 from app.agent.elicitation import CANONICAL_SECTIONS_ORDER
 from app.agent.graph import run_tax_planning_agent, step_tax_planning_agent
 from app.agent.llm_client import extract_deductions_from_text, generate_llm_explanation
@@ -30,6 +31,7 @@ from app.models.salary_slip import SalarySlip
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.user_declared_deduction import UserDeclaredDeduction
+from app.models.user_llm_key import UserLLMKey
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +60,8 @@ class AgentChatResponse(BaseModel):
     current_section: Optional[str] = None
     sections_pending: Optional[List[str]] = None
     is_completed: bool = False
+    provider_used: Optional[str] = None
+    model_used: Optional[str] = None
 
 
 @router.post("/chat", response_model=AgentChatResponse)
@@ -65,12 +69,17 @@ def chat_with_tax_agent(
     payload: AgentChatRequest,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_db_session),
+    x_byok_key: Optional[str] = Header(None, alias="X-BYOK-Key"),
+    x_byok_provider: Optional[str] = Header(None, alias="X-BYOK-Provider"),
+    x_byok_model: Optional[str] = Header(None, alias="X-BYOK-Model"),
+    x_byok_base_url: Optional[str] = Header(None, alias="X-BYOK-Base-Url"),
 ) -> AgentChatResponse:
     """
     Starts or continues a conversation with the Tax Planning Agent (Task 8.5 & Task 13.3).
     Pulls salary slip data from DB, runs stateful proactive LangGraph state machine,
     retrieves RAG citations, delegates deterministic calculations to Phase 5,
     and persists progress and elicited deductions to DB.
+    Supports Bring Your Own Key (BYOK) for multi-provider inference.
     """
     fy = "2025-2026"
 
@@ -217,6 +226,27 @@ def chat_with_tax_agent(
         "txns_count": len(user_txns),
     }
 
+    # Resolve BYOK credentials: 1. Request headers (ephemeral mode), 2. Encrypted DB record (vault mode)
+    byok_key = x_byok_key
+    byok_provider = x_byok_provider
+    byok_model = x_byok_model
+    byok_base_url = x_byok_base_url
+
+    if not byok_key:
+        active_key = session.exec(
+            select(UserLLMKey)
+            .where(UserLLMKey.user_id == current_user.id)
+            .where(UserLLMKey.is_active == True)
+        ).first()
+        if active_key:
+            try:
+                byok_key = decrypt_api_key(active_key.encrypted_key, current_user.id)
+                byok_provider = active_key.provider
+                byok_model = active_key.model_name
+                byok_base_url = active_key.custom_base_url
+            except Exception as e:
+                logger.warning("Failed to decrypt stored BYOK key for user %s: %s", current_user.id, e)
+
     # 6. Formulate bot message
     ca_disclaimer = (
         "\n\n⚠️ **Disclaimer**: *This analysis is an automated suggestion based on your uploaded records "
@@ -245,6 +275,30 @@ def chat_with_tax_agent(
         else:
             bot_message = f"Your deduction audit is complete.{ca_disclaimer}"
 
+    # If the user asked an informational question, ground it using BYOK LLM generator
+    is_question = bool(
+        user_msg and (
+            "?" in user_msg
+            or any(kw in user_msg.lower() for kw in ["what", "how", "why", "which", "explain", "tell me", "can i", "is it", "salary", "regime", "deduction"])
+        )
+    )
+    if is_question and not stepped_state.redirect_message:
+        llm_reply = generate_llm_explanation(
+            user_query=user_msg,
+            history=payload.history or [],
+            comparison=stepped_state.comparison_result or {},
+            citations=stepped_state.citations or [],
+            declared_deductions=stepped_state.declared_deductions or {},
+            gross_income=derived_gross or 0.0,
+            financial_profile=financial_profile,
+            byok_key=byok_key,
+            byok_provider=byok_provider,
+            byok_model=byok_model,
+            byok_base_url=byok_base_url,
+        )
+        if llm_reply:
+            bot_message = llm_reply
+
     return AgentChatResponse(
         session_id=payload.session_id or "default_session",
         visited_nodes=stepped_state.visited_nodes,
@@ -258,6 +312,8 @@ def chat_with_tax_agent(
         current_section=stepped_state.elicitation.current_section,
         sections_pending=stepped_state.elicitation.sections_pending,
         is_completed=is_completed,
+        provider_used=byok_provider or "system_default",
+        model_used=byok_model or "system_default",
     )
 
 
