@@ -97,11 +97,35 @@ export const SnapshotView: React.FC<SnapshotViewProps> = ({ onNavigateToTab }) =
 
   if (loading) {
     return (
-      <div className="bg-[#FFFDF9] border-4 border-black p-12 text-center shadow-[6px_6px_0px_0px_#000]">
-        <div className="animate-spin inline-block w-8 h-8 border-4 border-black border-t-[#FACC15] rounded-full mb-3" />
-        <p className="font-black text-lg tracking-wider font-mono">
-          AGGREGATING REAL CASHFLOW &amp; INTELLIGENT ANALYTICS...
-        </p>
+      <div className="space-y-6">
+        {/* Banner Skeleton */}
+        <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000] animate-pulse">
+          <div className="h-5 w-48 bg-gray-300 border border-black mb-3" />
+          <div className="h-10 w-80 bg-gray-300 border border-black mb-2" />
+          <div className="h-4 w-96 bg-gray-200" />
+        </div>
+
+        {/* Metric Cards Skeleton Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-[#FFFDF9] border-4 border-black p-5 shadow-[5px_5px_0px_0px_#000] animate-pulse">
+              <div className="h-4 w-24 bg-gray-300 mb-3" />
+              <div className="h-8 w-36 bg-gray-300 mb-2" />
+              <div className="h-3 w-20 bg-gray-200" />
+            </div>
+          ))}
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="bg-[#FFFDF9] border-4 border-black p-8 shadow-[6px_6px_0px_0px_#000] text-center animate-pulse">
+          <div className="animate-spin inline-block w-8 h-8 border-4 border-black border-t-[#FACC15] rounded-full mb-3" />
+          <p className="font-black text-base tracking-wider font-mono">
+            AGGREGATING REAL CASHFLOW &amp; INTELLIGENT ANALYTICS...
+          </p>
+          <span className="text-xs font-mono text-gray-500 mt-1 block">
+            Analyzing bank transactions and categorizing merchant spending.
+          </span>
+        </div>
       </div>
     );
   }

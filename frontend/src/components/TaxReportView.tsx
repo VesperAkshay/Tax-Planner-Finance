@@ -196,6 +196,22 @@ export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalo
 
   return (
     <div className="space-y-8">
+
+      {/* Surcharge Warning for High Earners (>₹50L) */}
+      {grossIncome > 5000000 && (
+        <div className="bg-orange-100 border-4 border-orange-800 p-4 shadow-[4px_4px_0px_0px_#000] font-mono text-xs flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-orange-800 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-black text-orange-950 uppercase text-sm block mb-1">
+              ⚠️ SURCHARGE NOT COMPUTED — INCOME ABOVE ₹50 LAKH
+            </span>
+            <span className="text-orange-900 font-semibold leading-relaxed">
+              Your gross income exceeds ₹50,00,000. The applicable surcharge (10% for ₹50L–₹1Cr, 15% for ₹1Cr–₹2Cr) has not been computed in this report (v2 scope). Your actual tax liability will be higher than shown. Please consult a Chartered Accountant for accurate computation.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner with Direct PDF Download Action */}
       <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000]">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
@@ -296,6 +312,21 @@ export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalo
           </div>
         )}
       </div>
+
+      {/* Gross Income Estimation Warning */}
+      {report.gross_income_extrapolated && (
+        <div className="bg-yellow-50 border-4 border-yellow-700 p-4 shadow-[4px_4px_0px_0px_#000] font-mono text-xs flex items-start gap-3">
+          <Info className="w-5 h-5 text-yellow-800 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-black text-yellow-950 uppercase text-sm block mb-1">
+              ⚠️ ESTIMATED ANNUAL INCOME — ONLY {report.gross_income_slip_count ?? 1} SALARY SLIP(S) UPLOADED
+            </span>
+            <span className="text-yellow-900 font-semibold leading-relaxed">
+              Annual gross income is estimated by multiplying your latest salary slip by 12. If you had a mid-year salary revision, joined mid-year, or received variable pay, please upload all 12 monthly slips for an accurate tax computation.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Catalog Checkpoint & Draft vs Final Report Gating (Phase 14) */}
       {report.report_status === 'draft' ? (
@@ -935,7 +966,7 @@ export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalo
       </div>
 
       {/* Statutory AIS & Form 26AS Pre-Filing Checklist (Phase 17) */}
-      {report.ais_26as_checklist?.items && report.ais_26as_checklist.items.length > 0 && (
+      {Boolean(report.ais_26as_checklist?.items?.length || (report.ais_26as_checklist as any)?.checklist_items?.length) && (
         <div className="bg-[#FFFDF9] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000]">
           <div className="flex items-center gap-2.5 border-b-3 border-black pb-3 mb-6">
             <ListChecks className="w-6 h-6 text-[#3730A3]" />
@@ -950,7 +981,7 @@ export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalo
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            {report.ais_26as_checklist.items.map((item) => (
+            {(report.ais_26as_checklist?.items || (report.ais_26as_checklist as any)?.checklist_items || []).map((item: any) => (
               <div
                 key={item.id}
                 className="bg-[#FAF7F2] border-2 border-black p-4 shadow-[3px_3px_0px_0px_#000] flex flex-col justify-between"
@@ -959,7 +990,7 @@ export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalo
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="font-black text-sm uppercase text-[#18153B]">{item.name}</span>
                     <span className="bg-emerald-200 text-emerald-950 text-[10px] font-black px-1.5 py-0.5 border border-black">
-                      {item.status.toUpperCase()}
+                      {(item.status ?? 'PENDING_CHECK').toUpperCase().replace(/_/g, ' ')}
                     </span>
                   </div>
                   <p className="text-gray-700 font-semibold mb-3 leading-relaxed">

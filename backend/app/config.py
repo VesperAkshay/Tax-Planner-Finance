@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # Application
     ENVIRONMENT: str = "development"
     APP_NAME: str = "Personal Finance + Tax Regime Planner"
+    APP_URL: str = "http://localhost:5173"
     DEBUG: bool = True
     HOST: str = "127.0.0.1"
     PORT: int = 8000

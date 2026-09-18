@@ -150,14 +150,20 @@ def compute_old_regime_tax(
     # 4. Section 80D (Health Insurance)
     if "section_80d" in ded_dict or "80d" in ded_dict:
         data_80d = ded_dict.get("section_80d", ded_dict.get("80d"))
-        if isinstance(data_80d, dict):
+        if isinstance(data_80d, dict) and ("self_family_premium" in data_80d or "parents_premium" in data_80d):
             res_80d = compute_section_80d_deduction(data_80d, ded_rules.get("section_80d", {}))
             deductions_breakdown["section_80d"] = res_80d
             total_deductions += res_80d["allowed"]
         else:
-            # Flat amount passed
-            raw_80d = float(data_80d or 0.0)
-            cap_80d = float(ded_rules.get("section_80d", {}).get("self_family_max", 25000.0))
+            # Flat amount or simple amount dict passed
+            if isinstance(data_80d, dict):
+                raw_80d = float(data_80d.get("amount", data_80d.get("self_family_premium", 0.0)))
+                is_senior = bool(data_80d.get("is_self_senior", False))
+            else:
+                raw_80d = float(data_80d or 0.0)
+                is_senior = False
+            cap_key = "self_family_senior_max" if is_senior else "self_family_max"
+            cap_80d = float(ded_rules.get("section_80d", {}).get(cap_key, 25000.0))
             allowed_80d = min(max(0.0, raw_80d), cap_80d)
             deductions_breakdown["section_80d"] = {
                 "claimed": round(raw_80d, 2),
@@ -165,6 +171,25 @@ def compute_old_regime_tax(
                 "allowed": round(allowed_80d, 2),
             }
             total_deductions += allowed_80d
+
+    # 4b. Section 80D Parents (Medical Insurance)
+    if "section_80d_parents" in ded_dict or "80d_parents" in ded_dict:
+        data_80d_p = ded_dict.get("section_80d_parents", ded_dict.get("80d_parents"))
+        if isinstance(data_80d_p, dict):
+            raw_80d_p = float(data_80d_p.get("amount", data_80d_p.get("parents_premium", 0.0)))
+            parents_senior = bool(data_80d_p.get("are_parents_senior", True))
+        else:
+            raw_80d_p = float(data_80d_p or 0.0)
+            parents_senior = True
+        p_cap_key = "parents_senior_max" if parents_senior else "parents_max"
+        cap_80d_p = float(ded_rules.get("section_80d", {}).get(p_cap_key, 50000.0))
+        allowed_80d_p = min(max(0.0, raw_80d_p), cap_80d_p)
+        deductions_breakdown["section_80d_parents"] = {
+            "claimed": round(raw_80d_p, 2),
+            "cap": cap_80d_p,
+            "allowed": round(allowed_80d_p, 2),
+        }
+        total_deductions += allowed_80d_p
 
     # 5. Section 80CCD(1B) (NPS Additional)
     if "section_80ccd_1b" in ded_dict or "80ccd_1b" in ded_dict or "nps" in ded_dict:

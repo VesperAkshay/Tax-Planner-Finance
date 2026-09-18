@@ -55,6 +55,8 @@ class TaxComparisonReportResponse(BaseModel):
     gross_income: float
     salary_income: Optional[float] = None
     savings_interest_income: Optional[float] = None
+    gross_income_extrapolated: Optional[bool] = False
+    gross_income_slip_count: Optional[int] = None
     is_salaried: bool
     recommended_regime: str
     tax_savings: float
@@ -96,11 +98,17 @@ def _build_tax_report_payload(
     savings_interest_res = detect_savings_interest(active_txns, is_senior_citizen=False)
     cg_res = detect_capital_gains_activity(active_txns)
     arrears_res = detect_salary_arrears(active_txns)
-    ais_checklist = get_ais_26as_checklist()
+    ais_checklist = get_ais_26as_checklist(
+        savings_interest_result=savings_interest_res,
+        capital_gains_result=cg_res,
+        arrears_result=arrears_res,
+    )
     deadline_info = compute_filing_deadline_countdown(financial_year=financial_year)
 
     # 1. Determine gross salary / baseline income
     annual_gross = gross_income
+    gross_income_extrapolated = False
+    gross_income_slip_count = None
     slips = []
     if annual_gross is None:
         slips = list(session.exec(
@@ -113,12 +121,18 @@ def _build_tax_report_payload(
         if slips:
             if len(slips) >= 12:
                 annual_gross = sum(s.gross_pay for s in slips[:12])
+                gross_income_extrapolated = False
+                gross_income_slip_count = len(slips[:12])
             else:
                 annual_gross = slips[0].gross_pay * 12.0
+                gross_income_extrapolated = True
+                gross_income_slip_count = len(slips)
         else:
             # Fallback to credit transactions
             credit_user_txns = [t for t in active_txns if t.transaction_type == "credit"]
             annual_gross = sum(t.amount for t in credit_user_txns) if credit_user_txns else 0.0
+            gross_income_extrapolated = False
+            gross_income_slip_count = None
 
     salary_income = max(0.0, float(annual_gross))
     savings_interest_income = savings_interest_res["total_interest"]
@@ -315,6 +329,8 @@ def _build_tax_report_payload(
         "annual_gross": total_gross_income,
         "salary_income": salary_income,
         "savings_interest_income": savings_interest_income,
+        "gross_income_extrapolated": gross_income_extrapolated,
+        "gross_income_slip_count": gross_income_slip_count,
         "is_salaried": is_salaried,
         "financial_year": financial_year,
         "comparison": comparison,
@@ -359,6 +375,8 @@ def get_tax_comparison_report(
         gross_income=payload["annual_gross"],
         salary_income=payload.get("salary_income"),
         savings_interest_income=payload.get("savings_interest_income"),
+        gross_income_extrapolated=payload.get("gross_income_extrapolated", False),
+        gross_income_slip_count=payload.get("gross_income_slip_count"),
         is_salaried=payload["is_salaried"],
         recommended_regime=comparison["recommended"],
         tax_savings=comparison["savings"],

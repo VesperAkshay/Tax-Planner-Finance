@@ -154,8 +154,8 @@ def get_llm_client_and_model():
                 base_url=settings.OPENROUTER_BASE_URL,
                 api_key=settings.OPENROUTER_API_KEY,
                 default_headers={
-                    "HTTP-Referer": "http://localhost:5173",
-                    "X-Title": "Personal Finance Tax Regime Planner",
+                    "HTTP-Referer": settings.APP_URL,
+                    "X-Title": settings.APP_NAME,
                 },
             )
             model = settings.OPENROUTER_MODEL or "meta-llama/llama-3.3-70b-instruct:free"

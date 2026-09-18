@@ -238,51 +238,93 @@ def detect_salary_arrears(
     }
 
 
-def get_ais_26as_checklist() -> Dict[str, Any]:
+def get_ais_26as_checklist(
+    savings_interest_result: Optional[Dict[str, Any]] = None,
+    capital_gains_result: Optional[Dict[str, Any]] = None,
+    arrears_result: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """
     Task 17.4: Generates statutory AIS (Annual Information Statement) and Form 26AS
     cross-check reconciliation checklist for the final tax report and PDF.
+    Dynamically escalates item priority based on detected real-world flags.
     """
+    has_interest = bool(savings_interest_result and savings_interest_result.get("has_interest", False))
+    has_cg = bool(capital_gains_result and capital_gains_result.get("has_capital_gains_indicators", False))
+    has_arrears = bool(arrears_result and arrears_result.get("has_arrears_indicator", False))
+    interest_amount = float(savings_interest_result.get("total_interest", 0.0)) if savings_interest_result else 0.0
+
+    raw_items = [
+        {
+            "id": "tds_26as",
+            "name": "Form 26AS TDS Verification",
+            "title": "Form 26AS TDS Verification",
+            "status": "action_needed" if has_arrears else "pending_check",
+            "action_needed": "Verify TDS in Form 16 against Form 26AS Part A"
+                + (". Arrears detected — ensure extra TDS on arrears is reflected." if has_arrears else ""),
+            "description": (
+                "Cross-check tax deducted at source (TDS) in your Form 16 Part A against Part A "
+                "of Form 26AS to confirm all employer and bank TDS has been credited to your PAN."
+                + (" ⚠️ Salary arrears detected — verify arrears TDS separately." if has_arrears else "")
+            ),
+        },
+        {
+            "id": "ais_interest_dividends",
+            "name": "AIS Savings & Deposit Interest",
+            "title": "AIS Savings & Deposit Interest",
+            "status": "action_needed" if has_interest else "pending_check",
+            "action_needed": "Match bank interest with AIS Schedule OS"
+                + (f" — ₹{interest_amount:,.2f} interest detected in your statements." if has_interest else ""),
+            "description": (
+                "Reconcile savings account interest, fixed deposit interest, and dividend payouts "
+                "listed in your Annual Information Statement (AIS / TIS) with this report."
+                + (f" ⚠️ ₹{interest_amount:,.2f} in savings interest detected — ensure AIS matches." if has_interest else "")
+            ),
+        },
+        {
+            "id": "capital_gains_schedule",
+            "name": "Capital Gains / Schedule CG",
+            "title": "Capital Gains / Schedule CG",
+            "status": "action_needed" if has_cg else "pending_check",
+            "action_needed": "Verify capital gains entries in AIS Schedule CG"
+                + (f" — {capital_gains_result.get('flagged_transactions_count', 0)} broker/MF transaction(s) flagged." if has_cg else ""),
+            "description": (
+                "Review capital gains and broker payouts reported in AIS Schedule CG."
+                + (" ⚠️ Broker/mutual fund transactions detected — you may need to file ITR-2." if has_cg else " No broker activity detected in your uploaded statements.")
+            ),
+        },
+        {
+            "id": "gross_salary_schedule",
+            "name": "Gross Salary Consistency",
+            "title": "Gross Salary Consistency",
+            "status": "pending_check",
+            "action_needed": "Verify total salary matches Schedule S",
+            "description": (
+                "Confirm total gross compensation reported matches or exceeds the salary income "
+                "in AIS (Schedule S) to avoid automated CPC defect notices."
+            ),
+        },
+        {
+            "id": "bank_prevalidation",
+            "name": "Bank Account Pre-Validation for Direct Refund",
+            "title": "Bank Account Pre-Validation for Direct Refund",
+            "status": "pending_check",
+            "action_needed": "Confirm refund bank account is validated on ITD portal",
+            "description": (
+                "Ensure your refund-eligible bank account is pre-validated and PAN-linked on the "
+                "income tax e-filing portal to receive direct electronic tax refunds."
+            ),
+        },
+    ]
     return {
+        "title": "AIS & Form 26AS Pre-Filing Statutory Reconciliation",
         "notice_banner": (
             "Before filing, download your AIS and Form 26AS from the income tax portal "
             "and cross-check against this report."
         ),
         "portal_url": "https://www.incometax.gov.in",
-        "checklist_items": [
-            {
-                "id": "tds_26as",
-                "title": "Form 26AS TDS Verification",
-                "description": (
-                    "Cross-check tax deducted at source (TDS) in your Form 16 Part A against Part A "
-                    "of Form 26AS to confirm all employer and bank TDS has been credited to your PAN."
-                ),
-            },
-            {
-                "id": "ais_interest_dividends",
-                "title": "AIS Savings & Deposit Interest",
-                "description": (
-                    "Reconcile savings account interest, fixed deposit interest, and dividend payouts "
-                    "listed in your Annual Information Statement (AIS / TIS) with this report."
-                ),
-            },
-            {
-                "id": "gross_salary_schedule",
-                "title": "Gross Salary Consistency",
-                "description": (
-                    "Confirm total gross compensation reported matches or exceeds the salary income "
-                    "in AIS (Schedule S) to avoid automated CPC defect notices."
-                ),
-            },
-            {
-                "id": "bank_prevalidation",
-                "title": "Bank Account Pre-Validation for Direct Refund",
-                "description": (
-                    "Ensure your refund-eligible bank account is pre-validated and PAN-linked on the "
-                    "income tax e-filing portal to receive direct electronic tax refunds."
-                ),
-            },
-        ],
+        "items": raw_items,
+        "checklist_items": raw_items,
+        "action_needed_count": sum(1 for item in raw_items if item["status"] == "action_needed"),
     }
 
 

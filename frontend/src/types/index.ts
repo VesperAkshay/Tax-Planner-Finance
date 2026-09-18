@@ -221,6 +221,8 @@ export interface TaxComparisonReport {
   gross_income: number;
   salary_income?: number;
   savings_interest_income?: number;
+  gross_income_extrapolated?: boolean;
+  gross_income_slip_count?: number | null;
   is_salaried: boolean;
   recommended_regime: 'new' | 'old' | string;
   tax_savings: number;

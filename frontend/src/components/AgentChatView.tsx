@@ -22,24 +22,78 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
   onDeductionsUpdated,
   onNavigateToCatalog,
 }) => {
-  const [messages, setMessages] = useState<AgentChatMessage[]>([
-    {
-      role: 'assistant',
-      content:
-        'Hello! I am Mr. Planner, your FY 2025–26 Tax Strategist. I help you discover all qualifying exemptions and deductions under the Income Tax Act (Sections 80C, 80D, 80CCD(1B), and 10(13A) HRA). All calculations are executed by our deterministic engine with zero hallucination. Tell me about your rent, investments, or salary!',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
+  const defaultInitialMessage: AgentChatMessage = {
+    role: 'assistant',
+    content:
+      'Hello! I am Mr. Planner, your FY 2025–26 Tax Strategist. I help you discover all qualifying exemptions and deductions under the Income Tax Act (Sections 80C, 80D, 80CCD(1B), and 10(13A) HRA). All calculations are executed by our deterministic engine with zero hallucination. Tell me about your rent, investments, or salary!',
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  };
+
+  const [messages, setMessages] = useState<AgentChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem('taxplanner_chat_messages');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return [defaultInitialMessage];
+  });
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [declaredDeductions, setDeclaredDeductions] = useState<Record<string, number>>({
-    section_80c: 150000,
-    section_80ccd_1b: 50000,
-    section_80d: 25000,
-    section_10_13a_hra: 180000,
-  });
+  const [declaredDeductions, setDeclaredDeductions] = useState<Record<string, number>>({});
+  const [loadingDeductions, setLoadingDeductions] = useState(true);
+  const [llmOnline, setLlmOnline] = useState<boolean | null>(null); // null = not yet determined
+
+  // Sync messages to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('taxplanner_chat_messages', JSON.stringify(messages));
+    } catch {}
+  }, [messages]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch real declared deductions from catalog API on mount
+  useEffect(() => {
+    const fetchDeductions = async () => {
+      try {
+        const catalog = await api.getCatalog('2025-2026', false);
+        const realDeductions: Record<string, number> = {};
+        const keyMap: Record<string, string> = {
+          '80C': 'section_80c',
+          '80CCD(1B)': 'section_80ccd_1b',
+          '80D': 'section_80d',
+          '10(13A)': 'section_10_13a_hra',
+          '80CCD(2)': 'section_80ccd_2',
+          '80D (parents)': 'section_80d_parents',
+          '80TTA': 'section_80tta',
+          '80TTB': 'section_80ttb',
+          '80E': 'section_80e',
+          '80G': 'section_80g',
+          '24(b)': 'section_24b',
+          '80EEA': 'section_80eea',
+        };
+        for (const section of catalog.sections) {
+          if (section.declared_amount && section.declared_amount > 0) {
+            const internalKey =
+              keyMap[section.section_code] ||
+              section.section_code.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            realDeductions[internalKey] = section.declared_amount;
+          }
+        }
+        setDeclaredDeductions(realDeductions);
+      } catch {
+        // Catalog not yet available — start with empty (no fake placeholder data)
+        setDeclaredDeductions({});
+      } finally {
+        setLoadingDeductions(false);
+      }
+    };
+    fetchDeductions();
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,6 +117,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
       const history = messages.map((m) => ({ role: m.role, content: m.content }));
       const res = await api.sendChatMessage(query, history);
 
+      setLlmOnline(true); // Got a reply — LLM or deterministic fallback is working
       if (res.deductions_updated) {
         setDeclaredDeductions((prev) => ({ ...prev, ...res.deductions_updated }));
         if (onDeductionsUpdated) onDeductionsUpdated();
@@ -142,16 +197,32 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
                     AI STRATEGIST
                   </span>
                 </h3>
-                <p className="text-[11px] font-mono text-gray-300 flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>ONLINE • ZERO ARITHMETIC DRIFT</span>
-                </p>
+                  <p className="text-[11px] font-mono text-gray-300 flex items-center gap-1.5 mt-0.5">
+                    <span className={`w-2 h-2 rounded-full ${llmOnline === false ? 'bg-yellow-400' : 'bg-emerald-400 animate-pulse'}`} />
+                    <span>{llmOnline === false ? 'OFFLINE MODE • DETERMINISTIC ONLY' : 'ONLINE • ZERO ARITHMETIC DRIFT'}</span>
+                  </p>
               </div>
             </div>
 
-            <span className="bg-[#FACC15] text-black font-black text-[10px] uppercase px-2.5 py-1 border-2 border-black font-mono shadow-[2px_2px_0px_0px_#000]">
-              FY 2025–26 ACTIVE
-            </span>
+            <div className="flex items-center gap-2">
+              {messages.length > 1 && (
+                <button
+                  onClick={() => {
+                    setMessages([defaultInitialMessage]);
+                    try {
+                      localStorage.removeItem('taxplanner_chat_messages');
+                    } catch {}
+                  }}
+                  className="bg-transparent hover:bg-white/10 text-gray-300 hover:text-white text-[10px] font-mono px-2 py-1 border border-gray-400 cursor-pointer uppercase transition-all"
+                  title="Clear conversation and reset to start"
+                >
+                  RESET CHAT
+                </button>
+              )}
+              <span className="bg-[#FACC15] text-black font-black text-[10px] uppercase px-2.5 py-1 border-2 border-black font-mono shadow-[2px_2px_0px_0px_#000]">
+                FY 2025–26 ACTIVE
+              </span>
+            </div>
           </div>
 
           {/* Messages Container */}
@@ -305,7 +376,11 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
               </h3>
             </div>
             <p className="text-xs font-mono text-gray-700 mb-6 font-semibold">
-              Verified deductions securely linked to your tax profile.
+              {loadingDeductions
+                ? 'Loading vault data...'
+                : Object.keys(declaredDeductions).length === 0
+                ? 'No deductions declared yet. Use Mr. Planner or the Deduction Catalog to add them.'
+                : 'Verified deductions from your tax profile.'}
             </p>
 
             <div className="space-y-4 font-mono">
@@ -388,7 +463,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
           <div className="mt-6 pt-4 border-t-2 border-black bg-[#F59E0B]/20 p-3 border">
             <div className="flex items-center gap-2 text-xs font-black text-black uppercase font-mono">
               <CheckCircle className="w-4 h-4 text-emerald-800" />
-              <span>TOTAL DEDUCTIONS: ₹{(Object.values(declaredDeductions).reduce((a, b) => a + b, 0)).toLocaleString('en-IN')}</span>
+              <span>TOTAL DECLARED: ₹{(Object.values(declaredDeductions).filter((v): v is number => typeof v === 'number').reduce((a, b) => a + b, 0)).toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>

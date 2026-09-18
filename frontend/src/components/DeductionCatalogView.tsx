@@ -417,6 +417,11 @@ export const DeductionCatalogView: React.FC<DeductionCatalogViewProps> = ({
                         className="w-full bg-white border-2 border-black px-2.5 py-1.5 font-mono font-bold text-sm outline-none focus:ring-2 focus:ring-[#FACC15]"
                         autoFocus
                       />
+                      {Boolean(item.cap_amount && item.cap_amount > 0 && parseFloat(editAmount || '0') > item.cap_amount) && (
+                        <p className="text-[10px] text-amber-900 font-bold mt-1 bg-amber-100 p-1.5 border border-amber-600">
+                          ⚠️ Amount exceeds statutory ceiling of ₹{item.cap_amount!.toLocaleString('en-IN')}. Tax engine will cap eligible deduction to ₹{item.cap_amount!.toLocaleString('en-IN')}.
+                        </p>
+                      )}
                     </div>
 
                     {item.requires_eligibility_check && (

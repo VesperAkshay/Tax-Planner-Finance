@@ -42,6 +42,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from collections import defaultdict
+from datetime import datetime, timedelta
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+# Simple in-memory rate limiter: max 60 requests per minute per IP
+_rate_limit_store: dict = defaultdict(list)
+RATE_LIMIT_MAX = 60
+RATE_LIMIT_WINDOW_SECONDS = 60
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    client_ip = request.client.host if request.client else "unknown"
+    if client_ip in ("testclient", "unknown") or settings.ENVIRONMENT == "test":
+        return await call_next(request)
+    now = datetime.utcnow()
+    window_start = now - timedelta(seconds=RATE_LIMIT_WINDOW_SECONDS)
+    _rate_limit_store[client_ip] = [
+        t for t in _rate_limit_store[client_ip] if t > window_start
+    ]
+    if len(_rate_limit_store[client_ip]) >= RATE_LIMIT_MAX:
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Too many requests. Please wait before retrying."},
+            headers={"Retry-After": str(RATE_LIMIT_WINDOW_SECONDS)},
+        )
+    _rate_limit_store[client_ip].append(now)
+    return await call_next(request)
+
 # Include v1 REST API routes
 from app.api import api_router
 app.include_router(api_router)
