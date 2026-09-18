@@ -1,0 +1,34 @@
+# ==============================================================================
+# Render Blueprint for Personal Finance + Tax Regime Planner Backend (Free Tier)
+# ==============================================================================
+services:
+  - type: web
+    name: tax-planner-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "False"
+      - key: APP_NAME
+        value: "Personal Finance + Tax Regime Planner"
+      - key: APP_URL
+        value: "https://taxplan.tyes.dev"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false # Set in Render Dashboard: postgresql+asyncpg://... (from Neon)
+      - key: SYNC_DATABASE_URL
+        sync: false # Set in Render Dashboard: postgresql://... (from Neon)
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: CHROMA_PERSIST_DIR
+        value: "./data/chromadb"
+      - key: TAX_RULES_DIR
+        value: "./data/tax_rules"
