@@ -431,8 +431,13 @@ export class ApiClient {
   }
 
   async getUserUploadedFiles(): Promise<UserUploadedFilesResponse> {
-    const res = await fetch(`${API_BASE}/lifecycle/files`, {
-      headers: this.headers(),
+    const res = await fetch(`${API_BASE}/lifecycle/files?_t=${Date.now()}`, {
+      headers: {
+        ...this.headers(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
+      cache: 'no-store',
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));

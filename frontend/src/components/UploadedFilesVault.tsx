@@ -56,19 +56,33 @@ export const UploadedFilesVault: React.FC<UploadedFilesVaultProps> = ({
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    // 1. Optimistic UI update: remove card immediately from view
+    setFiles((prev) => prev.filter((f) => !(f.type === file.type && f.id === file.id)));
+
     try {
       if (file.type === 'salary_slip') {
         const res = await api.deleteSalarySlip(file.id);
-        setSuccessMsg(res.message || `Salary slip '${file.file_name}' deleted successfully.`);
+        setSuccessMsg(res.message || `Salary slip '${file.file_name}' removed.`);
       } else {
         const res = await api.deleteUpload(file.id);
-        setSuccessMsg(res.message || `Statement '${file.file_name}' and parsed transactions deleted successfully.`);
+        setSuccessMsg(res.message || `Statement '${file.file_name}' and parsed transactions removed.`);
       }
       setDeletingKey(null);
-      await fetchFiles();
       onFileDeleted?.();
+      await fetchFiles();
     } catch (e: unknown) {
-      setErrorMsg(e instanceof Error ? e.message : 'Failed to delete file.');
+      const msg = e instanceof Error ? e.message : 'Failed to delete file.';
+      // If already deleted on server (404 / not found), treat as successfully removed
+      if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('already')) {
+        setSuccessMsg(`Document '${file.file_name}' removed from your vault.`);
+        setDeletingKey(null);
+        onFileDeleted?.();
+        await fetchFiles();
+      } else {
+        setErrorMsg(msg);
+        // Rollback optimistic removal by fetching actual state
+        await fetchFiles();
+      }
     } finally {
       setIsDeleting(false);
     }

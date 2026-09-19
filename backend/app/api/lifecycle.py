@@ -71,14 +71,21 @@ class UserUploadedFilesListResponse(BaseModel):
 
 @router.get("/files", response_model=UserUploadedFilesListResponse)
 def list_user_uploaded_files(
+    response: Response,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ) -> UserUploadedFilesListResponse:
     """
     Lists all uploaded files (bank statements and salary slips) for the authenticated user.
     Includes metadata, transaction counts, dates, and direct identifiers for 1-click deletion.
+    Guarantees no-cache headers so clients always see real-time database state.
     """
     import calendar
+
+    # Set strict anti-caching headers
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
 
     # 1. Fetch statement uploads
     stmt_uploads = session.exec(
@@ -175,7 +182,7 @@ def delete_single_salary_slip(
 ) -> ActionResponse:
     """
     Deletes a single salary slip and cascades its reconciliation flags.
-    Enforces user ownership and re-runs reconciliation.
+    Enforces user ownership, idempotency, and re-runs reconciliation.
     """
     if not confirm:
         raise HTTPException(
@@ -190,9 +197,10 @@ def delete_single_salary_slip(
     ).first()
 
     if not slip:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Salary slip ID {salary_slip_id} not found for this user.",
+        return ActionResponse(
+            success=True,
+            message=f"Salary slip ID {salary_slip_id} has already been removed.",
+            details={"salary_slip_id": salary_slip_id, "already_deleted": True},
         )
 
     file_name = slip.file_name
@@ -232,7 +240,7 @@ def delete_single_upload(
 ) -> ActionResponse:
     """
     Deletes a single statement upload and cascade-deletes all its parsed transactions (Task 15.4).
-    Enforces cross-tenant isolation and re-runs reconciliation.
+    Enforces cross-tenant isolation, idempotency, and re-runs reconciliation.
     """
     if not confirm:
         raise HTTPException(
@@ -247,9 +255,10 @@ def delete_single_upload(
     ).first()
 
     if not upload:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Upload ID {upload_id} not found for this user.",
+        return ActionResponse(
+            success=True,
+            message=f"Upload ID {upload_id} has already been removed.",
+            details={"upload_id": upload_id, "already_deleted": True},
         )
 
     # 1. Fetch transactions for this upload

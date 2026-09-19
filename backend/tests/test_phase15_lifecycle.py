@@ -424,3 +424,15 @@ def test_list_and_delete_uploaded_files(client, user_and_auth, db_engine):
     # 7. List files again - now empty
     resp3 = client.get("/api/v1/lifecycle/files", headers=headers)
     assert resp3.json()["total"] == 0
+
+    # 8. Idempotent deletion: re-deleting already removed items succeeds gracefully
+    del_again = client.delete(f"/api/v1/lifecycle/salary-slip/{slip_id}?confirm=true", headers=headers)
+    assert del_again.status_code == 200
+    assert del_again.json()["success"] is True
+    assert del_again.json()["details"]["already_deleted"] is True
+
+    del_upload_again = client.delete(f"/api/v1/lifecycle/upload/{upload_id}?confirm=true", headers=headers)
+    assert del_upload_again.status_code == 200
+    assert del_upload_again.json()["success"] is True
+    assert del_upload_again.json()["details"]["already_deleted"] is True
+

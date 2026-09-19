@@ -534,7 +534,11 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
 
       {/* Uploaded Documents Vault (ChatGPT-Style Interactive File Manager) */}
       <UploadedFilesVault
-        onFileDeleted={onUploadSuccess}
+        onFileDeleted={() => {
+          setStmtResult(null);
+          setSalaryResult(null);
+          onUploadSuccess();
+        }}
         refreshTrigger={refreshVaultCounter}
       />
     </div>
