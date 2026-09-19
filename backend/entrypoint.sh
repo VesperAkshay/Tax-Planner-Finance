@@ -13,7 +13,7 @@ alembic -c backend/alembic.ini upgrade head || {
 
 echo "==> Migrations completed successfully."
 
-PORT="${PORT:-8000}"
+PORT="${PORT:-7860}"
 
 echo "==> Launching single-process Uvicorn ASGI server on port ${PORT}..."
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT}"

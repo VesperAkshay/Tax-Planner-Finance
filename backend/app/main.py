@@ -47,7 +47,7 @@ if settings.APP_URL and settings.APP_URL not in allowed_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(tyes\.dev|pages\.dev|onrender\.com)(:\d+)?$",
+    allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(tyes\.dev|pages\.dev|onrender\.com|hf\.space)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
