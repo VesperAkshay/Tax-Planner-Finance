@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#FAF7F2" />
+  
+  <!-- Subtle Grid Pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E5E0D8" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.6"/>
+
+  <!-- Outer Neo-Brutalist Frame -->
+  <rect x="40" y="40" width="1120" height="550" fill="#FFFFFF" stroke="#0F0E17" stroke-width="6" rx="0" filter="drop-shadow(10px 10px 0px #0F0E17)"/>
+
+  <!-- Top Status Bar -->
+  <rect x="40" y="40" width="1120" height="56" fill="#0F0E17" />
+  <circle cx="76" cy="68" r="8" fill="#EF4444" stroke="#000" stroke-width="1.5"/>
+  <circle cx="104" cy="68" r="8" fill="#FACC15" stroke="#000" stroke-width="1.5"/>
+  <circle cx="132" cy="68" r="8" fill="#10B981" stroke="#000" stroke-width="1.5"/>
+  <text x="600" y="74" fill="#FFFFFF" font-family="'JetBrains Mono', monospace" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="2">
+    TAXPLAN.TYES.DEV • STATUTORY TAX OPTIMIZER FY 2025–26
+  </text>
+
+  <!-- Tag / Pill -->
+  <rect x="90" y="140" width="310" height="44" fill="#FACC15" stroke="#0F0E17" stroke-width="4"/>
+  <text x="245" y="169" fill="#0F0E17" font-family="'Space Grotesk', sans-serif" font-size="18" font-weight="800" text-anchor="middle" letter-spacing="1">
+    ⚡ FINANCE ACT 2024 / 2025
+  </text>
+
+  <!-- Main Headline -->
+  <text x="90" y="245" fill="#0F0E17" font-family="'Space Grotesk', sans-serif" font-size="56" font-weight="900" letter-spacing="-1">
+    Personal Finance +
+  </text>
+  <text x="90" y="315" fill="#4338CA" font-family="'Space Grotesk', sans-serif" font-size="56" font-weight="900" letter-spacing="-1">
+    Tax Regime Planner
+  </text>
+
+  <!-- Subheadline -->
+  <text x="90" y="380" fill="#4A4A5A" font-family="'Plus Jakarta Sans', sans-serif" font-size="22" font-weight="600">
+    Deterministic statutory engine comparing Old vs New Tax Regime with Zero LLM Math.
+  </text>
+  <text x="90" y="415" fill="#4A4A5A" font-family="'Plus Jakarta Sans', sans-serif" font-size="22" font-weight="600">
+    Automated bank statement &amp; salary slip OCR • Section 87A rebate • 18 Chapter VI-A deductions.
+  </text>
+
+  <!-- Feature Cards / Badges -->
+  <g transform="translate(90, 460)">
+    <!-- Badge 1 -->
+    <rect x="0" y="0" width="220" height="70" fill="#EDE9FE" stroke="#0F0E17" stroke-width="3" filter="drop-shadow(4px 4px 0px #0F0E17)"/>
+    <text x="110" y="30" fill="#4338CA" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="800" text-anchor="middle">NEW TAX REGIME</text>
+    <text x="110" y="52" fill="#0F0E17" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" text-anchor="middle">Rebate up to ₹12L</text>
+
+    <!-- Badge 2 -->
+    <rect x="250" y="0" width="220" height="70" fill="#DCFCE7" stroke="#0F0E17" stroke-width="3" filter="drop-shadow(4px 4px 0px #0F0E17)"/>
+    <text x="360" y="30" fill="#15803D" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="800" text-anchor="middle">OLD TAX REGIME</text>
+    <text x="360" y="52" fill="#0F0E17" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" text-anchor="middle">All 18 VI-A Sections</text>
+
+    <!-- Badge 3 -->
+    <rect x="500" y="0" width="220" height="70" fill="#FEF3C7" stroke="#0F0E17" stroke-width="3" filter="drop-shadow(4px 4px 0px #0F0E17)"/>
+    <text x="610" y="30" fill="#B45309" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="800" text-anchor="middle">DOCUMENT OCR</text>
+    <text x="610" y="52" fill="#0F0E17" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" text-anchor="middle">PDF &amp; Scanned Slips</text>
+
+    <!-- Badge 4 -->
+    <rect x="750" y="0" width="220" height="70" fill="#FEE2E2" stroke="#0F0E17" stroke-width="3" filter="drop-shadow(4px 4px 0px #0F0E17)"/>
+    <text x="860" y="30" fill="#B91C1C" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="800" text-anchor="middle">BYOK AI AGENT</text>
+    <text x="860" y="52" fill="#0F0E17" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" text-anchor="middle">Multi-Provider Keys</text>
+  </g>
+</svg>

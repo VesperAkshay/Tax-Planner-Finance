@@ -1,0 +1,6 @@
+# robots.txt for https://taxplan.tyes.dev
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://taxplan.tyes.dev/sitemap.xml

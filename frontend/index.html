@@ -1,16 +1,129 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
+    <!-- Basic Metadata -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TaxPlanner — Neo-Brutalist FY 2025-26 Tax & Finance Engine</title>
-    <!-- Google Fonts for Neo-Brutalism -->
+    <title>TaxPlanner — FY 2025-26 Indian Income Tax &amp; Regime Optimizer (Old vs New)</title>
+    <meta name="description" content="Free, privacy-first personal finance &amp; statutory tax regime optimizer for Indian salaried taxpayers (FY 2025-26 / AY 2026-27). Compare Old vs New Tax Regime, parse bank statements &amp; salary slips with OCR, and maximize Chapter VI-A deductions with Zero LLM Math." />
+    <meta name="keywords" content="Indian income tax calculator 2025-26, old vs new tax regime, section 87A rebate calculator, tax regime comparison, salary slip parser, section 80C 80D HRA calculator, FY 2025-26 AY 2026-27 tax planning, personal finance planner India, zero llm math" />
+    <meta name="author" content="TaxPlanner" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <link rel="canonical" href="https://taxplan.tyes.dev/" />
+
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#FAF7F2" />
+    <meta name="application-name" content="TaxPlanner" />
+    <meta name="apple-mobile-web-app-title" content="TaxPlanner" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://taxplan.tyes.dev/" />
+    <meta property="og:title" content="TaxPlanner — FY 2025-26 Indian Income Tax &amp; Regime Optimizer" />
+    <meta property="og:description" content="Deterministic statutory tax planning engine. Compare Old vs New Tax Regime, auto-parse bank statements &amp; salary slips, and maximize statutory savings." />
+    <meta property="og:image" content="https://taxplan.tyes.dev/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TaxPlanner Neo-Brutalist Dashboard Preview" />
+    <meta property="og:site_name" content="TaxPlanner" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://taxplan.tyes.dev/" />
+    <meta name="twitter:title" content="TaxPlanner — FY 2025-26 Indian Income Tax &amp; Regime Optimizer" />
+    <meta name="twitter:description" content="Deterministic statutory tax planning engine. Compare Old vs New Tax Regime, auto-parse bank statements &amp; salary slips, with Zero LLM Math." />
+    <meta name="twitter:image" content="https://taxplan.tyes.dev/og-image.svg" />
+
+    <!-- Google Fonts Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Schema.org JSON-LD Structured Data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TaxPlanner",
+      "url": "https://taxplan.tyes.dev/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "description": "Deterministic personal finance and statutory tax regime optimization platform for Indian salaried taxpayers under Finance Act 2024 / 2025 (FY 2025-26 / AY 2026-27).",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+      },
+      "featureList": [
+        "Old vs New Tax Regime Side-by-Side Comparison",
+        "Section 87A Full Rebate & Marginal Relief up to ₹12L Taxable Income",
+        "Bank Statement & Salary Slip OCR Extraction",
+        "18 Statutory Chapter VI-A Deductions",
+        "Zero LLM Tax Arithmetic Guarantee",
+        "Bring Your Own Key (BYOK) Multi-Provider AI Support"
+      ]
+    }
+    </script>
+
+    <!-- Schema.org JSON-LD Structured Data: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Which tax regime is better for FY 2025-26 (AY 2026-27)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The optimal tax regime depends on your total deductions. Under the New Tax Regime (Section 115BAC), standard deduction is ₹75,000 and taxable income up to ₹12,00,000 is tax-free via Section 87A rebate. If your total eligible deductions under Chapter VI-A (80C, 80D, HRA, home loan interest) exceed the breakeven threshold (typically ₹3.75L - ₹4.5L), the Old Regime may save you more money. TaxPlanner calculates both deterministically to show your exact savings."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Section 87A rebate in the New Regime for FY 2025-26?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For FY 2025-26 (AY 2026-27), salaried individuals with taxable income up to ₹12,00,000 pay zero income tax under the New Tax Regime due to the Section 87A statutory rebate, with marginal relief provisions for income slightly above ₹12 Lakhs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is Zero LLM Tax Arithmetic?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Large Language Models often produce rounding errors when calculating tax slabs. TaxPlanner enforces a strict architecture where all slab calculations, rebates, and cess are computed by a deterministic, audited Python engine, while AI is strictly used for conversational explanations."
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-[#FAF7F2] text-[#0F0E17] antialiased selection:bg-[#FACC15] selection:text-[#000000]">
+    <!-- Crawler-friendly fallback content for search engines before JS hydration -->
+    <noscript>
+      <div style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6;">
+        <h1>TaxPlanner — Personal Finance + Statutory Tax Regime Planner (FY 2025–26)</h1>
+        <p>
+          TaxPlanner is an intelligent, privacy-first personal finance and statutory tax regime optimization engine built specifically for Indian salaried taxpayers under the Finance Act 2024 / 2025 (Financial Year 2025–26 / Assessment Year 2026–27).
+        </p>
+        <h2>Key Capabilities:</h2>
+        <ul>
+          <li><strong>Old vs New Regime Comparator:</strong> Side-by-side comparison with standard deduction (₹75,000 New vs ₹50,000 Old) and Section 87A marginal relief.</li>
+          <li><strong>Document Ingestion:</strong> Upload HDFC, ICICI, SBI, Axis, Kotak bank statements and corporate salary slips with Docling OCR.</li>
+          <li><strong>18 Statutory Deductions:</strong> Full Chapter VI-A discovery including Section 80C, 80CCD(1B), 80D, and Section 10(13A) HRA Rule 2A.</li>
+          <li><strong>Zero LLM Tax Arithmetic:</strong> 100% deterministic, zero-drift tax calculations.</li>
+        </ul>
+        <p>Please enable JavaScript in your browser to access the interactive dashboard and conversational tax planning agent.</p>
+      </div>
+    </noscript>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

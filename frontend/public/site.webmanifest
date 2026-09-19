@@ -1,0 +1,17 @@
+{
+  "name": "TaxPlanner — FY 2025-26 Tax & Finance Engine",
+  "short_name": "TaxPlanner",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#FAF7F2",
+  "description": "Personal Finance + Statutory Tax Regime Planner for Indian Salaried Taxpayers (FY 2025-26 / AY 2026-27)",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
