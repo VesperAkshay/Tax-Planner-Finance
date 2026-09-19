@@ -12,12 +12,14 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { StatementUploadResponse, SalarySlipUploadResponse } from '../types';
+import { UploadedFilesVault } from './UploadedFilesVault';
 
 interface UploadViewProps {
   onUploadSuccess: () => void;
 }
 
 export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
+  const [refreshVaultCounter, setRefreshVaultCounter] = useState(0);
   const [statementFile, setStatementFile] = useState<File | null>(null);
   const [bankFormat, setBankFormat] = useState<string>('auto');
   const [salaryFile, setSalaryFile] = useState<File | null>(null);
@@ -74,6 +76,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
       );
       setStmtResult(res);
       setSuccessNotice(`Statement parsed successfully! Upload ID: ${res.upload_id}`);
+      setRefreshVaultCounter((c) => c + 1);
       onUploadSuccess();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Upload failed';
@@ -99,6 +102,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
       await api.deleteUpload(stmtResult.upload_id);
       setSuccessNotice(`Upload #${stmtResult.upload_id} successfully deleted from your vault.`);
       setStmtResult(null);
+      setRefreshVaultCounter((c) => c + 1);
       onUploadSuccess();
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : 'Failed to delete upload');
@@ -114,6 +118,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
     try {
       const res = await api.uploadSalarySlip(salaryFile, salaryMonth, salaryYear);
       setSalaryResult(res);
+      setRefreshVaultCounter((c) => c + 1);
       onUploadSuccess();
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : 'Upload failed');
@@ -526,6 +531,12 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
           <span>{successNotice}</span>
         </div>
       )}
+
+      {/* Uploaded Documents Vault (ChatGPT-Style Interactive File Manager) */}
+      <UploadedFilesVault
+        onFileDeleted={onUploadSuccess}
+        refreshTrigger={refreshVaultCounter}
+      />
     </div>
   );
 };

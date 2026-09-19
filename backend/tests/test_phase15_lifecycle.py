@@ -13,6 +13,7 @@ Validates:
 - 15.5: Data export ZIP packaging transactions CSV, declared deductions JSON, and tax report.
 """
 
+from datetime import date, datetime
 import io
 import zipfile
 import pytest
@@ -326,3 +327,100 @@ def test_15_10_account_erasure_zero_orphans(client, user_and_auth, db_engine):
         assert len(session.exec(select(TaxComputation).where(TaxComputation.user_id == user_id)).all()) == 0
         assert len(session.exec(select(ElicitationProgress).where(ElicitationProgress.user_id == user_id)).all()) == 0
         assert len(session.exec(select(UserDeclaredDeduction).where(UserDeclaredDeduction.user_id == user_id)).all()) == 0
+
+
+# ==============================================================================
+# Interactive Uploaded Files List & Salary Slip Deletion
+# ==============================================================================
+
+
+def test_list_and_delete_uploaded_files(client, user_and_auth, db_engine):
+    """
+    Validates GET /lifecycle/files returns structured list of uploaded files,
+    and DELETE /lifecycle/salary-slip/{id} cascades flags and removes slip.
+    """
+    headers = user_and_auth["headers"]
+    user_id = user_and_auth["user_id"]
+
+    # 1. Initially empty
+    resp = client.get("/api/v1/lifecycle/files", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+    assert resp.json()["files"] == []
+
+    # 2. Seed a StatementUpload and a SalarySlip
+    with Session(db_engine) as session:
+        upload = StatementUpload(
+            user_id=user_id,
+            file_name="hdfc_march_2025.csv",
+            file_path="/tmp/hdfc.csv",
+            file_type="csv",
+            parse_status="completed",
+        )
+        session.add(upload)
+        session.commit()
+        session.refresh(upload)
+
+        # Add child transaction
+        txn = Transaction(
+            account_id=1,
+            upload_id=upload.id,
+            date=datetime.now().date(),
+            description="UPI Test Payment",
+            amount=500.0,
+            transaction_type="debit",
+            financial_year="2025-2026",
+        )
+        session.add(txn)
+
+        slip = SalarySlip(
+            user_id=user_id,
+            file_name="salary_slip_oct_2025.pdf",
+            file_path="/tmp/salary.pdf",
+            month=10,
+            year=2025,
+            financial_year="2025-2026",
+            gross_pay=120000.0,
+            net_pay=100000.0,
+        )
+        session.add(slip)
+        session.commit()
+        session.refresh(slip)
+        slip_id = slip.id
+        upload_id = upload.id
+
+    # 3. List files again - should contain both files
+    resp = client.get("/api/v1/lifecycle/files", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 2
+    filenames = [f["file_name"] for f in data["files"]]
+    assert "hdfc_march_2025.csv" in filenames
+    assert "salary_slip_oct_2025.pdf" in filenames
+
+    stmt_entry = next(f for f in data["files"] if f["type"] == "statement")
+    assert stmt_entry["id"] == upload_id
+    assert stmt_entry["transaction_count"] == 1
+
+    slip_entry = next(f for f in data["files"] if f["type"] == "salary_slip")
+    assert slip_entry["id"] == slip_id
+    assert "October 2025" in slip_entry["date_range"]
+
+    # 4. Delete salary slip
+    del_resp = client.delete(f"/api/v1/lifecycle/salary-slip/{slip_id}?confirm=true", headers=headers)
+    assert del_resp.status_code == 200
+    assert del_resp.json()["success"] is True
+
+    # 5. List files again - should only have 1 file left
+    resp2 = client.get("/api/v1/lifecycle/files", headers=headers)
+    assert resp2.json()["total"] == 1
+    assert resp2.json()["files"][0]["id"] == upload_id
+
+    # 6. Delete statement upload
+    del_resp2 = client.delete(f"/api/v1/lifecycle/upload/{upload_id}?confirm=true", headers=headers)
+    assert del_resp2.status_code == 200
+    assert del_resp2.json()["success"] is True
+
+    # 7. List files again - now empty
+    resp3 = client.get("/api/v1/lifecycle/files", headers=headers)
+    assert resp3.json()["total"] == 0

@@ -18,6 +18,7 @@ import zipfile
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlmodel import Session, col, select
 
 from app.api.auth import get_current_user
@@ -44,6 +45,177 @@ class ActionResponse(BaseModel):
     success: bool
     message: str
     details: Optional[Dict[str, Any]] = None
+
+
+class UploadedFileResponse(BaseModel):
+    id: int
+    type: str  # "statement" | "salary_slip"
+    file_name: str
+    file_type: str
+    created_at: str
+    parse_status: str
+    transaction_count: Optional[int] = None
+    date_range: Optional[str] = None
+    details: Optional[Dict[str, Any]] = None
+
+
+class UserUploadedFilesListResponse(BaseModel):
+    files: List[UploadedFileResponse]
+    total: int
+
+
+# ==============================================================================
+# List All User Uploaded Files (ChatGPT-Style Interactive Vault)
+# ==============================================================================
+
+
+@router.get("/files", response_model=UserUploadedFilesListResponse)
+def list_user_uploaded_files(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
+) -> UserUploadedFilesListResponse:
+    """
+    Lists all uploaded files (bank statements and salary slips) for the authenticated user.
+    Includes metadata, transaction counts, dates, and direct identifiers for 1-click deletion.
+    """
+    import calendar
+
+    # 1. Fetch statement uploads
+    stmt_uploads = session.exec(
+        select(StatementUpload)
+        .where(StatementUpload.user_id == current_user.id)
+        .order_by(col(StatementUpload.created_at).desc())
+    ).all()
+
+    file_items: List[UploadedFileResponse] = []
+    for stmt in stmt_uploads:
+        tx_count = session.exec(
+            select(func.count(Transaction.id)).where(Transaction.upload_id == stmt.id)
+        ).one()
+
+        d_range = None
+        start = stmt.statement_start_date or stmt.date_range_start
+        end = stmt.statement_end_date or stmt.date_range_end
+        if start and end:
+            d_range = f"{start} to {end}"
+        elif start:
+            d_range = f"From {start}"
+
+        file_items.append(
+            UploadedFileResponse(
+                id=stmt.id,
+                type="statement",
+                file_name=stmt.file_name,
+                file_type=stmt.file_type or "statement",
+                created_at=stmt.created_at.isoformat() if stmt.created_at else "",
+                parse_status=stmt.parse_status or "completed",
+                transaction_count=tx_count,
+                date_range=d_range,
+                details={
+                    "balance_reconciled": stmt.balance_reconciled,
+                    "opening_balance": stmt.opening_balance,
+                    "closing_balance": stmt.closing_balance,
+                    "needs_review": stmt.needs_review,
+                },
+            )
+        )
+
+    # 2. Fetch salary slip uploads
+    salary_slips = session.exec(
+        select(SalarySlip)
+        .where(SalarySlip.user_id == current_user.id)
+        .order_by(col(SalarySlip.created_at).desc())
+    ).all()
+
+    for slip in salary_slips:
+        month_name = calendar.month_name[slip.month] if 1 <= slip.month <= 12 else str(slip.month)
+        date_str = f"{month_name} {slip.year} (FY {slip.financial_year})"
+
+        file_items.append(
+            UploadedFileResponse(
+                id=slip.id,
+                type="salary_slip",
+                file_name=slip.file_name,
+                file_type="pdf",
+                created_at=slip.created_at.isoformat() if slip.created_at else "",
+                parse_status="completed",
+                transaction_count=1,
+                date_range=date_str,
+                details={
+                    "month": slip.month,
+                    "year": slip.year,
+                    "financial_year": slip.financial_year,
+                    "gross_pay": slip.gross_pay,
+                    "net_pay": slip.net_pay,
+                    "basic": slip.basic,
+                    "hra": slip.hra,
+                    "tds": slip.tds,
+                    "needs_review": slip.needs_review,
+                },
+            )
+        )
+
+    # Sort combined list by created_at descending
+    file_items.sort(key=lambda x: x.created_at, reverse=True)
+
+    return UserUploadedFilesListResponse(files=file_items, total=len(file_items))
+
+
+# ==============================================================================
+# Task 15.4: Scoped Delete - Single Salary Slip
+# ==============================================================================
+
+
+@router.delete("/salary-slip/{salary_slip_id}", response_model=ActionResponse)
+def delete_single_salary_slip(
+    salary_slip_id: int,
+    confirm: bool = Query(False, description="Explicit confirmation to delete this salary slip"),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
+) -> ActionResponse:
+    """
+    Deletes a single salary slip and cascades its reconciliation flags.
+    Enforces user ownership and re-runs reconciliation.
+    """
+    if not confirm:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Confirmation required: pass confirm=true to delete this salary slip.",
+        )
+
+    slip = session.exec(
+        select(SalarySlip)
+        .where(SalarySlip.id == salary_slip_id)
+        .where(SalarySlip.user_id == current_user.id)
+    ).first()
+
+    if not slip:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Salary slip ID {salary_slip_id} not found for this user.",
+        )
+
+    file_name = slip.file_name
+
+    # 1. Delete associated reconciliation flags
+    flags = session.exec(
+        select(ReconciliationFlag).where(ReconciliationFlag.salary_slip_id == salary_slip_id)
+    ).all()
+    for f in flags:
+        session.delete(f)
+
+    # 2. Delete salary slip
+    session.delete(slip)
+    session.commit()
+
+    # 3. Re-run reconciliation pipeline across remaining transactions
+    run_reconciliation_pipeline(session=session, user_id=current_user.id, auto_commit=True)
+
+    return ActionResponse(
+        success=True,
+        message=f"Salary slip '{file_name}' deleted successfully.",
+        details={"salary_slip_id": salary_slip_id, "file_name": file_name},
+    )
 
 
 # ==============================================================================

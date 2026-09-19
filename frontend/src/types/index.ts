@@ -363,3 +363,20 @@ export interface BYOKSaveRequest {
   custom_base_url?: string;
   validate_before_save?: boolean;
 }
+
+export interface UploadedFileItem {
+  id: number;
+  type: 'statement' | 'salary_slip';
+  file_name: string;
+  file_type: string;
+  created_at: string;
+  parse_status: string;
+  transaction_count?: number | null;
+  date_range?: string | null;
+  details?: Record<string, any> | null;
+}
+
+export interface UserUploadedFilesResponse {
+  files: UploadedFileItem[];
+  total: number;
+}

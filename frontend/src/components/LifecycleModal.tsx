@@ -8,9 +8,9 @@ import {
   HardDriveDownload,
   CalendarX,
   UserX,
-  FileSpreadsheet,
 } from 'lucide-react';
 import { api } from '../api/client';
+import { UploadedFilesVault } from './UploadedFilesVault';
 
 interface LifecycleModalProps {
   isOpen: boolean;
@@ -29,8 +29,6 @@ export const LifecycleModal: React.FC<LifecycleModalProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isResettingFy, setIsResettingFy] = useState(false);
   const [isErasingAccount, setIsErasingAccount] = useState(false);
-  const [uploadIdToDelete, setUploadIdToDelete] = useState('');
-  const [isDeletingUpload, setIsDeletingUpload] = useState(false);
 
   // Confirmation flags
   const [showFyConfirm, setShowFyConfirm] = useState(false);
@@ -55,29 +53,6 @@ export const LifecycleModal: React.FC<LifecycleModalProps> = ({
       });
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  const handleDeleteUpload = async () => {
-    const id = parseInt(uploadIdToDelete.trim(), 10);
-    if (isNaN(id) || id <= 0) {
-      alert('Please enter a valid numeric Upload ID.');
-      return;
-    }
-    setIsDeletingUpload(true);
-    setStatusMessage(null);
-    try {
-      const res = await api.deleteUpload(id);
-      setStatusMessage({ type: 'success', text: res.message });
-      setUploadIdToDelete('');
-      onDataReset();
-    } catch (e: unknown) {
-      setStatusMessage({
-        type: 'error',
-        text: e instanceof Error ? e.message : 'Failed to delete upload.',
-      });
-    } finally {
-      setIsDeletingUpload(false);
     }
   };
 
@@ -197,35 +172,8 @@ export const LifecycleModal: React.FC<LifecycleModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Scoped Statement Deletion */}
-          <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000]">
-            <div className="flex items-center gap-2 border-b-2 border-black pb-2 mb-3">
-              <FileSpreadsheet className="w-4 h-4 text-[#3730A3]" />
-              <h4 className="font-black text-sm uppercase font-['Space_Grotesk'] text-[#18153B]">
-                2. DELETE SPECIFIC STATEMENT UPLOAD
-              </h4>
-            </div>
-            <p className="text-gray-700 font-semibold mb-3 leading-relaxed">
-              Cascade-delete a statement upload and all of its parsed child transactions without touching your other statements or salary slips.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="number"
-                placeholder="Upload ID (e.g. 1)"
-                value={uploadIdToDelete}
-                onChange={(e) => setUploadIdToDelete(e.target.value)}
-                className="bg-white border-2 border-black px-3 py-1.5 font-bold outline-none w-36"
-              />
-              <button
-                onClick={handleDeleteUpload}
-                disabled={isDeletingUpload || !uploadIdToDelete}
-                className="bg-red-100 hover:bg-red-200 text-red-900 border-2 border-black px-4 py-1.5 font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer disabled:opacity-50"
-              >
-                {isDeletingUpload ? 'DELETING...' : 'DELETE UPLOAD'}
-              </button>
-            </div>
-          </div>
+          {/* Section 2: Manage & Delete Specific Documents (Interactive Vault) */}
+          <UploadedFilesVault onFileDeleted={onDataReset} compact={true} />
 
           {/* Section 3: Reset Financial Year */}
           <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000]">

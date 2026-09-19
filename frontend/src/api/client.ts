@@ -12,6 +12,7 @@ import type {
   BYOKValidateRequest,
   BYOKValidateResponse,
   BYOKSaveRequest,
+  UserUploadedFilesResponse,
 } from '../types';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
@@ -427,6 +428,29 @@ export class ApiClient {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+  }
+
+  async getUserUploadedFiles(): Promise<UserUploadedFilesResponse> {
+    const res = await fetch(`${API_BASE}/lifecycle/files`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to fetch uploaded files (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  async deleteSalarySlip(salarySlipId: number): Promise<{ success: boolean; message: string; details?: any }> {
+    const res = await fetch(`${API_BASE}/lifecycle/salary-slip/${salarySlipId}?confirm=true`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to delete salary slip ${salarySlipId} (${res.status})`);
+    }
+    return await res.json();
   }
 
   async deleteUpload(uploadId: number): Promise<{ success: boolean; message: string; details?: any }> {
