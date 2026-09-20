@@ -88,7 +88,7 @@ app.include_router(api_router)
 
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def root() -> dict[str, str]:
     return {
         "app": settings.APP_NAME,
@@ -97,7 +97,7 @@ async def root() -> dict[str, str]:
     }
 
 
-@app.get("/health", summary="Health check with DB connectivity")
+@app.api_route("/health", methods=["GET", "HEAD"], summary="Health check with DB connectivity")
 async def health_check() -> JSONResponse:
     db_ok, err = await check_database_connection()
     if db_ok:
