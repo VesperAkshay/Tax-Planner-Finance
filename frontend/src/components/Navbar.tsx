@@ -13,6 +13,7 @@ import {
   BookOpen,
   Database,
   Key,
+  Sparkles,
 } from 'lucide-react';
 import type { User } from '../types';
 
@@ -27,6 +28,7 @@ interface NavbarProps {
   flagCount: number;
   onOpenLifecycleModal?: () => void;
   onOpenBYOKModal?: () => void;
+  onOpenTour?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -38,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   flagCount,
   onOpenLifecycleModal,
   onOpenBYOKModal,
+  onOpenTour,
 }) => {
   const navItems: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: 'upload', label: '1. Ingest Docs', icon: <UploadCloud className="w-4 h-4" /> },
@@ -85,6 +88,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <ShieldCheck className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
                 <span>ACTIVE VAULT</span>
               </div>
+
+              {/* Interactive Product Tour Button */}
+              {onOpenTour && (
+                <button
+                  onClick={onOpenTour}
+                  className="flex items-center gap-1.5 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                  title="Take the Interactive Platform Tour"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
+                  <span className="hidden sm:inline">GUIDE / TOUR</span>
+                </button>
+              )}
 
               {/* Data Lifecycle / Privacy Vault Button */}
               {onOpenLifecycleModal && (

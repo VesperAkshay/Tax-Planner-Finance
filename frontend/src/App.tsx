@@ -12,6 +12,7 @@ import { TaxReportView } from './components/TaxReportView';
 import { DeductionCatalogView } from './components/DeductionCatalogView';
 import { LifecycleModal } from './components/LifecycleModal';
 import { BYOKModal } from './components/BYOKModal';
+import { OnboardingTourModal } from './components/OnboardingTourModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './api/client';
 import type { User } from './types';
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
   const [byokModalOpen, setByokModalOpen] = useState(false);
+  const [tourModalOpen, setTourModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [flagCount, setFlagCount] = useState<number>(0);
   const [initializing, setInitializing] = useState(true);
@@ -42,6 +44,9 @@ export const App: React.FC = () => {
       setCurrentUser(user);
       if (user) {
         loadFlags();
+        if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
+          setTourModalOpen(true);
+        }
       }
     } catch {
       setCurrentUser(null);
@@ -74,6 +79,9 @@ export const App: React.FC = () => {
     setCurrentUser(user);
     loadFlags();
     setActiveTab('upload');
+    if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
+      setTourModalOpen(true);
+    }
   };
 
   if (initializing) {
@@ -103,6 +111,7 @@ export const App: React.FC = () => {
         flagCount={flagCount}
         onOpenLifecycleModal={() => setLifecycleModalOpen(true)}
         onOpenBYOKModal={() => setByokModalOpen(true)}
+        onOpenTour={() => setTourModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -244,6 +253,13 @@ export const App: React.FC = () => {
       <BYOKModal
         isOpen={byokModalOpen}
         onClose={() => setByokModalOpen(false)}
+      />
+
+      {/* Interactive Onboarding Tour Modal */}
+      <OnboardingTourModal
+        isOpen={tourModalOpen}
+        onClose={() => setTourModalOpen(false)}
+        onSelectTab={setActiveTab}
       />
 
       {/* Neo-Brutalist Packaging Footer */}
