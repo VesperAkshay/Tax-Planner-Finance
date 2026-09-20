@@ -13,6 +13,9 @@ import type {
   BYOKValidateResponse,
   BYOKSaveRequest,
   UserUploadedFilesResponse,
+  TaxpayerProfile,
+  ProfileReadinessResponse,
+  HouseholdSummaryResponse,
 } from '../types';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
@@ -64,6 +67,12 @@ export class ApiClient {
           if (parsed.custom_base_url) h['X-BYOK-Base-Url'] = parsed.custom_base_url;
         }
       } catch {}
+    }
+
+    // Attach active taxpayer profile context if selected
+    const activeProfileId = localStorage.getItem('taxplanner_active_profile_id');
+    if (activeProfileId) {
+      h['X-Taxpayer-Profile-Id'] = activeProfileId;
     }
 
     return h;
@@ -572,6 +581,94 @@ export class ApiClient {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `Failed to delete BYOK configuration (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  // ============================================================================
+  // Taxpayer Profiles & Household Hub (Multi-Taxpayer Switcher)
+  // ============================================================================
+
+  setActiveProfileId(id: number | null) {
+    if (id !== null) {
+      localStorage.setItem('taxplanner_active_profile_id', String(id));
+    } else {
+      localStorage.removeItem('taxplanner_active_profile_id');
+    }
+  }
+
+  getActiveProfileId(): number | null {
+    const id = localStorage.getItem('taxplanner_active_profile_id');
+    return id ? parseInt(id, 10) : null;
+  }
+
+  async getProfiles(): Promise<TaxpayerProfile[]> {
+    const res = await fetch(`${API_BASE}/profiles`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to load taxpayer profiles');
+    }
+    return await res.json();
+  }
+
+  async createProfile(payload: Partial<TaxpayerProfile>): Promise<TaxpayerProfile> {
+    const res = await fetch(`${API_BASE}/profiles`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to create taxpayer profile');
+    }
+    return await res.json();
+  }
+
+  async updateProfile(id: number, payload: Partial<TaxpayerProfile>): Promise<TaxpayerProfile> {
+    const res = await fetch(`${API_BASE}/profiles/${id}`, {
+      method: 'PUT',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to update taxpayer profile');
+    }
+    return await res.json();
+  }
+
+  async deleteProfile(id: number): Promise<{ status: string; message: string }> {
+    const res = await fetch(`${API_BASE}/profiles/${id}`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to delete taxpayer profile');
+    }
+    return await res.json();
+  }
+
+  async getProfileReadiness(): Promise<ProfileReadinessResponse> {
+    const res = await fetch(`${API_BASE}/profiles/readiness`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to load filing readiness scorecard');
+    }
+    return await res.json();
+  }
+
+  async getHouseholdSummary(): Promise<HouseholdSummaryResponse> {
+    const res = await fetch(`${API_BASE}/profiles/household-summary`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to compute household tax summary');
     }
     return await res.json();
   }

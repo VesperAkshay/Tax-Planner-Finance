@@ -67,6 +67,13 @@ from app.models.user_declared_deduction import (
     UserDeclaredDeductionRead,
     UserDeclaredDeductionUpdate,
 )
+from app.models.taxpayer_profile import (
+    TaxpayerProfile,
+    TaxpayerProfileBase,
+    TaxpayerProfileCreate,
+    TaxpayerProfileRead,
+    TaxpayerProfileUpdate,
+)
 from app.models.user_llm_key import (
     UserLLMKey,
     UserLLMKeyBase,
@@ -75,6 +82,11 @@ from app.models.user_llm_key import (
 )
 
 __all__ = [
+    "TaxpayerProfile",
+    "TaxpayerProfileBase",
+    "TaxpayerProfileCreate",
+    "TaxpayerProfileRead",
+    "TaxpayerProfileUpdate",
     "User",
     "UserBase",
     "UserCreate",

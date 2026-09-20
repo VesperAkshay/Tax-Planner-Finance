@@ -6,7 +6,6 @@ import {
   MessageSquareCode,
   FileCheck2,
   ShieldCheck,
-  User as UserIcon,
   LogOut,
   LogIn,
   UserPlus,
@@ -15,7 +14,8 @@ import {
   Key,
   Sparkles,
 } from 'lucide-react';
-import type { User } from '../types';
+import type { User, TaxpayerProfile, ProfileReadinessResponse } from '../types';
+import { ProfileCommandHub } from './ProfileCommandHub';
 
 export type TabKey = 'upload' | 'snapshot' | 'reconciliation' | 'catalog' | 'chat' | 'report';
 
@@ -29,6 +29,14 @@ interface NavbarProps {
   onOpenLifecycleModal?: () => void;
   onOpenBYOKModal?: () => void;
   onOpenTour?: () => void;
+  profiles?: TaxpayerProfile[];
+  activeProfile?: TaxpayerProfile | null;
+  readiness?: ProfileReadinessResponse | null;
+  onSelectProfile?: (profileId: number) => void;
+  onOpenAddProfile?: () => void;
+  onOpenEditProfile?: (profile: TaxpayerProfile) => void;
+  onOpenHousehold?: () => void;
+  onOpenCommandPalette?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -41,6 +49,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenLifecycleModal,
   onOpenBYOKModal,
   onOpenTour,
+  profiles,
+  activeProfile,
+  readiness,
+  onSelectProfile,
+  onOpenAddProfile,
+  onOpenEditProfile,
+  onOpenHousehold,
+  onOpenCommandPalette,
 }) => {
   const navItems: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: 'upload', label: '1. Ingest Docs', icon: <UploadCloud className="w-4 h-4" /> },
@@ -128,13 +144,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Logged in User Badge */}
-              <div className="flex items-center bg-[#FFFDF9] border-2 border-black shadow-[3px_3px_0px_0px_#000] px-3 py-1.5 gap-2 text-xs font-bold">
-                <UserIcon className="w-4 h-4 text-[#3730A3]" />
-                <span className="font-mono text-xs font-bold truncate max-w-[140px] sm:max-w-[200px]">
-                  {currentUser.full_name || currentUser.email}
-                </span>
-              </div>
+              {/* Interactive Profile Command Hub (Multi-Taxpayer Switcher & Readiness) */}
+              <ProfileCommandHub
+                currentUser={currentUser}
+                profiles={profiles || []}
+                activeProfile={activeProfile || null}
+                readiness={readiness || null}
+                onSelectProfile={onSelectProfile || (() => {})}
+                onOpenAddProfile={onOpenAddProfile || (() => {})}
+                onOpenEditProfile={onOpenEditProfile || (() => {})}
+                onOpenHousehold={onOpenHousehold || (() => {})}
+                onOpenCommandPalette={onOpenCommandPalette || (() => {})}
+                onLogout={onLogout}
+              />
 
               {/* Logout Button */}
               <button

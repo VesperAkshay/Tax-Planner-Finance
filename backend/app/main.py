@@ -20,7 +20,15 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    # Startup actions
+    # Startup actions: ensure all tables (including taxpayer_profiles) exist
+    try:
+        from sqlmodel import SQLModel
+        from app.database import sync_engine
+        import app.models  # load all SQLModel tables
+        SQLModel.metadata.create_all(sync_engine)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Database initialization check notice: {e}")
     yield
     # Shutdown actions
 

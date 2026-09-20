@@ -380,3 +380,75 @@ export interface UserUploadedFilesResponse {
   files: UploadedFileItem[];
   total: number;
 }
+
+export interface TaxpayerProfile {
+  id: number;
+  user_id: number;
+  name: string;
+  relationship: 'self' | 'spouse' | 'parent' | 'child' | 'huf' | 'client' | string;
+  pan?: string | null;
+  dob?: string | null;
+  age_category: 'general' | 'senior' | 'super_senior' | string;
+  persona: 'salaried' | 'freelancer_44ada' | 'investor' | 'senior_citizen' | 'huf' | string;
+  is_default: boolean;
+  filing_status: 'in_progress' | 'ready' | 'filed' | string;
+  created_at: string;
+  updated_at: string;
+  statements_count?: number;
+  salary_slips_count?: number;
+  readiness_score?: number;
+  estimated_tax?: number | null;
+  recommended_regime?: string | null;
+}
+
+export interface ReadinessMilestone {
+  name: string;
+  is_complete: boolean;
+  weight_percent: number;
+  details: string;
+  action_tab: string;
+}
+
+export interface ProfileReadinessResponse {
+  profile_id: number;
+  profile_name: string;
+  persona: string;
+  overall_score: number;
+  is_filing_ready: boolean;
+  milestones: ReadinessMilestone[];
+  next_step: string;
+}
+
+export interface HouseholdMemberSummary {
+  profile_id: number;
+  name: string;
+  relationship: string;
+  persona: string;
+  age_category: string;
+  pan?: string | null;
+  gross_income: number;
+  total_deductions: number;
+  tax_new_regime: number;
+  tax_old_regime: number;
+  recommended_regime: string;
+  optimal_tax: number;
+  tax_savings: number;
+}
+
+export interface HouseholdArbitrageAdvice {
+  category: string;
+  title: string;
+  impact_amount: number;
+  description: string;
+  actionable_tip: string;
+}
+
+export interface HouseholdSummaryResponse {
+  total_household_income: number;
+  total_household_tax: number;
+  total_household_savings: number;
+  members_count: number;
+  members: HouseholdMemberSummary[];
+  arbitrage_opportunities: HouseholdArbitrageAdvice[];
+}
+

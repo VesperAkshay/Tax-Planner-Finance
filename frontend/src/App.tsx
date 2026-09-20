@@ -13,13 +13,17 @@ import { DeductionCatalogView } from './components/DeductionCatalogView';
 import { LifecycleModal } from './components/LifecycleModal';
 import { BYOKModal } from './components/BYOKModal';
 import { OnboardingTourModal } from './components/OnboardingTourModal';
+import { TaxpayerProfileModal } from './components/TaxpayerProfileModal';
+import { HouseholdSummaryModal } from './components/HouseholdSummaryModal';
+import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './api/client';
-import type { User } from './types';
+import type { User, TaxpayerProfile, ProfileReadinessResponse } from './types';
 import {
   Calculator,
   Lock,
   Zap,
+  Users,
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -33,9 +37,74 @@ export const App: React.FC = () => {
   const [flagCount, setFlagCount] = useState<number>(0);
   const [initializing, setInitializing] = useState(true);
 
+  // Multi-Taxpayer Profiles & Command Hub State
+  const [profiles, setProfiles] = useState<TaxpayerProfile[]>([]);
+  const [activeProfile, setActiveProfile] = useState<TaxpayerProfile | null>(null);
+  const [readiness, setReadiness] = useState<ProfileReadinessResponse | null>(null);
+  const [addProfileModalOpen, setAddProfileModalOpen] = useState(false);
+  const [editProfileModalData, setEditProfileModalData] = useState<TaxpayerProfile | null>(null);
+  const [householdModalOpen, setHouseholdModalOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Keyboard shortcut: Ctrl + K (or Cmd + K) opens Global Command Palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const loadProfiles = async () => {
+    try {
+      const data = await api.getProfiles();
+      setProfiles(data);
+      const savedId = api.getActiveProfileId();
+      const current = data.find((p) => p.id === savedId) || data.find((p) => p.is_default) || data[0] || null;
+      setActiveProfile(current);
+      if (current) {
+        api.setActiveProfileId(current.id);
+      }
+    } catch {
+      setProfiles([]);
+      setActiveProfile(null);
+    }
+  };
+
+  const loadReadiness = async () => {
+    try {
+      const data = await api.getProfileReadiness();
+      setReadiness(data);
+    } catch {
+      setReadiness(null);
+    }
+  };
+
+  const handleSwitchProfile = async (profileId: number) => {
+    api.setActiveProfileId(profileId);
+    const target = profiles.find((p) => p.id === profileId) || null;
+    setActiveProfile(target);
+    await Promise.all([loadFlags(), loadReadiness()]);
+  };
+
+  const handleSaveProfile = async (profileData: Partial<TaxpayerProfile>) => {
+    if (editProfileModalData) {
+      await api.updateProfile(editProfileModalData.id, profileData);
+    } else {
+      const newProfile = await api.createProfile(profileData);
+      api.setActiveProfileId(newProfile.id);
+    }
+    await loadProfiles();
+    await loadReadiness();
+    await loadFlags();
+  };
 
   const checkAuth = async () => {
     setInitializing(true);
@@ -43,7 +112,7 @@ export const App: React.FC = () => {
       const user = await api.getCurrentUser();
       setCurrentUser(user);
       if (user) {
-        loadFlags();
+        await Promise.all([loadFlags(), loadProfiles(), loadReadiness()]);
         if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
           setTourModalOpen(true);
         }
@@ -66,7 +135,11 @@ export const App: React.FC = () => {
 
   const handleLogout = () => {
     api.clearToken();
+    api.setActiveProfileId(null);
     setCurrentUser(null);
+    setActiveProfile(null);
+    setProfiles([]);
+    setReadiness(null);
     setActiveTab('upload');
   };
 
@@ -75,9 +148,9 @@ export const App: React.FC = () => {
     setAuthModalOpen(true);
   };
 
-  const handleAuthSuccess = (user: User) => {
+  const handleAuthSuccess = async (user: User) => {
     setCurrentUser(user);
-    loadFlags();
+    await Promise.all([loadFlags(), loadProfiles(), loadReadiness()]);
     setActiveTab('upload');
     if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
       setTourModalOpen(true);
@@ -112,6 +185,14 @@ export const App: React.FC = () => {
         onOpenLifecycleModal={() => setLifecycleModalOpen(true)}
         onOpenBYOKModal={() => setByokModalOpen(true)}
         onOpenTour={() => setTourModalOpen(true)}
+        profiles={profiles}
+        activeProfile={activeProfile}
+        readiness={readiness}
+        onSelectProfile={handleSwitchProfile}
+        onOpenAddProfile={() => setAddProfileModalOpen(true)}
+        onOpenEditProfile={(p) => setEditProfileModalData(p)}
+        onOpenHousehold={() => setHouseholdModalOpen(true)}
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -124,19 +205,37 @@ export const App: React.FC = () => {
           <div className="space-y-8">
             {/* User Vault Header Strip */}
             <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold">
-                  AUTHENTICATED AS: <span className="text-[#3730A3] font-black">{currentUser.email}</span>
+                  ACTIVE TAXPAYER: <span className="text-[#3730A3] font-black">{activeProfile?.name || currentUser.full_name || currentUser.email}</span>
                 </span>
-                {currentUser.pan && (
+                <span className="bg-[#3730A3] text-white border border-black px-1.5 py-0.5 font-bold uppercase text-[10px]">
+                  {activeProfile?.persona?.toUpperCase() || 'SALARIED'}
+                </span>
+                {(activeProfile?.pan || currentUser.pan) && (
                   <span className="bg-gray-200 border border-black px-1.5 py-0.5 font-bold">
-                    PAN: {currentUser.pan}
+                    PAN: {activeProfile?.pan || currentUser.pan}
+                  </span>
+                )}
+                {readiness && (
+                  <span className="bg-emerald-100 text-emerald-950 border border-black px-1.5 py-0.5 font-black text-[10px]">
+                    READINESS: {readiness.overall_score}%
                   </span>
                 )}
               </div>
-              <div className="text-gray-600 font-bold">
-                SECURE ENCRYPTED VAULT
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setHouseholdModalOpen(true)}
+                  className="bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1 border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-1.5 cursor-pointer"
+                  title="Open Joint Family Tax Optimizer & Arbitrage"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>HOUSEHOLD TAX HUB</span>
+                </button>
+                <div className="text-gray-600 font-bold hidden md:block">
+                  SECURE VAULT
+                </div>
               </div>
             </div>
 
@@ -260,6 +359,39 @@ export const App: React.FC = () => {
         isOpen={tourModalOpen}
         onClose={() => setTourModalOpen(false)}
         onSelectTab={setActiveTab}
+      />
+
+      {/* Add / Edit Taxpayer Profile Modal */}
+      <TaxpayerProfileModal
+        isOpen={addProfileModalOpen || !!editProfileModalData}
+        onClose={() => {
+          setAddProfileModalOpen(false);
+          setEditProfileModalData(null);
+        }}
+        onSave={handleSaveProfile}
+        editingProfile={editProfileModalData}
+      />
+
+      {/* Joint Household Tax Optimizer Modal */}
+      <HouseholdSummaryModal
+        isOpen={householdModalOpen}
+        onClose={() => setHouseholdModalOpen(false)}
+        onSelectProfile={handleSwitchProfile}
+      />
+
+      {/* Global Command Palette (Ctrl+K) */}
+      <CommandPaletteModal
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onSelectTab={setActiveTab}
+        profiles={profiles}
+        activeProfile={activeProfile}
+        onSelectProfile={handleSwitchProfile}
+        onOpenAddProfile={() => setAddProfileModalOpen(true)}
+        onOpenHousehold={() => setHouseholdModalOpen(true)}
+        onOpenBYOK={() => setByokModalOpen(true)}
+        onOpenLifecycle={() => setLifecycleModalOpen(true)}
+        onOpenTour={() => setTourModalOpen(true)}
       />
 
       {/* Neo-Brutalist Packaging Footer */}

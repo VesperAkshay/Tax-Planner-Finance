@@ -159,8 +159,19 @@ async def upload_bank_statement(
             session.commit()
             session.refresh(acc)
 
-    # 2. Duplicate upload detection by file hash (Tasks 15.2 & 15.7)
+    # 2. Fault-tolerant document type guard: Prevent mixing up salary slip and statement
     file_name = file.filename or "statement"
+    file_name_lower = file_name.lower()
+    if any(k in file_name_lower for k in ["salary", "payslip", "pay_slip", "pay-slip", "form16", "form_16"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Incorrect Document Type: '{file_name}' appears to be a Salary Slip. "
+                "Please upload it under '2. Salary Slip' on the right to extract gross pay, basic pay, and TDS deductions."
+            ),
+        )
+
+    # 3. Duplicate upload detection by file hash (Tasks 15.2 & 15.7)
     suffix = Path(file_name).suffix.lower()
     file_hash = hashlib.sha256(content).hexdigest()
 
@@ -423,6 +434,16 @@ async def upload_salary_slip(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
 
     file_name = file.filename or "salary_slip.pdf"
+    file_name_lower = file_name.lower()
+    if any(k in file_name_lower for k in ["statement", "stmt", "passbook", "bank_statement", "account_statement", "ledger"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Incorrect Document Type: '{file_name}' appears to be a Bank Statement. "
+                "Please upload it under '1. Bank Statement' on the left to extract transactions and verify balance continuity."
+            ),
+        )
+
     suffix = Path(file_name).suffix.lower()
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
