@@ -89,41 +89,44 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>ACTIVE VAULT</span>
               </div>
 
-              {/* Interactive Product Tour Button */}
-              {onOpenTour && (
-                <button
-                  onClick={onOpenTour}
-                  className="flex items-center gap-1.5 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
-                  title="Take the Interactive Platform Tour"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
-                  <span className="hidden sm:inline">GUIDE / TOUR</span>
-                </button>
-              )}
+              {/* Actions container for BYOK, Vault Data and Guide */}
+              <div data-tour="vault-actions" className="flex items-center gap-2 flex-wrap">
+                {/* Interactive Product Tour Button */}
+                {onOpenTour && (
+                  <button
+                    onClick={onOpenTour}
+                    className="flex items-center gap-1.5 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    title="Take the Interactive Platform Tour"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
+                    <span className="hidden sm:inline">GUIDE / TOUR</span>
+                  </button>
+                )}
 
-              {/* Data Lifecycle / Privacy Vault Button */}
-              {onOpenLifecycleModal && (
-                <button
-                  onClick={onOpenLifecycleModal}
-                  className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer"
-                  title="Data Export, Reset & Right-to-Erasure"
-                >
-                  <Database className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">VAULT DATA</span>
-                </button>
-              )}
+                {/* Data Lifecycle / Privacy Vault Button */}
+                {onOpenLifecycleModal && (
+                  <button
+                    onClick={onOpenLifecycleModal}
+                    className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer"
+                    title="Data Export, Reset & Right-to-Erasure"
+                  >
+                    <Database className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">VAULT DATA</span>
+                  </button>
+                )}
 
-              {/* BYOK / AI Settings Button */}
-              {onOpenBYOKModal && (
-                <button
-                  onClick={onOpenBYOKModal}
-                  className="flex items-center gap-1.5 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
-                  title="Configure personal AI keys (OpenRouter, OpenAI, Groq, Gemini, Claude)"
-                >
-                  <Key className="w-3.5 h-3.5 text-[#3730A3]" />
-                  <span className="hidden sm:inline">AI KEYS (BYOK)</span>
-                </button>
-              )}
+                {/* BYOK / AI Settings Button */}
+                {onOpenBYOKModal && (
+                  <button
+                    onClick={onOpenBYOKModal}
+                    className="flex items-center gap-1.5 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    title="Configure personal AI keys (OpenRouter, OpenAI, Groq, Gemini, Claude)"
+                  >
+                    <Key className="w-3.5 h-3.5 text-[#3730A3]" />
+                    <span className="hidden sm:inline">AI KEYS (BYOK)</span>
+                  </button>
+                )}
+              </div>
 
               {/* Logged in User Badge */}
               <div className="flex items-center bg-[#FFFDF9] border-2 border-black shadow-[3px_3px_0px_0px_#000] px-3 py-1.5 gap-2 text-xs font-bold">
@@ -166,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Navigation Tabs (Only visible when user is logged into dashboard) */}
       {currentUser && (
-        <div className="bg-[#FFFDF9] border-t-2 border-black overflow-x-auto">
+        <div data-tour="nav-tabs" className="bg-[#FFFDF9] border-t-2 border-black overflow-x-auto">
           <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 py-2 min-w-max">
             {navItems.map((item) => {
               const isActive = activeTab === item.key;

@@ -158,7 +158,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
       )}
 
       {/* Grid: Statement Upload & Salary Slip Upload */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div data-tour="upload-cards" className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Card 1: Bank Statement */}
         <div className="bg-[#FFFDF9] border-4 border-black p-6 shadow-[6px_6px_0px_0px_#000000] flex flex-col justify-between">
           <div>
@@ -533,14 +533,16 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
       )}
 
       {/* Uploaded Documents Vault (ChatGPT-Style Interactive File Manager) */}
-      <UploadedFilesVault
-        onFileDeleted={() => {
-          setStmtResult(null);
-          setSalaryResult(null);
-          onUploadSuccess();
-        }}
-        refreshTrigger={refreshVaultCounter}
-      />
+      <div data-tour="vault-manager">
+        <UploadedFilesVault
+          onFileDeleted={() => {
+            setStmtResult(null);
+            setSalaryResult(null);
+            onUploadSuccess();
+          }}
+          refreshTrigger={refreshVaultCounter}
+        />
+      </div>
     </div>
   );
 };

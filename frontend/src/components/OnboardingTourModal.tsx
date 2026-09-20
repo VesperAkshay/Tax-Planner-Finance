@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   X,
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  UploadCloud,
-  PieChart,
-  GitCompare,
-  BookOpen,
-  MessageSquareCode,
-  FileCheck2,
-  ShieldCheck,
-  Lightbulb,
+  Minimize2,
+  Maximize2,
+  Target,
   Check,
+  ChevronRight,
+  Eye,
 } from 'lucide-react';
 import type { TabKey } from './Navbar';
 
@@ -25,13 +22,13 @@ interface OnboardingTourModalProps {
 interface TourStep {
   stepNumber: number;
   title: string;
-  tabKey?: TabKey;
-  icon: React.ReactNode;
+  tabKey: TabKey;
+  targetSelector: string;
+  targetName: string;
+  badgeText: string;
   tag: string;
-  headline: string;
-  description: string;
-  highlights: string[];
-  proTip: string;
+  whatItDoes: string;
+  whatToDo: string[];
 }
 
 export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
@@ -40,336 +37,450 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
   onSelectTab,
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(true);
-
-  if (!isOpen) return null;
+  const [targetRect, setTargetRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const steps: TourStep[] = [
     {
       stepNumber: 1,
-      title: 'Welcome to Tax Planner FY 2025–26',
+      title: '6-Step Financial Workflow Navigation',
       tabKey: 'upload',
-      icon: <Sparkles className="w-8 h-8 text-black" />,
-      tag: 'OVERVIEW & ARCHITECTURE',
-      headline: 'Autonomous Personal Finance & Dual-Regime Tax Planner',
-      description:
-        'Tax Planner is an enterprise-grade financial intelligence engine. It combines in-house machine learning for transaction categorization, deterministic statutory tax rules, and an AI conversational agent.',
-      highlights: [
-        '100% Exact Math Guarantee: All tax liabilities are computed via deterministic Python formulas with ₹0.00 variance.',
-        'Zero LLM Arithmetic: The AI strictly advises and gathers inputs; it never computes currency math.',
-        'Private & Isolated: All data is cross-tenant isolated with complete DPDP/GDPR right-to-erasure controls.',
+      targetSelector: '[data-tour="nav-tabs"]',
+      targetName: 'Top Navigation Bar (Tabs 1 to 6)',
+      badgeText: '👇 LOOK HERE: 6-STEP FINANCIAL WORKFLOW',
+      tag: 'PIPELINE & OVERVIEW',
+      whatItDoes:
+        'Tax Planner is structured into 6 sequential phases for FY 2025–26. Each tab guides you from raw document intake, through automated ML transaction analysis and salary cross-reconciliation, to deduction optimization and final tax liability computation.',
+      whatToDo: [
+        'Notice the 6 tabs: 1. Ingest Docs → 2. Snapshot → 3. Reconciliation → 4. Catalog → 5. Mr. Planner → 6. Final Report.',
+        'You can jump between tabs anytime. All tax liability math is computed mathematically with ₹0.00 drift.',
       ],
-      proTip:
-        'This 2-minute tour will walk you through each tab. The background will automatically navigate as you progress!',
     },
     {
       stepNumber: 2,
-      title: 'Tab 1: Document Intake & Ingestion',
+      title: 'Multi-Bank Statement & Salary Slip Upload',
       tabKey: 'upload',
-      icon: <UploadCloud className="w-8 h-8 text-white" />,
-      tag: 'TAB 1 // INGESTION VAULT',
-      headline: 'Ingest Bank Statements & Salary Slips Seamlessly',
-      description:
-        'Upload your multi-bank account statements (HDFC, ICICI, SBI, Axis, Kotak) in PDF or CSV format, plus monthly corporate salary slips.',
-      highlights: [
-        'Running Balance Continuity Check: Validates debit/credit continuity with strict Δ ≤ ₹1.00 tolerance check.',
-        'Intelligent PDF & OCR Parser: Handles text PDFs, scanned statements via RapidOCR, and custom CSV column mappings.',
-        'Interactive Document Vault: View parsed files, date ranges, and 1-click delete individual uploads without manual IDs.',
+      targetSelector: '[data-tour="upload-cards"]',
+      targetName: 'Bank Statement & Salary Slip Dropzones',
+      badgeText: '👇 LOOK HERE: STATEMENT & SALARY DROPZONES',
+      tag: 'TAB 1: DOCUMENT INGESTION',
+      whatItDoes:
+        'The intake parser reads multi-bank statements (HDFC, ICICI, SBI, Axis, or custom CSV) and salary slips. It extracts transactions, parses earnings and deductions, and mathematically verifies balance continuity (Opening + Credits - Debits = Closing) within ₹1.00 tolerance.',
+      whatToDo: [
+        'Select your bank format (or leave as Auto-Detect).',
+        'Drop your CSV or PDF statement into the left card and click "Upload Bank Statement".',
+        'Upload your salary slip in the right card to extract basic pay, HRA, and TDS deductions.',
       ],
-      proTip:
-        'You can drop password-free PDFs or CSVs directly into the upload cards above to parse hundreds of transactions in seconds.',
     },
     {
       stepNumber: 3,
-      title: 'Tab 2: Financial Snapshot & ML Intelligence',
-      tabKey: 'snapshot',
-      icon: <PieChart className="w-8 h-8 text-black" />,
-      tag: 'TAB 2 // SPENDING INTELLIGENCE',
-      headline: 'Dense NLP Semantic Categorization & 50/30/20 Budgeting',
-      description:
-        'Our in-house ML model encodes transactions into 384-dimensional dense semantic vectors using sentence-transformers to categorize your spendings.',
-      highlights: [
-        '91.67% Classification Accuracy: Outperforms XGBoost baselines across 12 canonical financial categories.',
-        'Active Learning Drift Correction: Low-confidence transactions (<0.60) can be reviewed to continuously improve accuracy.',
-        'Budget Diagnostics: Automated 50/30/20 Needs vs Wants vs Savings breakdown and recurring subscription detection.',
+      title: 'Secure Document Vault & Verification Badges',
+      tabKey: 'upload',
+      targetSelector: '[data-tour="vault-manager"]',
+      targetName: 'Uploaded Documents Vault',
+      badgeText: '👇 LOOK HERE: VERIFIED STATEMENT RECORDS',
+      tag: 'TAB 1: ENCRYPTED VAULT',
+      whatItDoes:
+        'Every uploaded statement is archived securely in your private vault. The system displays verified upload IDs, continuity status, and gives you instant 1-click deletion if you ever want to replace a document.',
+      whatToDo: [
+        'Check for the "VERIFIED (Δ ≤ ₹1.00)" green badge to confirm mathematical accuracy.',
+        'Use the red "Delete" button on any statement to immediately purge it and recalculate your cashflow.',
       ],
-      proTip:
-        'Check your Top Merchants and Recurring Subscriptions list to identify hidden expenses and tax-deductible outflows.',
     },
     {
       stepNumber: 4,
-      title: 'Tab 3: Bank & Salary Reconciliation',
-      tabKey: 'reconciliation',
-      icon: <GitCompare className="w-8 h-8 text-white" />,
-      tag: 'TAB 3 // CONTINUITY AUDIT',
-      headline: 'Cross-Match Salary Credits with Bank Transactions',
-      description:
-        'Reconciles your employer salary slips against your actual bank account credits, highlighting discrepancies and missing months.',
-      highlights: [
-        'Deterministic Reconciliation Gate: Flags discrepancies exceeding max(₹500, 1%) between net pay and bank credits.',
-        'Actionable Flag Resolver: Resolve flags with 1-click actions (reimbursement adjustment, timing delay, or manual override).',
-        'Continuous Sync: Any file deletion automatically re-triggers the reconciliation pipeline across your account.',
+      title: 'Financial Snapshot & ML Intelligence',
+      tabKey: 'snapshot',
+      targetSelector: '[data-tour="snapshot-view"]',
+      targetName: 'Cashflow Metrics & 50/30/20 Diagnostics',
+      badgeText: '👇 LOOK HERE: REAL CASHFLOW & ML CATEGORIZATION',
+      tag: 'TAB 2: FINANCIAL INTELLIGENCE',
+      whatItDoes:
+        'Our in-house 384-dimensional MiniLM semantic embedding model classifies every transaction with 91.67% accuracy into statutory buckets (Salary, Groceries, Dining, Investments, Rent, Medical). Zero synthetic data is used.',
+      whatToDo: [
+        'Review your Total Inflow vs Outflow and Net Savings Rate.',
+        'Inspect your 50/30/20 budget diagnostic (Needs vs Wants vs Savings).',
+        'Use the search filter to examine classified merchant transactions and confidence scores.',
       ],
-      proTip:
-        'Look at the red badge in the Navbar navigation—it displays the number of pending discrepancies requiring your attention.',
     },
     {
       stepNumber: 5,
-      title: 'Tab 4: Statutory Deductions Catalog',
-      tabKey: 'catalog',
-      icon: <BookOpen className="w-8 h-8 text-black" />,
-      tag: 'TAB 4 // STATUTORY DEDUCTIONS',
-      headline: 'Claim Deductions under Chapter VI-A with Official Ceilings',
-      description:
-        'Explore and declare deductions across all 18 personal tax provisions under the Indian Income Tax Act with statutory limits.',
-      highlights: [
-        'Comprehensive Sections: Section 80C (₹1.5L cap), 80D (Health Insurance), 80CCD(1B) NPS (₹50k), HRA, 80G, 80TTA, and Section 24(b).',
-        'Auto-Detected Claims: Transactions matching eligible tax-deductible merchants are automatically flagged for claim.',
-        'Interactive Eligibility Gate: Fill in declarations with real-time feedback before computing your tax liability.',
+      title: 'Salary Slip vs Bank Cross-Reconciliation',
+      tabKey: 'reconciliation',
+      targetSelector: '[data-tour="reconciliation-view"]',
+      targetName: 'Payroll Audit & Discrepancy Flags',
+      badgeText: '👇 LOOK HERE: SALARY CROSS-MATCHING ENGINE',
+      tag: 'TAB 3: PAYROLL AUDIT',
+      whatItDoes:
+        'The reconciliation engine cross-checks the net pay printed on your salary slip against the actual salary deposit in your bank statement. If the amounts diverge by more than max(₹500, 1%), an audit flag is raised.',
+      whatToDo: [
+        'Click "Run Cross-Reconciliation" to audit your salary credits.',
+        'If any discrepancy flags appear, inspect the variance and resolve or ignore them with full audit trail history.',
       ],
-      proTip:
-        'You can also add custom deductions using the "Self-Add Deduction" button if you made direct investments offline.',
     },
     {
       stepNumber: 6,
-      title: 'Tab 5: Mr. Planner — AI Conversational Tax Agent',
-      tabKey: 'chat',
-      icon: <MessageSquareCode className="w-8 h-8 text-white" />,
-      tag: 'TAB 5 // AI TAX ADVISOR',
-      headline: 'LangGraph State Machine with ChromaDB RAG Retrieval',
-      description:
-        'Chat with our specialized conversational tax agent to get statutory guidance grounded directly in the Finance Act FY 2025–26.',
-      highlights: [
-        '100% Top-1 RAG Accuracy: Queries are matched against verified tax circulars indexed in a ChromaDB vector database.',
-        'Statutory Citations: Every answer provides direct hyperlinks to official Income Tax Department rules.',
-        'Bring Your Own Key (BYOK): Supports OpenRouter, OpenAI, Anthropic, Gemini, or local models with client-side key encryption.',
+      title: '18 Statutory Deductions & HRA Optimizer',
+      tabKey: 'catalog',
+      targetSelector: '[data-tour="deduction-catalog"]',
+      targetName: 'Chapter VI-A Statutory Repository',
+      badgeText: '👇 LOOK HERE: CHAPTER VI-A DEDUCTIONS',
+      tag: 'TAB 4: DEDUCTION REPOSITORY',
+      whatItDoes:
+        'Complete interactive catalog of all 18 statutory deductions under the Old Tax Regime, including Section 80C (up to ₹1.5L), 80D (Health Insurance up to ₹1L), 80CCD(1B) (NPS ₹50K), 80E, 80G, and Section 10(13A) HRA exemption.',
+      whatToDo: [
+        'Click on any deduction section to declare investments or enter rent paid.',
+        'The system automatically enforces statutory legal caps and recalculates tax savings in real time.',
       ],
-      proTip:
-        'Ask questions like "How is HRA calculated for Mumbai?" or "What is the 80D limit for senior citizen parents?" for instant statutory answers.',
     },
     {
       stepNumber: 7,
-      title: 'Tab 6: Final Tax Report & Old vs New Comparison',
-      tabKey: 'report',
-      icon: <FileCheck2 className="w-8 h-8 text-black" />,
-      tag: 'TAB 6 // STATUTORY COMPARISON',
-      headline: 'Exact Side-by-Side Tax Computation & PDF Memo Export',
-      description:
-        'The culmination of your data: a rupee-exact comparison of your liability under the Old Regime vs revised Section 115BAC New Regime.',
-      highlights: [
-        'Finance Act 2024/2025 Compliant: Includes revised slabs, ₹75,000 standard deduction, and Section 87A ₹12L rebate with marginal relief.',
-        'Recommended Regime Highlight: Instantly see exactly how many rupees you save by opting for Old vs New regime.',
-        'Vector PDF Tax Invoice: Download an executive, publication-grade tax memo with your AIS checklist and deductions breakdown.',
+      title: 'Mr. Planner: AI Tax Strategist with RAG',
+      tabKey: 'chat',
+      targetSelector: '[data-tour="agent-chat"]',
+      targetName: 'Mr. Planner Conversational Agent',
+      badgeText: '👇 LOOK HERE: AI TAX ADVISORY CHAT',
+      tag: 'TAB 5: AI TAX STRATEGIST',
+      whatItDoes:
+        'Mr. Planner is an intelligent agent built on LangGraph and ChromaDB vector retrieval across the Indian Income Tax Act 1961. It retrieves legal tax clauses with 100% Top-1 accuracy while delegating currency math to the deterministic engine.',
+      whatToDo: [
+        'Ask questions in natural language: "Should I switch to the New Tax Regime?", "How much HRA can I claim for ₹30,000 rent?".',
+        'Click any suggested prompt pill to run instant scenario audits.',
       ],
-      proTip:
-        'Use the "Download Vector PDF Report" button to save or share your tax calculation memo with your CA or accountant!',
     },
     {
       stepNumber: 8,
-      title: 'Privacy Vault & Complete Data Control',
-      tabKey: 'upload',
-      icon: <ShieldCheck className="w-8 h-8 text-white" />,
-      tag: 'PRIVACY // RIGHT-TO-ERASURE',
-      headline: 'Your Data, Your Keys, Complete GDPR/DPDP Compliance',
-      description:
-        'We believe in absolute data sovereignty. You have total control over your financial data and AI integration credentials.',
-      highlights: [
-        'Vault Data Management: Access "VAULT DATA" in the top bar to export a complete ZIP bundle (CSV, JSON, and PDF) or purge individual FY data.',
-        'Permanent Right-to-Erasure: 1-click complete account wipe with zero orphaned rows in the database.',
-        'BYOK Encryption: Your AI API keys are stored in encrypted browser memory or AES-vault storage, never shared with third parties.',
+      title: 'Section 115BAC Dual-Regime Report & PDF',
+      tabKey: 'report',
+      targetSelector: '[data-tour="tax-report"]',
+      targetName: 'Dual-Regime Audit & Vector PDF Export',
+      badgeText: '👇 LOOK HERE: EXACT TAX LIABILITY & PDF EXPORT',
+      tag: 'TAB 6: DUAL-REGIME TAX AUDIT',
+      whatItDoes:
+        'Computes side-by-side tax liability for FY 2025–26 under Section 115BAC (New Regime) and Old Regime, applying ₹75,000 standard deduction, revised slabs, and marginal relief rebate up to ₹12 Lakhs income.',
+      whatToDo: [
+        'See which regime saves you more tax with the recommended regime banner.',
+        'Inspect the slab-by-slab breakdown and effective tax rate.',
+        'Click "DOWNLOAD TAX INVOICE (PDF)" to generate an official report.',
       ],
-      proTip:
-        'You can replay this interactive tutorial at any time by clicking the "GUIDE / TOUR" button in the top navigation bar!',
+    },
+    {
+      stepNumber: 9,
+      title: 'Data Sovereignty & Bring-Your-Own-Key (BYOK)',
+      tabKey: 'report',
+      targetSelector: '[data-tour="vault-actions"]',
+      targetName: 'VAULT DATA & AI KEYS (BYOK) Buttons',
+      badgeText: '👆 LOOK HERE: PRIVACY VAULT & BYOK SETTINGS',
+      tag: 'SECURITY & SETTINGS',
+      whatItDoes:
+        'You have complete data sovereignty. "VAULT DATA" allows 1-click ZIP export and right-to-erasure account purging. "AI KEYS (BYOK)" allows you to plug in your personal OpenRouter, OpenAI, Groq, or Gemini keys.',
+      whatToDo: [
+        'Click "AI KEYS (BYOK)" in the top header if you wish to use your own free OpenRouter key.',
+        'Click "VAULT DATA" anytime you want to export your records or delete your account.',
+        'Click "FINISH TOUR" below to start planning your taxes!',
+      ],
     },
   ];
 
   const currentStep = steps[currentStepIndex];
-  const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === steps.length - 1;
-  const progressPercent = Math.round(((currentStepIndex + 1) / steps.length) * 100);
+
+  // Reposition target spotlight overlay
+  const updateTargetRect = useCallback(() => {
+    if (!isOpen || !currentStep?.targetSelector) {
+      setTargetRect(null);
+      return;
+    }
+
+    const el = document.querySelector(currentStep.targetSelector) as HTMLElement | null;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      setTargetRect({
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+        height: rect.height,
+      });
+
+      // Smooth scroll target into view if it is not fully visible
+      const isVisible =
+        rect.top >= 50 &&
+        rect.bottom <= window.innerHeight - 80;
+
+      if (!isVisible) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      setTargetRect(null);
+    }
+  }, [isOpen, currentStep]);
+
+  // Sync background tab and re-anchor spotlight
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (currentStep.tabKey) {
+      onSelectTab(currentStep.tabKey);
+    }
+
+    // Small timeouts to allow React DOM re-rendering after tab change
+    const timer1 = setTimeout(updateTargetRect, 80);
+    const timer2 = setTimeout(updateTargetRect, 260);
+
+    window.addEventListener('resize', updateTargetRect);
+    window.addEventListener('scroll', updateTargetRect, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener('resize', updateTargetRect);
+      window.removeEventListener('scroll', updateTargetRect);
+    };
+  }, [isOpen, currentStepIndex, currentStep, onSelectTab, updateTargetRect]);
+
+  if (!isOpen) return null;
 
   const handleNext = () => {
-    if (isLastStep) {
-      handleFinish();
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStepIndex((prev) => prev + 1);
     } else {
-      const nextIndex = currentStepIndex + 1;
-      setCurrentStepIndex(nextIndex);
-      if (steps[nextIndex].tabKey) {
-        onSelectTab(steps[nextIndex].tabKey!);
-      }
+      handleComplete();
     }
   };
 
   const handlePrev = () => {
-    if (!isFirstStep) {
-      const prevIndex = currentStepIndex - 1;
-      setCurrentStepIndex(prevIndex);
-      if (steps[prevIndex].tabKey) {
-        onSelectTab(steps[prevIndex].tabKey!);
-      }
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex((prev) => prev - 1);
     }
   };
 
-  const handleFinish = () => {
+  const handleComplete = () => {
     if (dontShowAgain) {
       localStorage.setItem('taxplanner_onboarding_tour_seen', 'true');
     }
     onClose();
   };
 
-  const handleSkip = () => {
-    if (dontShowAgain) {
-      localStorage.setItem('taxplanner_onboarding_tour_seen', 'true');
-    }
-    onClose();
-  };
+  const isFirstStep = currentStepIndex === 0;
+  const isLastStep = currentStepIndex === steps.length - 1;
+  const progressPercent = Math.round(((currentStepIndex + 1) / steps.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto font-mono">
-      <div className="bg-[#FFFDF9] border-4 border-black w-full max-w-2xl shadow-[10px_10px_0px_0px_#000000] relative flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        {/* Top Header */}
-        <div className="bg-[#18153B] text-white p-4 border-b-3 border-black flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-[#FACC15] text-black border border-black font-black text-xs">
-              TOUR // {currentStep.stepNumber} OF {steps.length}
-            </div>
-            <div>
-              <span className="text-[11px] font-mono text-[#FACC15] font-black uppercase tracking-wider block">
-                {currentStep.tag}
-              </span>
-              <h3 className="font-black text-base uppercase font-['Space_Grotesk'] text-white truncate max-w-sm sm:max-w-md">
-                {currentStep.title}
-              </h3>
-            </div>
+    <>
+      {/* 1. VISUAL SPOTLIGHT OVERLAY & TARGET BEACON (NON-BLOCKING) */}
+      {targetRect && (
+        <div
+          className="fixed pointer-events-none z-[9990] transition-all duration-300 ease-out"
+          style={{
+            top: targetRect.top - window.scrollY - 6,
+            left: targetRect.left - window.scrollX - 6,
+            width: targetRect.width + 12,
+            height: targetRect.height + 12,
+            outline: '4px solid #000',
+            boxShadow: '0 0 0 4px #FACC15, 0 0 35px rgba(250, 204, 21, 0.9), inset 0 0 15px rgba(250, 204, 21, 0.3)',
+          }}
+        >
+          {/* Animated Target Beacon Badge */}
+          <div className="absolute -top-10 left-2 bg-[#18153B] text-[#FACC15] px-3 py-1 border-2 border-black shadow-[3px_3px_0px_0px_#000] flex items-center gap-2 font-mono font-black text-xs uppercase tracking-wider animate-bounce whitespace-nowrap">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15] animate-ping" />
+            <span>{currentStep.badgeText}</span>
           </div>
-          <button
-            onClick={handleSkip}
-            className="text-white hover:text-[#FACC15] p-1.5 border border-white/20 hover:border-[#FACC15] cursor-pointer transition-colors"
-            title="Close Tour"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
+      )}
 
-        {/* Visual Progress Bar */}
-        <div className="w-full bg-gray-200 h-2.5 border-b-2 border-black">
-          <div
-            className="bg-[#FACC15] h-full transition-all duration-300 border-r-2 border-black"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
-        {/* Modal Content Body */}
-        <div className="p-6 space-y-5 text-xs">
-          {/* Main Visual Banner */}
-          <div className="flex items-start gap-4 bg-[#FAF7F2] p-4 border-3 border-black shadow-[4px_4px_0px_0px_#000]">
-            <div className="p-3 bg-[#3730A3] text-white border-2 border-black shadow-[2px_2px_0px_0px_#000] flex-shrink-0">
-              {currentStep.icon}
+      {/* 2. FLOATING SMART GUIDE DOCK (BOTTOM-RIGHT, NON-OBTRUSIVE) */}
+      <div className="fixed bottom-5 right-5 z-[9999] w-[94vw] max-w-lg font-mono">
+        {isMinimized ? (
+          /* Minimized Compact Guide Pill */
+          <div className="bg-[#FFFDF9] border-4 border-black p-3 shadow-[6px_6px_0px_0px_#000000] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-[#FACC15] border border-black">
+                <Sparkles className="w-4 h-4 text-black" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase text-[#3730A3] block">
+                  STEP {currentStep.stepNumber} OF {steps.length} • {currentStep.tag}
+                </span>
+                <span className="text-xs font-black text-black truncate block max-w-[240px] sm:max-w-xs">
+                  {currentStep.title}
+                </span>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h4 className="font-black text-base text-[#18153B] font-['Space_Grotesk'] uppercase leading-snug">
-                {currentStep.headline}
-              </h4>
-              <p className="text-gray-800 font-medium font-['Plus_Jakarta_Sans'] leading-relaxed text-xs">
-                {currentStep.description}
-              </p>
-            </div>
-          </div>
 
-          {/* Key Highlights Bullet List */}
-          <div className="space-y-2.5">
-            <span className="text-[11px] font-black uppercase text-gray-700 tracking-wider block">
-              Core Capabilities in this Section:
-            </span>
-            <div className="space-y-2 font-mono">
-              {currentStep.highlights.map((point, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-2.5 bg-white p-2.5 border-2 border-black shadow-[2px_2px_0px_0px_#000]"
-                >
-                  <div className="p-0.5 bg-[#FACC15] border border-black flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
-                  </div>
-                  <span className="text-gray-900 font-bold leading-relaxed">{point}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pro-Tip Box */}
-          <div className="bg-amber-50 border-2 border-amber-900 p-3 flex items-center gap-2.5 shadow-[2px_2px_0px_0px_#000]">
-            <Lightbulb className="w-5 h-5 text-amber-700 flex-shrink-0" />
-            <span className="text-amber-950 font-bold text-xs font-mono">
-              {currentStep.proTip}
-            </span>
-          </div>
-
-          {/* Step Indicators (Dots) */}
-          <div className="flex items-center justify-center gap-2 pt-1">
-            {steps.map((_, idx) => (
+            <div className="flex items-center gap-2">
               <button
-                key={idx}
-                onClick={() => {
-                  setCurrentStepIndex(idx);
-                  if (steps[idx].tabKey) onSelectTab(steps[idx].tabKey!);
-                }}
-                className={`w-3 h-3 border-2 border-black transition-all cursor-pointer ${
-                  idx === currentStepIndex
-                    ? 'bg-[#FACC15] scale-125 shadow-[1px_1px_0px_0px_#000]'
-                    : idx < currentStepIndex
-                    ? 'bg-[#3730A3]'
-                    : 'bg-white'
-                }`}
-                title={`Jump to step ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Footer Controls */}
-        <div className="p-4 bg-[#FAF7F2] border-t-3 border-black flex flex-wrap items-center justify-between gap-3 font-mono">
-          <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-gray-700">
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 accent-[#3730A3] border-2 border-black cursor-pointer"
-            />
-            <span>Don't show automatically on next login</span>
-          </label>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSkip}
-              className="bg-white hover:bg-gray-100 text-black px-3 py-2 border-2 border-black font-black uppercase text-xs shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
-            >
-              SKIP TOUR
-            </button>
-
-            {!isFirstStep && (
-              <button
-                onClick={handlePrev}
-                className="flex items-center gap-1.5 bg-white hover:bg-gray-100 text-black px-3 py-2 border-2 border-black font-black uppercase text-xs shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                onClick={() => setIsMinimized(false)}
+                className="bg-[#FACC15] hover:bg-yellow-400 text-black px-2.5 py-1.5 border-2 border-black font-black text-xs shadow-[2px_2px_0px_0px_#000] flex items-center gap-1 cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
+                title="Expand Tour Guide"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>PREV</span>
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">EXPAND</span>
               </button>
-            )}
-
-            <button
-              onClick={handleNext}
-              className={`flex items-center gap-2 px-5 py-2 border-2 border-black font-black uppercase text-xs shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer ${
-                isLastStep
-                  ? 'bg-emerald-400 hover:bg-emerald-300 text-black'
-                  : 'bg-[#FACC15] hover:bg-yellow-400 text-black'
-              }`}
-            >
-              <span>{isLastStep ? 'START PLANNING 🚀' : 'NEXT STEP'}</span>
-              {!isLastStep && <ArrowRight className="w-4 h-4" />}
-            </button>
+              <button
+                onClick={handleComplete}
+                className="bg-gray-200 hover:bg-gray-300 text-black p-1.5 border border-black cursor-pointer"
+                title="Exit Tour"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Expanded Full Tour Card */
+          <div className="bg-[#FFFDF9] border-4 border-black shadow-[8px_8px_0px_0px_#000000] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="bg-[#18153B] text-white p-3 border-b-3 border-black flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-1 bg-[#FACC15] text-black border border-black font-black text-[10px] tracking-wider">
+                  STEP {currentStep.stepNumber}/{steps.length}
+                </span>
+                <span className="text-xs font-black text-[#FACC15] uppercase tracking-wide">
+                  {currentStep.tag}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setIsMinimized(true)}
+                  className="text-white hover:text-[#FACC15] p-1 border border-white/20 hover:border-[#FACC15] cursor-pointer transition-colors"
+                  title="Minimize to Corner"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleComplete}
+                  className="text-white hover:text-red-400 p-1 border border-white/20 hover:border-red-400 cursor-pointer transition-colors"
+                  title="Exit Tour"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Visual Progress Bar */}
+            <div className="w-full bg-gray-200 h-2 border-b-2 border-black">
+              <div
+                className="bg-[#FACC15] h-full transition-all duration-300 border-r-2 border-black"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {/* Content Body */}
+            <div className="p-4 sm:p-5 space-y-3.5 text-xs">
+              {/* Highlight Target Indicator Strip */}
+              <div className="bg-[#FAF7F2] border-2 border-black p-2 flex items-center gap-2 shadow-[2px_2px_0px_0px_#000]">
+                <Target className="w-4 h-4 text-[#3730A3] flex-shrink-0" />
+                <div className="truncate">
+                  <span className="text-[10px] text-gray-500 font-bold uppercase block">
+                    CURRENTLY HIGHLIGHTED ON SCREEN:
+                  </span>
+                  <span className="font-black text-[#18153B] uppercase text-[11px] truncate block">
+                    {currentStep.targetName}
+                  </span>
+                </div>
+              </div>
+
+              {/* Step Title */}
+              <div>
+                <h4 className="text-base font-black uppercase text-[#18153B] font-['Space_Grotesk'] leading-tight">
+                  {currentStep.title}
+                </h4>
+                <p className="text-xs text-gray-700 font-medium font-['Plus_Jakarta_Sans'] mt-1 leading-relaxed">
+                  {currentStep.whatItDoes}
+                </p>
+              </div>
+
+              {/* Actionable Guidance (What You Should Do) */}
+              <div className="bg-amber-50 border-2 border-black p-3 space-y-1.5 shadow-[2px_2px_0px_0px_#000]">
+                <span className="font-black text-[10px] uppercase text-[#3730A3] flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-[#3730A3]" />
+                  <span>WHAT TO DO HERE:</span>
+                </span>
+                <ul className="space-y-1 text-[11px] text-gray-800 font-semibold font-['Plus_Jakarta_Sans']">
+                  {currentStep.whatToDo.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <ChevronRight className="w-3.5 h-3.5 text-black flex-shrink-0 mt-0.5" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Step Dots (Click to Jump Directly) */}
+              <div className="flex items-center justify-between pt-1 border-t border-gray-300">
+                <span className="text-[10px] font-bold text-gray-500">JUMP TO:</span>
+                <div className="flex items-center gap-1.5">
+                  {steps.map((s, idx) => (
+                    <button
+                      key={s.stepNumber}
+                      onClick={() => setCurrentStepIndex(idx)}
+                      className={`w-6 h-6 flex items-center justify-center text-[10px] font-black border border-black cursor-pointer transition-all ${
+                        idx === currentStepIndex
+                          ? 'bg-[#FACC15] text-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
+                          : idx < currentStepIndex
+                          ? 'bg-[#3730A3] text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                      title={`Step ${s.stepNumber}: ${s.title}`}
+                    >
+                      {idx < currentStepIndex ? <Check className="w-3 h-3" /> : idx + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Controls */}
+            <div className="p-3 bg-[#FAF7F2] border-t-3 border-black flex flex-wrap items-center justify-between gap-2">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={dontShowAgain}
+                  onChange={(e) => setDontShowAgain(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-[#3730A3] border border-black cursor-pointer"
+                />
+                <span>Don't auto-show again</span>
+              </label>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleComplete}
+                  className="bg-white hover:bg-gray-100 text-black px-2.5 py-1.5 border-2 border-black font-black uppercase text-[11px] shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                >
+                  SKIP
+                </button>
+
+                {!isFirstStep && (
+                  <button
+                    onClick={handlePrev}
+                    className="flex items-center gap-1 bg-white hover:bg-gray-100 text-black px-2.5 py-1.5 border-2 border-black font-black uppercase text-[11px] shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>PREV</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={handleNext}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 border-2 border-black font-black uppercase text-[11px] shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer ${
+                    isLastStep
+                      ? 'bg-emerald-400 hover:bg-emerald-300 text-black animate-pulse'
+                      : 'bg-[#FACC15] hover:bg-yellow-400 text-black'
+                  }`}
+                >
+                  <span>{isLastStep ? 'FINISH TOUR 🚀' : 'NEXT STEP'}</span>
+                  {!isLastStep && <ArrowRight className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 };

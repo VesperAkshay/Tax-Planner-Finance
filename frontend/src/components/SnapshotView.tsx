@@ -154,7 +154,7 @@ export const SnapshotView: React.FC<SnapshotViewProps> = ({ onNavigateToTab }) =
 
   if (snapshot.total_transactions_analyzed === 0) {
     return (
-      <div className="space-y-8">
+      <div data-tour="snapshot-view" className="space-y-8">
         <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000]">
           <div className="inline-flex items-center gap-2 bg-[#3730A3] text-white px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] font-black text-xs tracking-wider uppercase mb-2">
             <Sparkles className="w-4 h-4 text-[#FACC15]" />
@@ -186,7 +186,7 @@ export const SnapshotView: React.FC<SnapshotViewProps> = ({ onNavigateToTab }) =
   const budgetDiag = snapshot.budget_rule_diagnostic;
 
   return (
-    <div className="space-y-8">
+    <div data-tour="snapshot-view" className="space-y-8">
       {/* Header Banner */}
       <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000]">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">

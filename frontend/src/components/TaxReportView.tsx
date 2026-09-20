@@ -195,7 +195,7 @@ export const TaxReportView: React.FC<TaxReportViewProps> = ({ onNavigateToCatalo
   const newSlabs = Array.isArray(newReg.slab_breakdown) ? newReg.slab_breakdown : [];
 
   return (
-    <div className="space-y-8">
+    <div data-tour="tax-report" className="space-y-8">
 
       {/* Surcharge Warning for High Earners (>₹50L) */}
       {grossIncome > 5000000 && (

@@ -171,7 +171,7 @@ export const AgentChatView: React.FC<AgentChatViewProps> = ({
   ];
 
   return (
-    <div className="space-y-8">
+    <div data-tour="agent-chat" className="space-y-8">
       {/* Banner */}
       <div className="bg-[#FAF7F2] border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_#000000]">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
