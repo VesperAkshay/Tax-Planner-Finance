@@ -5,14 +5,13 @@ import {
   GitCompare,
   MessageSquareCode,
   FileCheck2,
-  ShieldCheck,
-  LogOut,
   LogIn,
   UserPlus,
   BookOpen,
   Database,
   Key,
   Sparkles,
+  Search,
 } from 'lucide-react';
 import type { User, TaxpayerProfile, ProfileReadinessResponse } from '../types';
 import { ProfileCommandHub } from './ProfileCommandHub';
@@ -58,93 +57,160 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenHousehold,
   onOpenCommandPalette,
 }) => {
-  const navItems: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: 'upload', label: '1. Ingest Docs', icon: <UploadCloud className="w-4 h-4" /> },
-    { key: 'snapshot', label: '2. Financial Snapshot', icon: <PieChart className="w-4 h-4" /> },
+  const navItems: {
+    key: TabKey;
+    shortLabel: string;
+    fullLabel: string;
+    icon: React.ReactNode;
+    badge?: number;
+  }[] = [
+    {
+      key: 'upload',
+      shortLabel: '1. Ingest',
+      fullLabel: '1. Ingest Docs',
+      icon: <UploadCloud className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
+    },
+    {
+      key: 'snapshot',
+      shortLabel: '2. Snapshot',
+      fullLabel: '2. Snapshot',
+      icon: <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
+    },
     {
       key: 'reconciliation',
-      label: '3. Reconciliation',
-      icon: <GitCompare className="w-4 h-4" />,
+      shortLabel: '3. Reconcile',
+      fullLabel: '3. Reconciliation',
+      icon: <GitCompare className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
       badge: flagCount > 0 ? flagCount : undefined,
     },
-    { key: 'catalog', label: '4. Deduction Catalog', icon: <BookOpen className="w-4 h-4" /> },
-    { key: 'chat', label: '5. Mr. Planner (AI)', icon: <MessageSquareCode className="w-4 h-4" /> },
-    { key: 'report', label: '6. Final Tax Report', icon: <FileCheck2 className="w-4 h-4" /> },
+    {
+      key: 'catalog',
+      shortLabel: '4. Deductions',
+      fullLabel: '4. Deductions',
+      icon: <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
+    },
+    {
+      key: 'chat',
+      shortLabel: '5. AI Planner',
+      fullLabel: '5. Mr. Planner (AI)',
+      icon: <MessageSquareCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
+    },
+    {
+      key: 'report',
+      shortLabel: '6. Report',
+      fullLabel: '6. Tax Report',
+      icon: <FileCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
+    },
   ];
 
   return (
     <header className="sticky top-0 z-40 bg-[#FAF7F2] border-b-4 border-black">
-      {/* Top Bar */}
-      <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-        {/* Brand Logo & Tag */}
-        <div className="flex items-center gap-3">
-          <div className="bg-[#3730A3] text-white p-2.5 border-3 border-black shadow-[3px_3px_0px_0px_#000] rotate-[-1deg]">
-            <span className="font-black text-xl tracking-tighter font-['Space_Grotesk']">TP//26</span>
+      {/* Option 2: Integrated Single-Bar Header */}
+      <div className="max-w-[1700px] mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2 lg:gap-4">
+        {/* Left Section: Brand Logo & FY Badge */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="bg-[#3730A3] text-white px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] rotate-[-1deg] select-none">
+            <span className="font-black text-base md:text-lg tracking-tight font-['Space_Grotesk']">TP//26</span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl md:text-2xl font-black tracking-tight text-black font-['Space_Grotesk']">
-                TAX PLANNER
-              </h1>
-              <span className="bg-[#F59E0B] text-black text-[11px] font-black px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_#000]">
-                FY 2025–26
-              </span>
-            </div>
-            <p className="text-xs font-mono text-gray-700 font-semibold hidden sm:block">
-              100% Exact Math Guarantee • Private &amp; Encrypted Vault
-            </p>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm md:text-base font-black tracking-tight text-black font-['Space_Grotesk'] whitespace-nowrap hidden sm:inline-block">
+              TAX PLANNER
+            </span>
+            <span className="bg-[#F59E0B] text-black text-[10px] font-black px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap">
+              FY 25–26
+            </span>
           </div>
         </div>
 
-        {/* Right Section: Auth Actions or User Profile */}
-        <div className="flex items-center gap-3">
+        {/* Center Section: 6 Streamlined Workflow Tabs (Integrated into Single Bar) */}
+        {currentUser && (
+          <nav
+            data-tour="nav-tabs"
+            className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 mx-1 flex-shrink min-w-0"
+          >
+            {navItems.map((item) => {
+              const isActive = activeTab === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => onSelectTab(item.key)}
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-black tracking-tight border-2 border-black transition-all flex-shrink-0 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#FACC15] text-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
+                      : 'bg-[#FFFDF9] text-black hover:bg-[#FACC15]/20 hover:shadow-[1px_1px_0px_0px_#000]'
+                  }`}
+                  title={item.fullLabel}
+                >
+                  {item.icon}
+                  <span className="hidden xl:inline">{item.fullLabel}</span>
+                  <span className="xl:hidden">{item.shortLabel}</span>
+                  {item.badge !== undefined && (
+                    <span className="bg-red-500 text-white font-mono text-[9px] px-1 py-0.2 rounded-full border border-black animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* Right Section: Compact Power Cluster (Idea B) & Profile Hub */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {currentUser ? (
             <>
-              <div className="hidden md:flex items-center gap-1.5 bg-[#FFFDF9] px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] text-xs font-bold">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
-                <span>ACTIVE VAULT</span>
-              </div>
+              {/* Idea B: Compact Icon Pills */}
+              <div data-tour="vault-actions" className="flex items-center gap-1 sm:gap-1.5">
+                {/* Search / Command Palette Pill */}
+                {onOpenCommandPalette && (
+                  <button
+                    onClick={onOpenCommandPalette}
+                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-white text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono cursor-pointer transition-colors"
+                    title="Search & Command Palette (Ctrl+K)"
+                  >
+                    <Search className="w-3.5 h-3.5 text-gray-700" />
+                    <span className="hidden md:inline text-[11px]">Ctrl+K</span>
+                  </button>
+                )}
 
-              {/* Actions container for BYOK, Vault Data and Guide */}
-              <div data-tour="vault-actions" className="flex items-center gap-2 flex-wrap">
-                {/* Interactive Product Tour Button */}
+                {/* Tour Button */}
                 {onOpenTour && (
                   <button
                     onClick={onOpenTour}
-                    className="flex items-center gap-1.5 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    className="flex items-center gap-1 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
                     title="Take the Interactive Platform Tour"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
-                    <span className="hidden sm:inline">GUIDE / TOUR</span>
+                    <span className="hidden lg:inline text-[11px]">TOUR</span>
                   </button>
                 )}
 
-                {/* Data Lifecycle / Privacy Vault Button */}
-                {onOpenLifecycleModal && (
-                  <button
-                    onClick={onOpenLifecycleModal}
-                    className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer"
-                    title="Data Export, Reset & Right-to-Erasure"
-                  >
-                    <Database className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">VAULT DATA</span>
-                  </button>
-                )}
-
-                {/* BYOK / AI Settings Button */}
+                {/* AI Keys Pill (Idea B) */}
                 {onOpenBYOKModal && (
                   <button
                     onClick={onOpenBYOKModal}
-                    className="flex items-center gap-1.5 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
-                    title="Configure personal AI keys (OpenRouter, OpenAI, Groq, Gemini, Claude)"
+                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    title="Configure personal AI keys (OpenRouter, OpenAI, Groq, Gemini)"
                   >
                     <Key className="w-3.5 h-3.5 text-[#3730A3]" />
-                    <span className="hidden sm:inline">AI KEYS (BYOK)</span>
+                    <span className="hidden xl:inline text-[11px]">KEYS</span>
+                  </button>
+                )}
+
+                {/* Vault Data Pill (Idea B) */}
+                {onOpenLifecycleModal && (
+                  <button
+                    onClick={onOpenLifecycleModal}
+                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    title="Data Export, Reset & Right-to-Erasure"
+                  >
+                    <Database className="w-3.5 h-3.5 text-amber-600" />
+                    <span className="hidden xl:inline text-[11px]">VAULT</span>
                   </button>
                 )}
               </div>
 
-              {/* Interactive Profile Command Hub (Multi-Taxpayer Switcher & Readiness) */}
+              {/* Interactive Taxpayer Profile Command Hub */}
               <ProfileCommandHub
                 currentUser={currentUser}
                 profiles={profiles || []}
@@ -155,23 +221,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onOpenEditProfile={onOpenEditProfile || (() => {})}
                 onOpenHousehold={onOpenHousehold || (() => {})}
                 onOpenCommandPalette={onOpenCommandPalette || (() => {})}
+                onOpenLifecycleModal={onOpenLifecycleModal}
+                onOpenBYOKModal={onOpenBYOKModal}
                 onLogout={onLogout}
               />
-
-              {/* Logout Button */}
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-1.5 bg-[#FB7185] hover:bg-rose-400 text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all font-black text-xs font-mono uppercase cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">LOCK VAULT</span>
-              </button>
             </>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => onOpenAuth('login')}
-                className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-white text-black px-4 py-2 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all font-black text-xs uppercase"
+                className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-white text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs uppercase cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>SIGN IN</span>
@@ -179,45 +238,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={() => onOpenAuth('register')}
-                className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-4 py-2 border-2 border-black shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all font-black text-xs uppercase"
+                className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-3.5 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs uppercase cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>REGISTER</span>
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Navigation Tabs (Only visible when user is logged into dashboard) */}
-      {currentUser && (
-        <div data-tour="nav-tabs" className="bg-[#FFFDF9] border-t-2 border-black overflow-x-auto">
-          <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 py-2 min-w-max">
-            {navItems.map((item) => {
-              const isActive = activeTab === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => onSelectTab(item.key)}
-                  className={`flex items-center gap-2 px-4 py-2 text-xs md:text-sm font-black tracking-wide border-2 border-black transition-all ${
-                    isActive
-                      ? 'bg-[#FACC15] text-black shadow-[3px_3px_0px_0px_#000] -translate-y-0.5'
-                      : 'bg-[#FAF7F2] text-black hover:bg-[#F59E0B]/20 hover:shadow-[2px_2px_0px_0px_#000]'
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                  {item.badge !== undefined && (
-                    <span className="bg-red-500 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full border border-black animate-pulse">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </header>
   );
 };

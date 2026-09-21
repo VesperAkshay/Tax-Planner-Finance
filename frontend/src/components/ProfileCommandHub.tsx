@@ -18,6 +18,8 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
+  Database,
+  Key,
 } from 'lucide-react';
 import type { User, TaxpayerProfile, ProfileReadinessResponse } from '../types';
 
@@ -31,6 +33,8 @@ interface ProfileCommandHubProps {
   onOpenEditProfile: (profile: TaxpayerProfile) => void;
   onOpenHousehold: () => void;
   onOpenCommandPalette: () => void;
+  onOpenLifecycleModal?: () => void;
+  onOpenBYOKModal?: () => void;
   onLogout: () => void;
 }
 
@@ -44,6 +48,8 @@ export const ProfileCommandHub: React.FC<ProfileCommandHubProps> = ({
   onOpenEditProfile,
   onOpenHousehold,
   onOpenCommandPalette,
+  onOpenLifecycleModal,
+  onOpenBYOKModal,
   onLogout,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -111,20 +117,20 @@ export const ProfileCommandHub: React.FC<ProfileCommandHubProps> = ({
       {/* 1. INTERACTIVE NAVBAR TRIGGER BUTTON */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-[#FFFDF9] hover:bg-white text-black px-3 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-all"
+        className="flex items-center gap-1.5 sm:gap-2 bg-[#FFFDF9] hover:bg-white text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-all flex-shrink-0"
         title="Open Taxpayer Identity & Household Command Hub"
       >
         {/* Persona Icon */}
-        <div className="p-1 bg-[#FAF7F2] border border-black flex-shrink-0">
+        <div className="p-0.5 sm:p-1 bg-[#FAF7F2] border border-black flex-shrink-0">
           {getPersonaIcon(activeProfile?.persona)}
         </div>
 
         {/* Name & Tag */}
-        <div className="text-left flex items-center gap-1.5 max-w-[150px] sm:max-w-[200px] truncate">
+        <div className="text-left flex items-center gap-1 max-w-[85px] sm:max-w-[125px] truncate">
           <span className="font-black text-xs text-[#18153B] truncate">
             {displayName}
           </span>
-          <span className="bg-[#3730A3] text-white text-[9px] px-1 py-0.2 border border-black font-black uppercase hidden sm:inline-block">
+          <span className="bg-[#3730A3] text-white text-[9px] px-1 py-0.2 border border-black font-black uppercase hidden md:inline-block">
             {getPersonaBadge(activeProfile?.persona)}
           </span>
         </div>
@@ -149,7 +155,7 @@ export const ProfileCommandHub: React.FC<ProfileCommandHubProps> = ({
         </div>
 
         <ChevronDown
-          className={`w-3.5 h-3.5 text-gray-700 transition-transform duration-200 ${
+          className={`w-3.5 h-3.5 text-gray-700 transition-transform duration-200 flex-shrink-0 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -390,6 +396,38 @@ export const ProfileCommandHub: React.FC<ProfileCommandHubProps> = ({
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
+
+          {/* Quick Vault & AI Settings Strip */}
+          {(onOpenLifecycleModal || onOpenBYOKModal) && (
+            <div className="p-2.5 bg-white border-t-2 border-black grid grid-cols-2 gap-2 text-[10px] font-black">
+              {onOpenLifecycleModal && (
+                <button
+                  onClick={() => {
+                    onOpenLifecycleModal();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-1.5 bg-[#FAF7F2] hover:bg-[#FACC15] text-black px-2 py-1.5 border border-black shadow-[1px_1px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer uppercase transition-colors"
+                  title="Data Export, Reset & Right-to-Erasure"
+                >
+                  <Database className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+                  <span className="truncate">VAULT DATA</span>
+                </button>
+              )}
+              {onOpenBYOKModal && (
+                <button
+                  onClick={() => {
+                    onOpenBYOKModal();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-1.5 bg-[#FAF7F2] hover:bg-[#FACC15] text-black px-2 py-1.5 border border-black shadow-[1px_1px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer uppercase transition-colors"
+                  title="Configure personal AI keys"
+                >
+                  <Key className="w-3.5 h-3.5 text-[#3730A3] flex-shrink-0" />
+                  <span className="truncate">AI KEYS (BYOK)</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Footer Shortcuts */}
           <div className="p-2.5 bg-[#FAF7F2] border-t-2 border-black flex items-center justify-between text-[11px] font-bold">
