@@ -196,25 +196,25 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 space-y-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8 md:space-y-12">
         {/* If user is NOT logged in: Show Gen Alpha packaging Landing Page */}
         {!currentUser ? (
           <LandingView onOpenAuth={handleOpenAuth} />
         ) : (
           /* If user IS logged in: Show real Dashboard with 6 Views */
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* User Vault Header Strip */}
-            <div className="bg-[#FAF7F2] border-3 border-black p-4 shadow-[4px_4px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="bg-[#FAF7F2] border-3 border-black p-3 sm:p-4 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 font-mono text-xs">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
                 <span className="font-bold">
-                  ACTIVE TAXPAYER: <span className="text-[#3730A3] font-black">{activeProfile?.name || currentUser.full_name || currentUser.email}</span>
+                  ACTIVE: <span className="text-[#3730A3] font-black">{activeProfile?.name || currentUser.full_name || currentUser.email}</span>
                 </span>
                 <span className="bg-[#3730A3] text-white border border-black px-1.5 py-0.5 font-bold uppercase text-[10px]">
                   {activeProfile?.persona?.toUpperCase() || 'SALARIED'}
                 </span>
                 {(activeProfile?.pan || currentUser.pan) && (
-                  <span className="bg-gray-200 border border-black px-1.5 py-0.5 font-bold">
+                  <span className="bg-gray-200 border border-black px-1.5 py-0.5 font-bold text-[10px] sm:text-xs">
                     PAN: {activeProfile?.pan || currentUser.pan}
                   </span>
                 )}
@@ -224,10 +224,10 @@ export const App: React.FC = () => {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
                 <button
                   onClick={() => setHouseholdModalOpen(true)}
-                  className="bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1 border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-1.5 cursor-pointer"
+                  className="bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1.5 sm:py-1 border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
                   title="Open Joint Family Tax Optimizer & Arbitrage"
                 >
                   <Users className="w-3.5 h-3.5" />

@@ -197,7 +197,20 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
       return;
     }
 
-    const el = document.querySelector(currentStep.targetSelector) as HTMLElement | null;
+    const allEls = document.querySelectorAll(currentStep.targetSelector);
+    let el: HTMLElement | null = null;
+    for (let i = 0; i < allEls.length; i++) {
+      const candidate = allEls[i] as HTMLElement;
+      const r = candidate.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        el = candidate;
+        break;
+      }
+    }
+    if (!el && allEls.length > 0) {
+      el = allEls[0] as HTMLElement;
+    }
+
     if (el) {
       const rect = el.getBoundingClientRect();
       setTargetRect({
@@ -293,8 +306,8 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
         </div>
       )}
 
-      {/* 2. FLOATING SMART GUIDE DOCK (BOTTOM-RIGHT, NON-OBTRUSIVE) */}
-      <div className="fixed bottom-5 right-5 z-[9999] w-[94vw] max-w-lg font-mono">
+      {/* 2. FLOATING SMART GUIDE DOCK (BOTTOM, RESPONSIVE ON ALL VIEWPORTS) */}
+      <div className="fixed bottom-3 sm:bottom-5 inset-x-3 sm:inset-x-auto sm:right-5 z-[9999] sm:w-[480px] max-w-[calc(100vw-1.5rem)] font-mono">
         {isMinimized ? (
           /* Minimized Compact Guide Pill */
           <div className="bg-[#FFFDF9] border-4 border-black p-3 shadow-[6px_6px_0px_0px_#000000] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200">

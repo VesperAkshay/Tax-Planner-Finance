@@ -163,7 +163,7 @@ export const ProfileCommandHub: React.FC<ProfileCommandHubProps> = ({
 
       {/* 2. THE NEO-BRUTALIST COMMAND HUB DROPDOWN */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-[92vw] sm:w-[420px] bg-[#FFFDF9] border-4 border-black shadow-[8px_8px_0px_0px_#000000] z-50 flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto sm:right-0 top-14 sm:top-full mt-1 sm:mt-2 sm:w-[420px] max-w-[calc(100vw-1rem)] bg-[#FFFDF9] border-4 border-black shadow-[6px_6px_0px_0px_#000000] sm:shadow-[8px_8px_0px_0px_#000000] z-50 flex flex-col max-h-[85vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
           {/* Header Strip */}
           <div className="bg-[#18153B] text-white p-3.5 border-b-3 border-black flex items-center justify-between">
             <div className="flex items-center gap-2">

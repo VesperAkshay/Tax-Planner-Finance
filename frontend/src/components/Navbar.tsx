@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   UploadCloud,
   PieChart,
@@ -12,6 +12,10 @@ import {
   Key,
   Sparkles,
   Search,
+  Menu,
+  X,
+  Users,
+  LogOut,
 } from 'lucide-react';
 import type { User, TaxpayerProfile, ProfileReadinessResponse } from '../types';
 import { ProfileCommandHub } from './ProfileCommandHub';
@@ -57,6 +61,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenHousehold,
   onOpenCommandPalette,
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const navItems: {
     key: TabKey;
     shortLabel: string;
@@ -103,38 +109,51 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
   ];
 
+  const handleTabClick = (key: TabKey) => {
+    onSelectTab(key);
+    setMobileMenuOpen(false);
+  };
+
+  const displayName =
+    activeProfile?.name ||
+    currentUser?.full_name ||
+    currentUser?.email.split('@')[0] ||
+    'Taxpayer';
+
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF7F2] border-b-4 border-black">
-      {/* Option 2: Integrated Single-Bar Header */}
-      <div className="max-w-[1700px] mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2 lg:gap-4">
+    <header className="sticky top-0 z-40 bg-[#FAF7F2] border-b-4 border-black font-['Plus_Jakarta_Sans'] select-none">
+      {/* ========================================================================= */}
+      {/* 1. TOP BAR: BRAND + DESKTOP TABS + ACTIONS OR MOBILE CONTROLS             */}
+      {/* ========================================================================= */}
+      <div className="max-w-[1700px] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 lg:gap-4">
         {/* Left Section: Brand Logo & FY Badge */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="bg-[#3730A3] text-white px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000] rotate-[-1deg] select-none">
             <span className="font-black text-base md:text-lg tracking-tight font-['Space_Grotesk']">TP//26</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-sm md:text-base font-black tracking-tight text-black font-['Space_Grotesk'] whitespace-nowrap hidden sm:inline-block">
+            <span className="text-sm md:text-base font-black tracking-tight text-black font-['Space_Grotesk'] whitespace-nowrap">
               TAX PLANNER
             </span>
-            <span className="bg-[#F59E0B] text-black text-[10px] font-black px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap">
+            <span className="bg-[#F59E0B] text-black text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_0px_#000] whitespace-nowrap">
               FY 25–26
             </span>
           </div>
         </div>
 
-        {/* Center Section: 6 Streamlined Workflow Tabs (Integrated into Single Bar) */}
+        {/* Center Section: Desktop-Only 6 Streamlined Tabs (Visible on >= 1024px) */}
         {currentUser && (
           <nav
             data-tour="nav-tabs"
-            className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 mx-1 flex-shrink min-w-0"
+            className="hidden lg:flex items-center gap-1 sm:gap-1.5 flex-shrink min-w-0"
           >
             {navItems.map((item) => {
               const isActive = activeTab === item.key;
               return (
                 <button
                   key={item.key}
-                  onClick={() => onSelectTab(item.key)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-black tracking-tight border-2 border-black transition-all flex-shrink-0 cursor-pointer ${
+                  onClick={() => handleTabClick(item.key)}
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 text-xs font-black tracking-tight border-2 border-black transition-all flex-shrink-0 cursor-pointer ${
                     isActive
                       ? 'bg-[#FACC15] text-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
                       : 'bg-[#FFFDF9] text-black hover:bg-[#FACC15]/20 hover:shadow-[1px_1px_0px_0px_#000]'
@@ -155,21 +174,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
         )}
 
-        {/* Right Section: Compact Power Cluster (Idea B) & Profile Hub */}
+        {/* Right Section: Authenticated Actions or Auth Buttons */}
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {currentUser ? (
             <>
-              {/* Idea B: Compact Icon Pills */}
-              <div data-tour="vault-actions" className="flex items-center gap-1 sm:gap-1.5">
+              {/* Desktop-Only Action Pills (Hidden on Mobile < 1024px) */}
+              <div data-tour="vault-actions" className="hidden lg:flex items-center gap-1.5">
                 {/* Search / Command Palette Pill */}
                 {onOpenCommandPalette && (
                   <button
                     onClick={onOpenCommandPalette}
-                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-white text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono cursor-pointer transition-colors"
+                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-white text-black px-2.5 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono cursor-pointer transition-colors"
                     title="Search & Command Palette (Ctrl+K)"
                   >
                     <Search className="w-3.5 h-3.5 text-gray-700" />
-                    <span className="hidden md:inline text-[11px]">Ctrl+K</span>
+                    <span className="text-[11px]">Ctrl+K</span>
                   </button>
                 )}
 
@@ -177,11 +196,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {onOpenTour && (
                   <button
                     onClick={onOpenTour}
-                    className="flex items-center gap-1 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    className="flex items-center gap-1 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black px-2.5 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
                     title="Take the Interactive Platform Tour"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
-                    <span className="hidden lg:inline text-[11px]">TOUR</span>
+                    <span className="text-[11px]">TOUR</span>
                   </button>
                 )}
 
@@ -189,11 +208,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {onOpenBYOKModal && (
                   <button
                     onClick={onOpenBYOKModal}
-                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2.5 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
                     title="Configure personal AI keys (OpenRouter, OpenAI, Groq, Gemini)"
                   >
                     <Key className="w-3.5 h-3.5 text-[#3730A3]" />
-                    <span className="hidden xl:inline text-[11px]">KEYS</span>
+                    <span className="text-[11px]">KEYS</span>
                   </button>
                 )}
 
@@ -201,16 +220,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {onOpenLifecycleModal && (
                   <button
                     onClick={onOpenLifecycleModal}
-                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2 sm:px-2.5 py-1 sm:py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
+                    className="flex items-center gap-1 bg-[#FFFDF9] hover:bg-[#FACC15] text-black px-2.5 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs font-mono uppercase cursor-pointer transition-colors"
                     title="Data Export, Reset & Right-to-Erasure"
                   >
                     <Database className="w-3.5 h-3.5 text-amber-600" />
-                    <span className="hidden xl:inline text-[11px]">VAULT</span>
+                    <span className="text-[11px]">VAULT</span>
                   </button>
                 )}
               </div>
 
-              {/* Interactive Taxpayer Profile Command Hub */}
+              {/* Mobile Quick Action Buttons (< 1024px) */}
+              <div className="flex lg:hidden items-center gap-1">
+                {onOpenCommandPalette && (
+                  <button
+                    onClick={onOpenCommandPalette}
+                    className="p-1.5 bg-[#FFFDF9] hover:bg-white text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                    title="Search (Ctrl+K)"
+                  >
+                    <Search className="w-4 h-4 text-gray-700" />
+                  </button>
+                )}
+
+                {onOpenTour && (
+                  <button
+                    onClick={onOpenTour}
+                    className="p-1.5 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                    title="Platform Tour"
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-800" />
+                  </button>
+                )}
+              </div>
+
+              {/* Taxpayer Profile Command Hub Trigger (Always Visible) */}
               <ProfileCommandHub
                 currentUser={currentUser}
                 profiles={profiles || []}
@@ -225,12 +267,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onOpenBYOKModal={onOpenBYOKModal}
                 onLogout={onLogout}
               />
+
+              {/* Mobile Menu Hamburger Button (< 1024px) */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-1.5 sm:p-2 bg-[#FAF7F2] hover:bg-[#FACC15] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-colors"
+                title="Toggle Navigation Menu"
+                aria-label="Toggle Navigation Menu"
+              >
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => onOpenAuth('login')}
-                className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-white text-black px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs uppercase cursor-pointer"
+                className="flex items-center gap-1 bg-[#FAF7F2] hover:bg-white text-black px-2.5 sm:px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs uppercase cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>SIGN IN</span>
@@ -238,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={() => onOpenAuth('register')}
-                className="flex items-center gap-1.5 bg-[#FACC15] hover:bg-yellow-400 text-black px-3.5 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs uppercase cursor-pointer"
+                className="flex items-center gap-1 bg-[#FACC15] hover:bg-yellow-400 text-black px-2.5 sm:px-3.5 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 font-black text-xs uppercase cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>REGISTER</span>
@@ -247,6 +299,196 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 2. MOBILE DEDICATED TAB SCROLLER (< 1024px)                                */}
+      {/* Guarantees tabs NEVER collide or collapse with top buttons                */}
+      {/* ========================================================================= */}
+      {currentUser && (
+        <nav
+          data-tour="nav-tabs"
+          className="lg:hidden bg-[#FFFDF9] border-t-2 border-black px-2.5 py-1.5 overflow-x-auto no-scrollbar flex items-center gap-1.5 shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)]"
+        >
+          {navItems.map((item) => {
+            const isActive = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => handleTabClick(item.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-black tracking-tight border-2 border-black transition-all flex-shrink-0 cursor-pointer ${
+                  isActive
+                    ? 'bg-[#FACC15] text-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
+                    : 'bg-[#FAF7F2] text-black hover:bg-[#FACC15]/20 hover:shadow-[1px_1px_0px_0px_#000]'
+                }`}
+              >
+                {item.icon}
+                <span className="whitespace-nowrap">{item.shortLabel}</span>
+                {item.badge !== undefined && (
+                  <span className="bg-red-500 text-white font-mono text-[9px] px-1 py-0.2 rounded-full border border-black animate-pulse">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. MOBILE ACTION DRAWER (< 1024px)                                         */}
+      {/* Slides down when user clicks Hamburger Menu icon                          */}
+      {/* ========================================================================= */}
+      {mobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden animate-in fade-in duration-150"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Menu Panel */}
+          <div className="fixed top-14 left-0 right-0 z-50 bg-[#FFFDF9] border-b-4 border-black shadow-[0px_10px_25px_rgba(0,0,0,0.4)] p-4 max-h-[calc(100vh-3.5rem)] overflow-y-auto lg:hidden animate-in slide-in-from-top-2 duration-200 font-mono">
+            {/* Active Taxpayer Identity Card */}
+            {currentUser && (
+              <div className="p-3 bg-[#FAF7F2] border-2 border-black shadow-[2px_2px_0px_0px_#000] mb-3 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-sm text-[#18153B]">{displayName}</span>
+                    <span className="bg-[#3730A3] text-white text-[9px] font-black px-1.5 py-0.2 border border-black uppercase">
+                      {activeProfile?.persona?.toUpperCase() || 'SALARIED'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-gray-600 block mt-0.5">
+                    {currentUser.email} • Readiness: {readiness?.overall_score || 0}%
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout();
+                  }}
+                  className="p-1.5 bg-rose-100 hover:bg-rose-200 border border-black text-rose-800 text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer"
+                  title="Lock Vault"
+                >
+                  <LogOut className="w-3 h-3" />
+                  <span>LOCK</span>
+                </button>
+              </div>
+            )}
+
+            {/* Quick Actions Grid */}
+            <div className="grid grid-cols-2 gap-2 text-xs font-black mb-3">
+              {/* AI BYOK Keys */}
+              {onOpenBYOKModal && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenBYOKModal();
+                  }}
+                  className="p-2.5 bg-white hover:bg-[#FACC15] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition-colors"
+                >
+                  <Key className="w-4 h-4 text-[#3730A3] flex-shrink-0" />
+                  <div className="text-left">
+                    <span className="block leading-tight">AI KEYS</span>
+                    <span className="text-[9px] text-gray-500 font-semibold">BYOK Models</span>
+                  </div>
+                </button>
+              )}
+
+              {/* Vault Data */}
+              {onOpenLifecycleModal && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenLifecycleModal();
+                  }}
+                  className="p-2.5 bg-white hover:bg-[#FACC15] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition-colors"
+                >
+                  <Database className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <div className="text-left">
+                    <span className="block leading-tight">VAULT DATA</span>
+                    <span className="text-[9px] text-gray-500 font-semibold">Export &amp; Reset</span>
+                  </div>
+                </button>
+              )}
+
+              {/* Household Tax Hub */}
+              {onOpenHousehold && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenHousehold();
+                  }}
+                  className="p-2.5 bg-[#FAF7F2] hover:bg-[#FACC15] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition-colors col-span-2 sm:col-span-1"
+                >
+                  <Users className="w-4 h-4 text-[#3730A3] flex-shrink-0" />
+                  <div className="text-left">
+                    <span className="block leading-tight">HOUSEHOLD HUB</span>
+                    <span className="text-[9px] text-gray-500 font-semibold">Joint Tax Arbitrage</span>
+                  </div>
+                </button>
+              )}
+
+              {/* Tour */}
+              {onOpenTour && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenTour();
+                  }}
+                  className="p-2.5 bg-[#A7F3D0] hover:bg-[#6EE7B7] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition-colors col-span-2 sm:col-span-1"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-800 flex-shrink-0" />
+                  <div className="text-left">
+                    <span className="block leading-tight">PLATFORM TOUR</span>
+                    <span className="text-[9px] text-emerald-950 font-semibold">Guided Walkthrough</span>
+                  </div>
+                </button>
+              )}
+            </div>
+
+            {/* Workflow Navigation Links List */}
+            <div className="border-t-2 border-black pt-3 space-y-1 text-xs">
+              <span className="text-[10px] font-black uppercase text-gray-500 block mb-1">
+                JUMP TO WORKFLOW STEP:
+              </span>
+              {navItems.map((item) => {
+                const isActive = activeTab === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => handleTabClick(item.key)}
+                    className={`w-full p-2 border flex items-center justify-between font-bold cursor-pointer transition-colors ${
+                      isActive
+                        ? 'bg-[#FACC15] border-black font-black shadow-[2px_2px_0px_0px_#000]'
+                        : 'bg-white border-black/30 hover:bg-[#FAF7F2] hover:border-black'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {item.icon}
+                      <span>{item.fullLabel}</span>
+                    </div>
+                    {item.badge !== undefined && (
+                      <span className="bg-red-500 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full border border-black">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full mt-3 bg-black text-white p-2 border-2 border-black font-black text-xs uppercase cursor-pointer"
+            >
+              CLOSE MENU
+            </button>
+          </div>
+        </>
+      )}
     </header>
   );
 };
