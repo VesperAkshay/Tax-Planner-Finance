@@ -17,14 +17,10 @@ import { TaxpayerProfileModal } from './components/TaxpayerProfileModal';
 import { HouseholdSummaryModal } from './components/HouseholdSummaryModal';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AnimatedFeatureRibbon } from './components/AnimatedFeatureRibbon';
 import { api } from './api/client';
 import type { User, TaxpayerProfile, ProfileReadinessResponse } from './types';
-import {
-  Calculator,
-  Lock,
-  Zap,
-  Users,
-} from 'lucide-react';
+import { Users } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('upload');
@@ -284,47 +280,8 @@ export const App: React.FC = () => {
               )}
             </ErrorBoundary>
 
-            {/* Feature Highlights Grid with Brutalist Stickers */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-              <div className="bg-[#FFFDF9] border-4 border-black p-6 shadow-[6px_6px_0px_0px_#000000]">
-                <div className="p-3 bg-[#FACC15] border-2 border-black inline-block mb-3">
-                  <Zap className="w-6 h-6 text-black stroke-[2.5]" />
-                </div>
-                <h4 className="text-xl font-black uppercase font-['Space_Grotesk'] mb-2">
-                  EXACT STATUTORY MATH
-                </h4>
-                <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                  All tax liability figures are computed using pure mathematical logic adhering directly
-                  to Finance Act statutory slabs with zero guesswork.
-                </p>
-              </div>
-
-              <div className="bg-[#FFFDF9] border-4 border-black p-6 shadow-[6px_6px_0px_0px_#000000]">
-                <div className="p-3 bg-[#F59E0B] border-2 border-black inline-block mb-3">
-                  <Calculator className="w-6 h-6 text-black stroke-[2.5]" />
-                </div>
-                <h4 className="text-xl font-black uppercase font-['Space_Grotesk'] mb-2">
-                  FY 2025–26 COMPLIANT
-                </h4>
-                <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                  Revised Section 115BAC slabs, ₹75,000 standard deduction, and ₹12,00,000 rebate
-                  with marginal relief.
-                </p>
-              </div>
-
-              <div className="bg-[#FFFDF9] border-4 border-black p-6 shadow-[6px_6px_0px_0px_#000000]">
-                <div className="p-3 bg-[#3730A3] border-2 border-black inline-block mb-3">
-                  <Lock className="w-6 h-6 text-white stroke-[2.5]" />
-                </div>
-                <h4 className="text-xl font-black uppercase font-['Space_Grotesk'] mb-2">
-                  PRIVATE DATA VAULT
-                </h4>
-                <p className="text-xs font-semibold text-gray-700 leading-relaxed font-['Plus_Jakarta_Sans']">
-                  Bank-grade security and complete data isolation. Your uploads, records, and deductions
-                  are strictly accessible only by your account.
-                </p>
-              </div>
-            </div>
+            {/* Smooth Hardware-Accelerated Feature & Guarantees Ribbon (Render Style) */}
+            <AnimatedFeatureRibbon />
           </div>
         )}
       </main>

@@ -98,6 +98,27 @@ body {
   animation-play-state: paused;
 }
 
+/* Smooth Hardware-Accelerated Feature Ribbon (Render / Linear Style) */
+@keyframes smooth-ribbon {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ribbon {
+  display: flex;
+  width: max-content;
+  animation: smooth-ribbon 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-ribbon:hover {
+  animation-play-state: paused;
+}
+
 /* Dot grid background texture */
 .bg-grid-dots {
   background-image: radial-gradient(#000000 1.2px, transparent 1.2px);
