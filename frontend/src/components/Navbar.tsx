@@ -65,6 +65,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems: {
     key: TabKey;
+    stepNumber: number;
+    microLabel: string;
     shortLabel: string;
     fullLabel: string;
     icon: React.ReactNode;
@@ -72,18 +74,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   }[] = [
     {
       key: 'upload',
+      stepNumber: 1,
+      microLabel: 'Ingest',
       shortLabel: '1. Ingest',
       fullLabel: '1. Ingest Docs',
       icon: <UploadCloud className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
     {
       key: 'snapshot',
+      stepNumber: 2,
+      microLabel: 'Snapshot',
       shortLabel: '2. Snapshot',
       fullLabel: '2. Snapshot',
       icon: <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
     {
       key: 'reconciliation',
+      stepNumber: 3,
+      microLabel: 'Audit',
       shortLabel: '3. Reconcile',
       fullLabel: '3. Reconciliation',
       icon: <GitCompare className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
@@ -91,18 +99,24 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       key: 'catalog',
+      stepNumber: 4,
+      microLabel: 'Deduct',
       shortLabel: '4. Deductions',
       fullLabel: '4. Deductions',
       icon: <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
     {
       key: 'chat',
+      stepNumber: 5,
+      microLabel: 'Planner',
       shortLabel: '5. AI Planner',
       fullLabel: '5. Mr. Planner (AI)',
       icon: <MessageSquareCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
     {
       key: 'report',
+      stepNumber: 6,
+      microLabel: 'Report',
       shortLabel: '6. Report',
       fullLabel: '6. Tax Report',
       icon: <FileCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
@@ -301,13 +315,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. MOBILE DEDICATED TAB SCROLLER (< 1024px)                                */}
-      {/* Guarantees tabs NEVER collide or collapse with top buttons                */}
+      {/* 2. MOBILE 6-FEATURE GRID BAR (< 1024px)                                   */}
+      {/* ALL 6 FEATURES VISIBLE SIMULTANEOUSLY WITH ZERO HORIZONTAL SCROLLING       */}
       {/* ========================================================================= */}
       {currentUser && (
         <nav
           data-tour="nav-tabs"
-          className="lg:hidden bg-[#FFFDF9] border-t-2 border-black px-2.5 py-1.5 overflow-x-auto no-scrollbar flex items-center gap-1.5 shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)]"
+          className="lg:hidden bg-[#FFFDF9] border-t-2 border-black p-1 sm:p-1.5 grid grid-cols-6 gap-0.5 sm:gap-1 w-full shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)]"
         >
           {navItems.map((item) => {
             const isActive = activeTab === item.key;
@@ -315,19 +329,27 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 key={item.key}
                 onClick={() => handleTabClick(item.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-black tracking-tight border-2 border-black transition-all flex-shrink-0 cursor-pointer ${
+                className={`flex flex-col items-center justify-center py-1 sm:py-1.5 px-0.5 text-center border-2 border-black transition-all cursor-pointer relative min-w-0 ${
                   isActive
-                    ? 'bg-[#FACC15] text-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
-                    : 'bg-[#FAF7F2] text-black hover:bg-[#FACC15]/20 hover:shadow-[1px_1px_0px_0px_#000]'
+                    ? 'bg-[#FACC15] text-black font-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5 z-10'
+                    : 'bg-[#FAF7F2] text-black font-bold hover:bg-[#FACC15]/20'
                 }`}
+                title={item.fullLabel}
               >
-                {item.icon}
-                <span className="whitespace-nowrap">{item.shortLabel}</span>
-                {item.badge !== undefined && (
-                  <span className="bg-red-500 text-white font-mono text-[9px] px-1 py-0.2 rounded-full border border-black animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
+                {/* Step Icon with Step Number & Discrepancy Badge */}
+                <div className="relative flex items-center justify-center">
+                  {item.icon}
+                  {item.badge !== undefined && (
+                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white font-mono text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full border border-black animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+
+                {/* Step Number + Micro Label */}
+                <span className="text-[8px] xs:text-[9px] sm:text-[10px] tracking-tighter leading-tight mt-0.5 font-['Space_Grotesk'] font-black truncate w-full block">
+                  {item.stepNumber}. {item.microLabel}
+                </span>
               </button>
             );
           })}
