@@ -10,6 +10,7 @@ import { ReconciliationView } from './components/ReconciliationView';
 import { AgentChatView } from './components/AgentChatView';
 import { TaxReportView } from './components/TaxReportView';
 import { DeductionCatalogView } from './components/DeductionCatalogView';
+import { CareerSwitchView } from './components/CareerSwitchView';
 import { LifecycleModal } from './components/LifecycleModal';
 import { BYOKModal } from './components/BYOKModal';
 import { OnboardingTourModal } from './components/OnboardingTourModal';
@@ -263,6 +264,10 @@ export const App: React.FC = () => {
                   }}
                   onNavigateToReport={() => setActiveTab('report')}
                 />
+              )}
+
+              {activeTab === 'career' && (
+                <CareerSwitchView />
               )}
 
               {activeTab === 'chat' && (

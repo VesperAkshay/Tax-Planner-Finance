@@ -91,7 +91,7 @@ To eliminate computational drift, the platform enforces a **Zero LLM Tax Arithme
   - **Salary Slips**: Standard corporate PDF and scanned image slips with zero-dropdown automatic month, year, and financial year detection.
 
 ### Explicit Non-Goals (Out-of-Scope)
-1. **Multiple Concurrent Employers**: Assumes a single primary salaried employer per financial year.
+1. **Multiple Concurrent Employers (Moonlighting)**: Assumes a single active primary salaried employer at any given time. (*Note: Sequential mid-year job switches across Company A and Company B are fully supported in Phase 18 via the Career Switch Simulator and Form 12B generator*).
 2. **Business / Professional Income (PGBP)**: Does not calculate presumptive taxation under Section 44AD/44ADA or corporate balance sheets.
 3. **Capital Gains Filing**: Informational advisory only. The system detects broker transactions / mutual fund redemptions (CAMS, Zerodha, Groww) and flags a warning that the taxpayer must file Form ITR-2; it explicitly performs **zero capital gains tax arithmetic**.
 4. **Foreign Assets / Schedule FA**: Flags foreign currency / forex transactions for manual review, but does not prepare Schedule FA filings.
@@ -221,6 +221,23 @@ flowchart TD
 - **Unified Classification Route (`POST /api/v1/upload/auto`)**: Automatically classifies dropped documents into salary slips or bank statements and routes them to their respective engines.
 - **Pre-Commit Line-Item Verification Pills**: Live visual breakdown displaying extracted Basic, HRA, PF, TDS, net pay, statement transaction count, and balance continuity verification status ($\Delta \le ₹1.00$).
 - **Direct Bridge to Bank Deduction Harvester**: Prominent callout banner upon ingestion completion to launch automated Section 80C, 80D, 80E, 80G, and 80TTA deduction harvesting.
+
+### 4.15 Career Switch & Offer Letter Decoder Subsystem (Phase 18)
+- **Offer Letter CTC In-Hand Cashflow Engine (`switch_engine.py`)**: Translates high-level corporate CTC figures into deterministic monthly bank take-home cash, calculating statutory Employee PF (12%), Professional Tax (₹200/mo), and exact monthly TDS under Finance Act 2025–26 rules.
+- **Red-Flag Contract Trap Detectors**:
+  - *Gratuity 5-Year Lock*: Identifies employer-deducted 4.81% gratuity and alerts the employee to Section 4 of the Payment of Gratuity Act 1972 (forfeited 100% if employment terminates before 5 continuous years).
+  - *Special Allowance Tax Sinkhole*: Detects when Special Allowance exceeds 30% of CTC, calculating the full marginal tax drag caused by components having zero statutory deductions.
+  - *Variable Pay & Bonus Clawback*: Highlights at-risk compensation tied to company performance ratings, and calculates upfront tax withholding and clawback liability for sign-on bonuses with lock-in clauses (e.g. 12–24 months).
+- **AI Salary Restructure & Negotiation Playbook**:
+  - Automatically identifies tax arbitrage opportunities under the New Tax Regime, including Employer NPS contributions under Section 80CCD(2) (tax-exempt up to 14% of Basic) and tax-free official communications reimbursements (₹36,000/yr).
+  - Generates a ready-to-send corporate salary restructuring proposal email to HR requesting allocation of taxable Special Allowance into statutory tax-free benefits at **zero additional cost** to the company.
+- **Dual-Employer Mid-Year Job Switch Simulator**:
+  - **The Double Standard Deduction & Rebate Cliff Trap**: Models sequential employment across two companies (Company A and Company B). Reveals how independent payroll software at both employers independently grants the ₹75,000 standard deduction and Section 87A rebate, resulting in massive TDS shortfalls and surprise tax demands when the Income Tax Department combines both incomes in July ITR.
+  - **Section 234B & Section 234C Interest Shortfall Penalties**: Computes statutory 1%/month interest under Section 234B (for TDS < 90% of assessed tax) and Section 234C (advance tax deferment), quantifying the exact penalty saved by timely action.
+  - **Statutory Form 12B Generator (Rule 26A / Section 192(2))**: Automatically generates and exports the official verified Form 12B statement declaring previous employer earnings and TDS, calculating the exact adjusted monthly TDS Company B must deduct from October–March to eliminate July tax shock to ₹0.00.
+- **Multi-Offer Comparator**:
+  - Side-by-side analysis comparing Current CTC vs Offer A vs Offer B.
+  - Evaluates true in-hand monthly take-home percentage hike against inflated paper CTC hike percentages.
 
 ---
 

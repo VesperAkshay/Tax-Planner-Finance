@@ -13,6 +13,7 @@ import {
   UserPlus,
   Sparkles,
   ChevronRight,
+  Briefcase,
 } from 'lucide-react';
 import type { TabKey } from './Navbar';
 import type { TaxpayerProfile } from '../types';
@@ -102,9 +103,17 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       action: () => onSelectTab('catalog'),
     },
     {
+      id: 'tab-career',
+      category: 'Tabs',
+      label: '5. Career Switch & Offer Letter Decoder',
+      sublabel: 'Decode offer traps, simulate mid-year switch & Form 12B',
+      icon: <Briefcase className="w-4 h-4 text-[#18153B]" />,
+      action: () => onSelectTab('career'),
+    },
+    {
       id: 'tab-chat',
       category: 'Tabs',
-      label: '5. Mr. Planner AI Conversational Strategist',
+      label: '6. Mr. Planner AI Conversational Strategist',
       sublabel: 'Ask complex tax queries with legal RAG citations',
       icon: <MessageSquareCode className="w-4 h-4 text-[#3730A3]" />,
       action: () => onSelectTab('chat'),
@@ -112,7 +121,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     {
       id: 'tab-report',
       category: 'Tabs',
-      label: '6. Final Tax Report & Dual-Regime Audit',
+      label: '7. Final Tax Report & Dual-Regime Audit',
       sublabel: 'Section 115BAC comparison and PDF invoice export',
       icon: <FileCheck2 className="w-4 h-4 text-purple-700" />,
       action: () => onSelectTab('report'),

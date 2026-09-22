@@ -17,6 +17,14 @@ import type {
   TaxpayerProfile,
   ProfileReadinessResponse,
   HouseholdSummaryResponse,
+  DecodeOfferRequest,
+  DecodeOfferResponse,
+  SimulateSwitchRequest,
+  SimulateSwitchResponse,
+  CompareOffersRequest,
+  CompareOffersResponse,
+  Form12BRequest,
+  Form12BResponse,
 } from '../types';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
@@ -703,6 +711,62 @@ export class ApiClient {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || 'Failed to compute household tax summary');
+    }
+    return await res.json();
+  }
+
+  // ============================================================================
+  // Career Switch & Offer Letter Decoder Endpoints
+  // ============================================================================
+
+  async decodeOffer(payload: DecodeOfferRequest): Promise<DecodeOfferResponse> {
+    const res = await fetch(`${API_BASE}/career/decode-offer`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to decode offer letter CTC');
+    }
+    return await res.json();
+  }
+
+  async simulateSwitch(payload: SimulateSwitchRequest): Promise<SimulateSwitchResponse> {
+    const res = await fetch(`${API_BASE}/career/simulate-switch`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to simulate job switch tax liability');
+    }
+    return await res.json();
+  }
+
+  async compareOffers(payload: CompareOffersRequest): Promise<CompareOffersResponse> {
+    const res = await fetch(`${API_BASE}/career/compare-offers`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to compare job offers');
+    }
+    return await res.json();
+  }
+
+  async generateForm12B(payload: Form12BRequest): Promise<Form12BResponse> {
+    const res = await fetch(`${API_BASE}/career/generate-form-12b`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to generate statutory Form 12B statement');
     }
     return await res.json();
   }

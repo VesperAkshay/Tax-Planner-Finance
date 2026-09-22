@@ -9,6 +9,7 @@ from fastapi import APIRouter
 from app.api.agent import router as agent_router
 from app.api.auth import router as auth_router
 from app.api.byok import router as byok_router
+from app.api.career_switch import router as career_switch_router
 from app.api.catalog import router as catalog_router
 from app.api.financial_snapshot import router as financial_snapshot_router
 from app.api.lifecycle import router as lifecycle_router
@@ -21,6 +22,7 @@ api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(auth_router)
 api_router.include_router(profiles_router)
+api_router.include_router(career_switch_router)
 api_router.include_router(upload_router)
 api_router.include_router(financial_snapshot_router)
 api_router.include_router(reconciliation_router)

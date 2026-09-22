@@ -478,3 +478,174 @@ export interface HouseholdSummaryResponse {
   arbitrage_opportunities: HouseholdArbitrageAdvice[];
 }
 
+// ==============================================================================
+// Career Switch & Offer Letter Decoder Types
+// ==============================================================================
+
+export interface TrapDetected {
+  code: string;
+  title: string;
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  amount: number;
+}
+
+export interface NegotiationPlaybook {
+  suggested_80ccd2_monthly: number;
+  suggested_broadband_monthly: number;
+  annual_tax_saved: number;
+  counter_proposal_email: string;
+}
+
+export interface OfferComponents {
+  basic: number;
+  hra: number;
+  special_allowance: number;
+  gratuity_annual: number;
+  employer_pf_annual: number;
+  employee_pf_annual: number;
+  medical_insurance_annual: number;
+  variable_pay: number;
+  joining_bonus: number;
+  esop_annual: number;
+}
+
+export interface MonthlyBreakdown {
+  fixed_gross: number;
+  basic: number;
+  hra: number;
+  special_allowance: number;
+  employee_pf_deduction: number;
+  professional_tax: number;
+  monthly_tds_tax: number;
+  guaranteed_in_hand: number;
+}
+
+export interface AnnualTotals {
+  guaranteed_fixed_gross: number;
+  annual_in_hand: number;
+  annual_tax: number;
+  effective_tax_rate_pct: number;
+  retirals_total: number;
+  at_risk_total: number;
+}
+
+export interface DecodeOfferRequest {
+  ctc: number;
+  basic?: number;
+  hra?: number;
+  special_allowance?: number;
+  variable_pay?: number;
+  joining_bonus?: number;
+  bonus_clawback_months?: number;
+  esop_annual?: number;
+  gratuity_included?: boolean;
+  employer_pf_included?: boolean;
+  medical_insurance_annual?: number;
+}
+
+export interface DecodeOfferResponse {
+  annual_ctc: number;
+  components: OfferComponents;
+  monthly_breakdown: MonthlyBreakdown;
+  annual_totals: AnnualTotals;
+  traps_detected: TrapDetected[];
+  negotiation_playbook: NegotiationPlaybook;
+}
+
+export interface SimulateSwitchRequest {
+  company_a_months: number;
+  company_a_gross: number;
+  company_a_tds: number;
+  company_a_epf: number;
+  company_b_months: number;
+  company_b_monthly_gross: number;
+}
+
+export interface SimulateSwitchResponse {
+  timeline: {
+    company_a_months: number;
+    company_b_months: number;
+  };
+  incomes: {
+    company_a_gross: number;
+    company_b_gross: number;
+    total_combined_gross: number;
+  };
+  without_form_12b: {
+    company_a_tds: number;
+    company_b_projected_tds: number;
+    total_tds_collected: number;
+  };
+  true_statutory_liability: {
+    total_tax_due: number;
+    effective_tax_rate_pct: number;
+  };
+  the_tax_shock: {
+    tds_shortfall: number;
+    section_234b_interest: number;
+    section_234c_interest: number;
+    total_july_demand: number;
+    has_critical_shortfall: boolean;
+  };
+  with_form_12b: {
+    remaining_tax_for_company_b: number;
+    adjusted_monthly_tds: number;
+    july_tax_surprise: number;
+    interest_saved: number;
+  };
+  form_12b_particulars: {
+    statement_period: string;
+    gross_salary_company_a: number;
+    tds_deducted_company_a: number;
+    provident_fund_company_a: number;
+    gross_salary_company_b_expected: number;
+    total_annual_combined_income: number;
+    statutory_form_12b_rule: string;
+  };
+}
+
+export interface CompareOffersRequest {
+  current_ctc: number;
+  offer_a_ctc: number;
+  offer_b_ctc?: number;
+}
+
+export interface OfferComparisonItem {
+  ctc: number;
+  monthly_in_hand: number;
+  annual_in_hand: number;
+  annual_tax: number;
+  paper_ctc_hike_pct?: number;
+  real_in_hand_hike_pct?: number;
+  monthly_cash_gain?: number;
+}
+
+export interface CompareOffersResponse {
+  current: OfferComparisonItem;
+  offer_a: OfferComparisonItem;
+  offer_b?: OfferComparisonItem;
+}
+
+export interface Form12BRequest {
+  company_a_name: string;
+  company_a_tan?: string;
+  company_a_gross: number;
+  company_a_tds: number;
+  company_a_epf: number;
+  period_start: string;
+  period_end: string;
+}
+
+export interface Form12BResponse {
+  employee_name: string;
+  employee_pan: string;
+  company_a_name: string;
+  company_a_tan?: string;
+  gross_salary: number;
+  tds_deducted: number;
+  epf_deducted: number;
+  period: string;
+  raw_form_text: string;
+}
+

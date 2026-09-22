@@ -16,11 +16,12 @@ import {
   X,
   Users,
   LogOut,
+  Briefcase,
 } from 'lucide-react';
 import type { User, TaxpayerProfile, ProfileReadinessResponse } from '../types';
 import { ProfileCommandHub } from './ProfileCommandHub';
 
-export type TabKey = 'upload' | 'snapshot' | 'reconciliation' | 'catalog' | 'chat' | 'report';
+export type TabKey = 'upload' | 'snapshot' | 'reconciliation' | 'catalog' | 'career' | 'chat' | 'report';
 
 interface NavbarProps {
   activeTab: TabKey;
@@ -106,19 +107,27 @@ export const Navbar: React.FC<NavbarProps> = ({
       icon: <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
     {
-      key: 'chat',
+      key: 'career',
       stepNumber: 5,
+      microLabel: 'Career',
+      shortLabel: '5. Career Switch',
+      fullLabel: '5. Career Switch',
+      icon: <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
+    },
+    {
+      key: 'chat',
+      stepNumber: 6,
       microLabel: 'Planner',
-      shortLabel: '5. AI Planner',
-      fullLabel: '5. Mr. Planner (AI)',
+      shortLabel: '6. AI Planner',
+      fullLabel: '6. Mr. Planner (AI)',
       icon: <MessageSquareCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
     {
       key: 'report',
-      stepNumber: 6,
+      stepNumber: 7,
       microLabel: 'Report',
-      shortLabel: '6. Report',
-      fullLabel: '6. Tax Report',
+      shortLabel: '7. Report',
+      fullLabel: '7. Tax Report',
       icon: <FileCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />,
     },
   ];
