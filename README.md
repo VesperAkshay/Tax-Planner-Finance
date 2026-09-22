@@ -17,13 +17,16 @@ The system is architected around a strict separation of concerns between natural
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion["1. Robust Document Ingestion Pipeline"]
-        A["Bank Statement (CSV / PDF)"] --> B["Pre-Classifier & Input Robustness Check"]
-        B -->|Adversarial / Password Check| C["Multi-Bank / Docling Parser / Custom Mapping"]
-        D["Salary Slip (PDF / Image)"] --> E["Salary Slip Parser"]
-        C --> F["Balance Continuity Check (Δ ≤ ₹1.00)"]
-        C --> G["3-Tier Hybrid Spending Categorizer<br/>(Patterns ➔ XGBoost ➔ LLM)"]
-        E --> H["Salary Component Extractor (Basic, HRA, PF, TDS)"]
+    subgraph Ingestion["1. Unified Smart Document Ingestion Pipeline"]
+        A["Batch Dropzone (1–20 Files: Statements, Payslips, Form 16)"] --> B["Smart Client & Server Auto-Classifier (/upload/auto)"]
+        B -->|Encrypted PDF| B1["In-Memory PDF Decryptor (pdf_unlocker.py)"]
+        B1 -->|PAN / DOB Autofill| C["Multi-Bank / Docling Parser / Generic CSV Fallback"]
+        B -->|Plain File| C
+        C -->|Bank Statement| F["Balance Continuity Check (Δ ≤ ₹1.00)"]
+        C -->|Bank Statement| G["3-Tier Hybrid Spending Categorizer<br/>(Patterns ➔ XGBoost ➔ LLM)"]
+        C -->|Salary Slip| H["Auto Pay-Period & Component Extractor (Basic, HRA, PF, TDS)"]
+        F & H --> Preview["Line-Item Verification Pills & Batch Queue"]
+        Preview --> HarvesterBridge["⚡ Direct Bridge to Bank Deduction Harvester"]
     end
 
     subgraph Reconciliation["2. Reconciliation & Compliance Detectors"]
@@ -82,8 +85,10 @@ To eliminate computational drift, the platform enforces a **Zero LLM Tax Arithme
   - **New Tax Regime (Section 115BAC)**: Enhanced standard deduction of ₹75,000, revised slab schedules up to ₹24L, full Section 87A rebate for taxable income up to ₹12,00,000 with marginal relief, and employer NPS under Section 80CCD(2).
   - **Old Tax Regime**: Standard deduction of ₹50,000, Section 87A rebate for income up to ₹5,00,000, and all 18 statutory Chapter VI-A sections (80C, 80CCD(1B), 80CCD(2), 80D self/family, 80D senior parents, Section 10(13A) HRA under Rule 2A, 80GG, 24(b) home loan interest, 80EEA, 80E, 80G, 80GGC, 80TTA, 80TTB, 80DD, 80DDB, 80U, and 10(5) LTA).
 - **Document Formats & Ingestion**:
-  - Bank Statements: HDFC, ICICI, SBI, Axis, Kotak, and custom bank CSVs (with running balance delta inference), plus digital and scanned PDFs with OCR fallback.
-  - Salary Slips: Standard corporate PDF and scanned image slips.
+  - **Unified Multi-File Batch Queue**: Drag & drop 1 to 20 files simultaneously (all 12 payslips + statements at once) with automatic document type classification (`/upload/auto`).
+  - **In-Memory Password Unlock**: Memory-only decryption for password-protected Indian bank statements and payslips (with one-click "Try PAN from Profile" shortcut).
+  - **Bank Statements**: HDFC, ICICI, SBI, Axis, Kotak, generic standard CSVs (auto-fallback), and custom bank CSVs (with running balance delta inference), plus digital and scanned PDFs with OCR fallback.
+  - **Salary Slips**: Standard corporate PDF and scanned image slips with zero-dropdown automatic month, year, and financial year detection.
 
 ### Explicit Non-Goals (Out-of-Scope)
 1. **Multiple Concurrent Employers**: Assumes a single primary salaried employer per financial year.
@@ -200,12 +205,22 @@ flowchart TD
 - **July 31 Filing Deadline Countdown**: Real-time statutory countdown badge displaying days remaining until the July 31 filing deadline for the Assessment Year.
 - **Year-Over-Year (YoY) Multi-Year Comparison**: `GET /api/v1/tax/year-over-year` endpoint comparing income growth, deduction utilization, and tax liability differentials across multiple financial years.
 
-### 4.13 Complete Frontend Dashboard v1.1 Experience
-- **18-Section Statutory Deduction Catalog (`/catalog`)**: Neo-Brutalist statutory browser with real-time cap consumption progress bars, eligible checkmarks, direct declarations, regime applicability badges, official income-tax department links, and one-click "Confirm Catalog Reviewed" checkpoint completion.
+### 4.13 Neo-Brutalist Dashboard, Mobile Optimization & Animated Marquee
+- **Mobile Responsive Layout**: Full multi-device responsiveness featuring a dedicated slide-out mobile drawer, mobile top bar, and a zero-scroll 6-feature mobile grid allowing simultaneous access to all workflow steps without horizontal scrolling.
+- **Compact Desktop Header**: Streamlined 64px single-bar header on desktop with Ctrl+K shortcut, tour pill, vault pill, and the ProfileCommandHub dropdown.
+- **Render-Style Infinite Feature Marquee (`AnimatedFeatureRibbon.tsx`)**: Smooth hardware-accelerated infinite marquee highlighting Exact Statutory Math, FY 2025-26 compliance, and Private Data Vault.
+- **Branded Neo-Brutalist Favicon**: Project-specific `TP//26` SVG icon in `frontend/public/favicon.svg` replacing default Vite branding.
 - **Vault & Account Lifecycle Management**: Interactive modal for on-demand ZIP data archive export, scoped statement upload deletion by ID with cascading transaction purge, single-financial-year resets, and double-confirmed GDPR/DPDP-compliant permanent account wipes.
-- **Custom Bank CSV Mapping Interface**: Embedded schema mapper in the statement upload card allowing users to designate custom Date, Narration, Amount (Debit/Credit or Single Column with Balance Delta Inference), and Balance columns.
 - **Real-World Compliance Warnings & Checklists**: Automated advisory banners alerting users of Section 80TTA interest eligibility, capital gains broker redemptions recommending Form ITR-2, one-time salary arrears spikes recommending Form 10E, and an interactive 4-point AIS / Form 26AS pre-filing checklist.
-- **Proactive Elicitation Quick Chips**: One-click prompt chips in Mr. Planner chat ("Not Applicable (₹0)", "Claim Maximum Cap", "Skip Section", "Calculate Tax") and draft-to-final report unlocking.
+
+### 4.14 Unified Smart Ingestion Hub & In-Memory Decryption (v1.2)
+- **Multi-File Batch Drag & Drop**: Staging queue accepting 1 to 20 documents simultaneously (all 12 payslips + multiple bank statements) with real-time status pills (`Queued`, `Parsing...`, `Password Required`, `Ingested`, `Error`).
+- **In-Memory PDF Decryption Engine (`pdf_unlocker.py`)**: Seamlessly unlocks password-encrypted Indian bank statements and corporate payslips in memory using `pypdf`, without persisting unencrypted copies to disk. If a file is encrypted, displays an inline password unlock prompt with a 1-click **"Try PAN from Profile"** shortcut.
+- **Zero-Dropdown Period Extraction**: Automatically extracts month, year, and financial year directly from payslip text and tables, preventing misattribution and eliminating manual dropdowns.
+- **Generic Standard CSV Fallback (`csv_parser.py`)**: Automatically detects and parses generic CSV statements with standard Date, Narration/Description, and Debit/Credit/Amount columns, eliminating manual column mapping for standard formats.
+- **Unified Classification Route (`POST /api/v1/upload/auto`)**: Automatically classifies dropped documents into salary slips or bank statements and routes them to their respective engines.
+- **Pre-Commit Line-Item Verification Pills**: Live visual breakdown displaying extracted Basic, HRA, PF, TDS, net pay, statement transaction count, and balance continuity verification status ($\Delta \le ₹1.00$).
+- **Direct Bridge to Bank Deduction Harvester**: Prominent callout banner upon ingestion completion to launch automated Section 80C, 80D, 80E, 80G, and 80TTA deduction harvesting.
 
 ---
 
@@ -273,9 +288,10 @@ Open `http://localhost:5173` in your browser.
 | `POST` | `/api/v1/auth/register` | Register new user, create primary account, issue JWT | No |
 | `POST` | `/api/v1/auth/login` | Authenticate with email & password, return JWT | No |
 | `GET` | `/api/v1/auth/me` | Retrieve authenticated user profile | Yes |
-| `POST` | `/api/v1/statement` | Ingest bank statement (CSV/PDF), parse, categorize | Yes |
-| `POST` | `/api/v1/salary-slip` | Ingest salary slip, extract earnings, deductions, TDS | Yes |
-| `GET` | `/api/v1/status/{upload_id}` | Check statement parsing status & confidence | Yes |
+| `POST` | `/api/v1/upload/auto` | Unified document intake: auto-classifies statements vs payslips, in-memory decrypt | Yes |
+| `POST` | `/api/v1/upload/statement` | Ingest bank statement (CSV/PDF) with in-memory password decrypt, balance check | Yes |
+| `POST` | `/api/v1/upload/salary-slip` | Ingest salary slip with auto pay-period extraction, TDS extraction, in-memory decrypt | Yes |
+| `GET` | `/api/v1/upload/status/{upload_id}` | Check statement parsing status & confidence | Yes |
 | `GET` | `/api/v1/financial-snapshot` | Income, expense, savings rate, category breakdown | Yes |
 | `POST` | `/api/v1/financial-snapshot/re-categorize` | Re-run 3-tier hybrid categorization on all user transactions | Yes |
 | `GET` | `/api/v1/flags` | List reconciliation flags for current user | Yes |
@@ -305,7 +321,8 @@ Comprehensive empirical evaluation reports and test suites are available in the 
 - **Phase 15 (Lifecycle, Overlap Deduplication & Export)**: [`test_phase15_lifecycle.py`](file:///F:/TaxPlanner/backend/tests/test_phase15_lifecycle.py) (6/6 tests passed).
 - **Phase 16 (Input Robustness & Custom Bank CSV Mapping)**: [`test_phase16_robustness.py`](file:///F:/TaxPlanner/backend/tests/test_phase16_robustness.py) (6/6 tests passed).
 - **Phase 17 (Real-World Detectors, 80TTA, YoY Comparison)**: [`test_phase17_real_world.py`](file:///F:/TaxPlanner/backend/tests/test_phase17_real_world.py) (6/6 tests passed).
-- **Full Test Suite Status**: **61/61 automated tests passing** across all modules with strict zero LLM tax arithmetic invariants enforced.
+- **Unified Intake & Decryption Suite**: [`test_unified_upload_flow.py`](file:///F:/TaxPlanner/backend/tests/test_unified_upload_flow.py) (4/4 tests passed: in-memory decrypt, password enforcement, auto-routing).
+- **Full Test Suite Status**: **65/65 automated tests passing** across all modules with strict zero LLM tax arithmetic invariants enforced.
 
 ---
 
