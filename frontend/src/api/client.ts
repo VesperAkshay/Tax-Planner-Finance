@@ -3,6 +3,7 @@ import type {
   ReconciliationFlag,
   StatementUploadResponse,
   SalarySlipUploadResponse,
+  UnifiedUploadResult,
   TaxComparisonReport,
   User,
   CatalogListResponse,
@@ -147,7 +148,8 @@ export class ApiClient {
     file: File,
     bankFormat?: string,
     columnMapping?: Record<string, string>,
-    confirmOverlap: boolean = true
+    confirmOverlap: boolean = true,
+    password?: string
   ): Promise<StatementUploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
@@ -158,6 +160,9 @@ export class ApiClient {
       formData.append('column_mapping', JSON.stringify(columnMapping));
     }
     formData.append('confirm_overlap', String(confirmOverlap));
+    if (password) {
+      formData.append('password', password);
+    }
 
     const res = await fetch(`${API_BASE}/upload/statement`, {
       method: 'POST',
@@ -167,16 +172,18 @@ export class ApiClient {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || `Statement upload failed (${res.status})`);
+      const msg = typeof err.detail === 'string' ? err.detail : (err.detail?.message || err.detail?.code || `Statement upload failed (${res.status})`);
+      throw new Error(msg);
     }
     return await res.json();
   }
 
-  async uploadSalarySlip(file: File, month?: number, year?: number): Promise<SalarySlipUploadResponse> {
+  async uploadSalarySlip(file: File, month?: number, year?: number, password?: string): Promise<SalarySlipUploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    if (month) formData.append('month', String(month));
-    if (year) formData.append('year', String(year));
+    if (month && month > 0) formData.append('month', String(month));
+    if (year && year > 0) formData.append('year', String(year));
+    if (password) formData.append('password', password);
 
     const res = await fetch(`${API_BASE}/upload/salary-slip`, {
       method: 'POST',
@@ -186,7 +193,34 @@ export class ApiClient {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || `Salary slip upload failed (${res.status})`);
+      const msg = typeof err.detail === 'string' ? err.detail : (err.detail?.message || err.detail?.code || `Salary slip upload failed (${res.status})`);
+      throw new Error(msg);
+    }
+    return await res.json();
+  }
+
+  async uploadAutoDocument(
+    file: File,
+    password?: string,
+    bankFormat?: string,
+    confirmOverlap: boolean = true
+  ): Promise<UnifiedUploadResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (password) formData.append('password', password);
+    if (bankFormat && bankFormat !== 'auto') formData.append('bank_format', bankFormat);
+    formData.append('confirm_overlap', String(confirmOverlap));
+
+    const res = await fetch(`${API_BASE}/upload/auto`, {
+      method: 'POST',
+      headers: this.headers(true),
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = typeof err.detail === 'string' ? err.detail : (err.detail?.message || err.detail?.code || `Document upload failed (${res.status})`);
+      throw new Error(msg);
     }
     return await res.json();
   }

@@ -16,25 +16,51 @@ export interface StatementUploadResponse {
   balance_reconciled: boolean;
   opening_balance: number | null;
   closing_balance: number | null;
-  statement_start_date: string | null;
-  statement_end_date: string | null;
-  transactions_parsed: number;
+  statement_start_date?: string | null;
+  statement_end_date?: string | null;
+  transactions_parsed?: number;
+  transactions_count?: number;
   needs_review: boolean;
+  has_forex?: boolean;
+  forex_count?: number;
+  warning?: string | null;
 }
 
 export interface SalarySlipUploadResponse {
-  salary_slip_id: number;
+  id?: number;
+  salary_slip_id?: number;
   file_name: string;
   month: number;
   year: number;
-  gross_salary: number;
+  financial_year?: string;
+  gross_salary?: number;
+  gross_pay?: number;
   net_pay: number;
-  basic_pay: number | null;
-  hra: number | null;
-  provident_fund: number | null;
-  tax_deducted: number | null;
-  parse_confidence: number;
-  matched_to_statement: boolean;
+  basic_pay?: number | null;
+  basic?: number | null;
+  hra?: number | null;
+  lta?: number | null;
+  special_allowance?: number | null;
+  other_allowances?: number | null;
+  provident_fund?: number | null;
+  employee_pf?: number | null;
+  employer_pf?: number | null;
+  professional_tax?: number | null;
+  tax_deducted?: number | null;
+  tds?: number | null;
+  total_deductions?: number | null;
+  parse_confidence?: number;
+  extraction_confidence?: number | null;
+  is_gross_valid?: boolean;
+  needs_review?: boolean;
+  matched_to_statement?: boolean;
+}
+
+export interface UnifiedUploadResult {
+  document_type: 'salary_slip' | 'bank_statement';
+  statement?: StatementUploadResponse;
+  salary_slip?: SalarySlipUploadResponse;
+  message: string;
 }
 
 export interface CategorySpending {

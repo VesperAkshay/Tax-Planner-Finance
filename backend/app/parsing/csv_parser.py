@@ -208,12 +208,41 @@ class CSVBankParser:
             lines = [line.strip() for line in content.splitlines() if line.strip()]
             first_line = lines[0] if lines else ""
             available_cols = [c.strip() for c in first_line.split(",") if c.strip()]
+            cols_lower = {c.lower(): c for c in available_cols}
 
-            result.parse_confidence = 0.0
-            result.needs_review = True
-            result.warnings.append("Could not identify bank CSV format (no matching adapter).")
-            result.raw_metadata = {"available_columns": available_cols}
-            return result
+            # Smart generic standard CSV auto-fallback:
+            has_date = any(k in cols_lower for k in ["date", "transaction date", "txn date", "value date"])
+            has_desc = any(k in cols_lower for k in ["description", "narration", "particulars", "remarks"])
+            has_debit_credit = ("debit" in cols_lower or "withdrawal" in cols_lower or "withdrawal amt." in cols_lower) and ("credit" in cols_lower or "deposit" in cols_lower or "deposit amt." in cols_lower)
+            has_amount = any(k in cols_lower for k in ["amount", "txn amount", "net amount"])
+
+            if has_date and has_desc and (has_debit_credit or has_amount):
+                date_key = next(cols_lower[k] for k in ["date", "transaction date", "txn date", "value date"] if k in cols_lower)
+                desc_key = next(cols_lower[k] for k in ["narration", "description", "particulars", "remarks"] if k in cols_lower)
+                debit_key = next((cols_lower[k] for k in ["debit", "withdrawal", "withdrawal amt."] if k in cols_lower), None)
+                credit_key = next((cols_lower[k] for k in ["credit", "deposit", "deposit amt."] if k in cols_lower), None)
+                amount_key = next((cols_lower[k] for k in ["amount", "txn amount", "net amount"] if k in cols_lower), None)
+                balance_key = next((cols_lower[k] for k in ["balance", "closing balance", "running balance"] if k in cols_lower), None)
+
+                adapter = BankAdapterConfig(
+                    bank_id="generic_standard",
+                    bank_name="Standard Bank Statement",
+                    date_column=date_key,
+                    description_column=desc_key,
+                    debit_column=debit_key,
+                    credit_column=credit_key,
+                    amount_column=amount_key,
+                    balance_column=balance_key,
+                    sign_convention=SignConvention.SEPARATE_COLUMNS if (debit_key and credit_key) else SignConvention.SIGNED_AMOUNT,
+                    header_signatures=[],
+                    header_row_identifier=date_key,
+                )
+            else:
+                result.parse_confidence = 0.0
+                result.needs_review = True
+                result.warnings.append("Could not identify bank CSV format (no matching adapter).")
+                result.raw_metadata = {"available_columns": available_cols}
+                return result
 
         lines = content.splitlines()
         header_idx = self._locate_header_row(lines, adapter)

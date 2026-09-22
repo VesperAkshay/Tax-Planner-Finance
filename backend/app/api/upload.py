@@ -10,6 +10,7 @@ Provides:
 
 from datetime import date as dt_date
 import hashlib
+import io
 import json
 import logging
 from pathlib import Path
@@ -31,6 +32,12 @@ from app.models.user import User
 from app.parsing.balance_reconciler import reconcile_statement_balance
 from app.parsing.csv_parser import CSVBankParser
 from app.parsing.pdf_parser import DoclingPDFParser
+from app.parsing.pdf_unlocker import (
+    PDFInvalidPasswordError,
+    PDFPasswordRequiredError,
+    decrypt_pdf_in_memory,
+    is_pdf_encrypted,
+)
 from app.parsing.pre_classifier import (
     is_forex_transaction,
     is_pdf_password_protected,
@@ -98,18 +105,39 @@ class ParsingStatusResponse(BaseModel):
 
 class SalarySlipUploadResponse(BaseModel):
     id: int
+    salary_slip_id: Optional[int] = None
     file_name: str
     month: int
     year: int
     financial_year: str
     basic: float
+    basic_pay: Optional[float] = None
     hra: float
+    lta: Optional[float] = 0.0
+    special_allowance: Optional[float] = 0.0
+    other_allowances: Optional[float] = 0.0
     gross_pay: float
+    gross_salary: Optional[float] = None
     employee_pf: float
+    provident_fund: Optional[float] = None
+    employer_pf: Optional[float] = 0.0
+    professional_tax: Optional[float] = 0.0
+    tds: Optional[float] = 0.0
+    tax_deducted: Optional[float] = None
+    total_deductions: Optional[float] = 0.0
     net_pay: float
-    extraction_confidence: Optional[float]
-    is_gross_valid: bool
-    needs_review: bool
+    extraction_confidence: Optional[float] = None
+    parse_confidence: Optional[float] = None
+    is_gross_valid: bool = True
+    needs_review: bool = False
+    matched_to_statement: bool = False
+
+
+class UnifiedUploadResponse(BaseModel):
+    document_type: str  # "salary_slip" or "bank_statement"
+    statement: Optional[StatementUploadResponse] = None
+    salary_slip: Optional[SalarySlipUploadResponse] = None
+    message: str
 
 
 # ==============================================================================
@@ -124,6 +152,7 @@ async def upload_bank_statement(
     bank_format: Optional[str] = Form(None),
     confirm_overlap: bool = Form(False, description="Allow ingestion when date ranges overlap with deduplication (Task 15.2 & 15.8)"),
     column_mapping: Optional[str] = Form(None, description="Custom column mapping JSON string: {'date': '...', 'description': '...', 'amount': '...', 'balance': '...'} (Task 16.3)"),
+    password: Optional[str] = Form(None, description="Password to unlock encrypted PDF statement if applicable"),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ) -> StatementUploadResponse:
@@ -197,10 +226,26 @@ async def upload_bank_statement(
         # 3. Pre-classification & Parsing (Tasks 16.1, 16.2, 16.3)
         if suffix in [".pdf", ".png", ".jpg", ".jpeg"]:
             if suffix == ".pdf":
+                try:
+                    decrypted_bytes, was_encrypted = decrypt_pdf_in_memory(content, password)
+                    if was_encrypted:
+                        content = decrypted_bytes
+                        tmp_path.write_bytes(decrypted_bytes)
+                except PDFPasswordRequiredError:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="PASSWORD_REQUIRED: The uploaded PDF is password-protected. Please provide the document password.",
+                    )
+                except PDFInvalidPasswordError:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="INVALID_PASSWORD: Incorrect password provided for the encrypted PDF.",
+                    )
+
                 if is_pdf_password_protected(tmp_path, raw_bytes=content):
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail="The uploaded PDF is password-protected or encrypted. Please remove password protection before uploading.",
+                        detail="PASSWORD_REQUIRED: The uploaded PDF is password-protected or encrypted. Please enter the password to unlock.",
                     )
                 pdf_type = pre_classify_pdf_structure(tmp_path)
                 if pdf_type == "non_financial":
@@ -421,6 +466,7 @@ async def upload_salary_slip(
     file: UploadFile = File(...),
     month: Optional[int] = Form(None),
     year: Optional[int] = Form(None),
+    password: Optional[str] = Form(None, description="Password to unlock encrypted PDF salary slip if applicable"),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ) -> SalarySlipUploadResponse:
@@ -446,6 +492,23 @@ async def upload_salary_slip(
 
     suffix = Path(file_name).suffix.lower()
 
+    # Pre-decrypt if PDF
+    if suffix == ".pdf":
+        try:
+            decrypted_bytes, was_encrypted = decrypt_pdf_in_memory(content, password)
+            if was_encrypted:
+                content = decrypted_bytes
+        except PDFPasswordRequiredError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="PASSWORD_REQUIRED: The uploaded salary slip PDF is password-protected. Please provide the document password.",
+            )
+        except PDFInvalidPasswordError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="INVALID_PASSWORD: Incorrect password provided for the salary slip PDF.",
+            )
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(content)
         tmp_path = Path(tmp.name)
@@ -456,7 +519,7 @@ async def upload_salary_slip(
             if is_pdf_password_protected(tmp_path, raw_bytes=content):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="The uploaded salary slip PDF is password-protected or encrypted. Please remove password protection before uploading.",
+                    detail="PASSWORD_REQUIRED: The uploaded salary slip PDF is password-protected or encrypted. Please enter the password to unlock.",
                 )
             pdf_type = pre_classify_pdf_structure(tmp_path)
             if pdf_type == "non_financial":
@@ -467,54 +530,102 @@ async def upload_salary_slip(
         parser = DoclingSalarySlipParser()
         slip_res = parser.parse(tmp_path)
 
-        slip_month = month or slip_res.month or 4
-        slip_year = year or slip_res.year or 2025
+        # Smart month/year resolution: prefer parsed values if user didn't explicitly override
+        slip_month = month if (month is not None and month > 0) else (slip_res.month or 4)
+        slip_year = year if (year is not None and year > 0) else (slip_res.year or 2025)
 
-        slip_rec = SalarySlip(
-            user_id=current_user.id,
-            file_name=file_name,
-            file_path=str(tmp_path),
-            month=slip_month,
-            year=slip_year,
-            financial_year=slip_res.financial_year or "2025-2026",
-            basic=slip_res.basic,
-            hra=slip_res.hra,
-            lta=slip_res.lta,
-            special_allowance=slip_res.special_allowance,
-            other_allowances=slip_res.other_allowances,
-            gross_pay=slip_res.gross_pay,
-            employee_pf=slip_res.employee_pf,
-            employer_pf=slip_res.employer_pf,
-            professional_tax=slip_res.professional_tax,
-            tds=slip_res.tds,
-            other_deductions=slip_res.other_deductions,
-            total_deductions=slip_res.total_deductions,
-            net_pay=slip_res.net_pay,
-            extraction_confidence=slip_res.extraction_confidence,
-            is_gross_valid=slip_res.is_gross_valid,
-            needs_review=slip_res.needs_review,
-        )
-        session.add(slip_rec)
+        existing_slip = session.exec(
+            select(SalarySlip)
+            .where(SalarySlip.user_id == current_user.id)
+            .where(SalarySlip.month == slip_month)
+            .where(SalarySlip.year == slip_year)
+        ).first()
+
+        if existing_slip:
+            existing_slip.file_name = file_name
+            existing_slip.file_path = str(tmp_path)
+            existing_slip.financial_year = slip_res.financial_year or f"{slip_year}-{slip_year+1}"
+            existing_slip.basic = slip_res.basic
+            existing_slip.hra = slip_res.hra
+            existing_slip.lta = slip_res.lta
+            existing_slip.special_allowance = slip_res.special_allowance
+            existing_slip.other_allowances = slip_res.other_allowances
+            existing_slip.gross_pay = slip_res.gross_pay
+            existing_slip.employee_pf = slip_res.employee_pf
+            existing_slip.employer_pf = slip_res.employer_pf
+            existing_slip.professional_tax = slip_res.professional_tax
+            existing_slip.tds = slip_res.tds
+            existing_slip.other_deductions = slip_res.other_deductions
+            existing_slip.total_deductions = slip_res.total_deductions
+            existing_slip.net_pay = slip_res.net_pay
+            existing_slip.extraction_confidence = slip_res.extraction_confidence
+            existing_slip.is_gross_valid = slip_res.is_gross_valid
+            existing_slip.needs_review = slip_res.needs_review
+            slip_rec = existing_slip
+        else:
+            slip_rec = SalarySlip(
+                user_id=current_user.id,
+                file_name=file_name,
+                file_path=str(tmp_path),
+                month=slip_month,
+                year=slip_year,
+                financial_year=slip_res.financial_year or "2025-2026",
+                basic=slip_res.basic,
+                hra=slip_res.hra,
+                lta=slip_res.lta,
+                special_allowance=slip_res.special_allowance,
+                other_allowances=slip_res.other_allowances,
+                gross_pay=slip_res.gross_pay,
+                employee_pf=slip_res.employee_pf,
+                employer_pf=slip_res.employer_pf,
+                professional_tax=slip_res.professional_tax,
+                tds=slip_res.tds,
+                other_deductions=slip_res.other_deductions,
+                total_deductions=slip_res.total_deductions,
+                net_pay=slip_res.net_pay,
+                extraction_confidence=slip_res.extraction_confidence,
+                is_gross_valid=slip_res.is_gross_valid,
+                needs_review=slip_res.needs_review,
+            )
+            session.add(slip_rec)
+
         session.commit()
         session.refresh(slip_rec)
 
         # Re-run salary reconciliation pipeline across combined dataset (Task 15.3)
-        run_reconciliation_pipeline(session=session, user_id=current_user.id, auto_commit=True)
+        try:
+            run_reconciliation_pipeline(session=session, user_id=current_user.id, auto_commit=True)
+        except Exception as e:
+            logger.warning(f"Reconciliation note: {e}")
 
         return SalarySlipUploadResponse(
             id=slip_rec.id,
+            salary_slip_id=slip_rec.id,
             file_name=slip_rec.file_name,
             month=slip_rec.month,
             year=slip_rec.year,
             financial_year=slip_rec.financial_year,
             basic=slip_rec.basic,
+            basic_pay=slip_rec.basic,
             hra=slip_rec.hra,
+            lta=slip_rec.lta,
+            special_allowance=slip_rec.special_allowance,
+            other_allowances=slip_rec.other_allowances,
             gross_pay=slip_rec.gross_pay,
+            gross_salary=slip_rec.gross_pay,
             employee_pf=slip_rec.employee_pf,
+            provident_fund=slip_rec.employee_pf,
+            employer_pf=slip_rec.employer_pf,
+            professional_tax=slip_rec.professional_tax,
+            tds=slip_rec.tds,
+            tax_deducted=slip_rec.tds,
+            total_deductions=slip_rec.total_deductions,
             net_pay=slip_rec.net_pay,
             extraction_confidence=slip_rec.extraction_confidence,
+            parse_confidence=slip_rec.extraction_confidence,
             is_gross_valid=slip_rec.is_gross_valid,
             needs_review=slip_rec.needs_review,
+            matched_to_statement=False,
         )
 
     finally:
@@ -523,6 +634,109 @@ async def upload_salary_slip(
                 tmp_path.unlink()
             except Exception:
                 pass
+
+
+@router.post("/auto", response_model=UnifiedUploadResponse, status_code=status.HTTP_201_CREATED)
+async def upload_auto_detect(
+    file: UploadFile = File(...),
+    account_id: Optional[int] = Form(None),
+    bank_format: Optional[str] = Form(None),
+    confirm_overlap: bool = Form(True),
+    password: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
+) -> UnifiedUploadResponse:
+    """
+    Unified Ingestion Endpoint: Automatically classifies whether a file is a
+    Bank Statement or a Salary Slip, decrypts it in-memory if encrypted,
+    and routes it to the correct extraction engine.
+    """
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+
+    file_name = file.filename or "uploaded_document"
+    file_name_lower = file_name.lower()
+    suffix = Path(file_name).suffix.lower()
+
+    # Pre-decrypt if PDF
+    if suffix == ".pdf":
+        try:
+            decrypted_bytes, was_encrypted = decrypt_pdf_in_memory(content, password)
+            if was_encrypted:
+                content = decrypted_bytes
+        except PDFPasswordRequiredError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="PASSWORD_REQUIRED: The uploaded PDF is password-protected. Please provide the document password.",
+            )
+        except PDFInvalidPasswordError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="INVALID_PASSWORD: Incorrect password provided for the encrypted PDF.",
+            )
+
+    # Determine document type
+    doc_type = "bank_statement"
+    if suffix == ".csv":
+        doc_type = "bank_statement"
+    elif any(k in file_name_lower for k in ["salary", "payslip", "pay_slip", "pay-slip", "earnings", "wage", "form16", "form_16"]):
+        doc_type = "salary_slip"
+    elif any(k in file_name_lower for k in ["statement", "stmt", "passbook", "bank", "account_statement", "ledger"]):
+        doc_type = "bank_statement"
+    elif suffix in [".pdf", ".png", ".jpg", ".jpeg"]:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_check:
+            tmp_check.write(content)
+            tmp_check_path = Path(tmp_check.name)
+        try:
+            detected = pre_classify_pdf_structure(tmp_check_path)
+            if detected == "salary_slip":
+                doc_type = "salary_slip"
+            else:
+                doc_type = "bank_statement"
+        finally:
+            if tmp_check_path.exists():
+                try:
+                    tmp_check_path.unlink()
+                except Exception:
+                    pass
+
+    fresh_file = UploadFile(
+        file=io.BytesIO(content),
+        filename=file_name,
+        headers=file.headers,
+    )
+
+    if doc_type == "salary_slip":
+        salary_slip_res = await upload_salary_slip(
+            file=fresh_file,
+            month=None,
+            year=None,
+            password=None,
+            current_user=current_user,
+            session=session,
+        )
+        return UnifiedUploadResponse(
+            document_type="salary_slip",
+            salary_slip=salary_slip_res,
+            message=f"Salary slip for {salary_slip_res.financial_year} (Month {salary_slip_res.month}) parsed successfully.",
+        )
+    else:
+        stmt_res = await upload_bank_statement(
+            file=fresh_file,
+            account_id=account_id,
+            bank_format=bank_format,
+            confirm_overlap=confirm_overlap,
+            column_mapping=None,
+            password=None,
+            current_user=current_user,
+            session=session,
+        )
+        return UnifiedUploadResponse(
+            document_type="bank_statement",
+            statement=stmt_res,
+            message=f"Bank statement parsed successfully with {stmt_res.transactions_count} transactions.",
+        )
 
 
 @router.get("/status/{upload_id}", response_model=ParsingStatusResponse)

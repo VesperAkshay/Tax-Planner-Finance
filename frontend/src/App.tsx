@@ -242,6 +242,7 @@ export const App: React.FC = () => {
                   onUploadSuccess={() => {
                     loadFlags();
                   }}
+                  onNavigateTab={(tab) => setActiveTab(tab as any)}
                 />
               )}
 
