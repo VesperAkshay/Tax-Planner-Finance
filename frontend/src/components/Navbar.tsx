@@ -164,37 +164,70 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center Section: Desktop-Only 6 Streamlined Tabs (Visible on >= 1024px) */}
+        {/* Center Section: Desktop-Only 3-Stage Guided Flow Breadcrumb */}
         {currentUser && (
-          <nav
-            data-tour="nav-tabs"
-            className="hidden lg:flex items-center gap-1 sm:gap-1.5 flex-shrink min-w-0"
-          >
-            {navItems.map((item) => {
-              const isActive = activeTab === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => handleTabClick(item.key)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 text-xs font-black tracking-tight border-2 border-black transition-all flex-shrink-0 cursor-pointer ${
-                    isActive
-                      ? 'bg-[#FACC15] text-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
-                      : 'bg-[#FFFDF9] text-black hover:bg-[#FACC15]/20 hover:shadow-[1px_1px_0px_0px_#000]'
-                  }`}
-                  title={item.fullLabel}
-                >
-                  {item.icon}
-                  <span className="hidden xl:inline">{item.fullLabel}</span>
-                  <span className="xl:hidden">{item.shortLabel}</span>
-                  {item.badge !== undefined && (
-                    <span className="bg-red-500 text-white font-mono text-[9px] px-1 py-0.2 rounded-full border border-black animate-pulse">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+          <div data-tour="nav-tabs" className="hidden lg:flex items-center gap-1.5 font-mono text-xs">
+            <button
+              onClick={() => handleTabClick('upload')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 border-2 border-black transition-all cursor-pointer ${
+                activeTab === 'upload' || activeTab === 'reconciliation' || activeTab === 'snapshot'
+                  ? 'bg-[#18153B] text-white shadow-[2px_2px_0px_0px_#000] font-black'
+                  : 'bg-[#FFFDF9] text-gray-700 hover:bg-gray-100 font-bold'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  activeTab === 'upload' || activeTab === 'reconciliation' || activeTab === 'snapshot'
+                    ? 'bg-[#FACC15] animate-pulse'
+                    : 'bg-emerald-500'
+                }`}
+              />
+              <span>1. INFLOW &amp; AUDIT</span>
+              {flagCount > 0 && (
+                <span className="bg-rose-500 text-white font-mono text-[9px] px-1 py-0.2 rounded-full border border-black animate-pulse">
+                  {flagCount}
+                </span>
+              )}
+            </button>
+
+            <span className="text-gray-400 font-bold">➔</span>
+
+            <button
+              onClick={() => handleTabClick('catalog')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 border-2 border-black transition-all cursor-pointer ${
+                activeTab === 'catalog' || activeTab === 'career' || activeTab === 'chat'
+                  ? 'bg-[#18153B] text-white shadow-[2px_2px_0px_0px_#000] font-black'
+                  : 'bg-[#FFFDF9] text-gray-700 hover:bg-gray-100 font-bold'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  activeTab === 'catalog' || activeTab === 'career' || activeTab === 'chat'
+                    ? 'bg-[#FACC15] animate-pulse'
+                    : 'bg-gray-400'
+                }`}
+              />
+              <span>2. STRATEGY &amp; OPTIMIZE</span>
+            </button>
+
+            <span className="text-gray-400 font-bold">➔</span>
+
+            <button
+              onClick={() => handleTabClick('report')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 border-2 border-black transition-all cursor-pointer ${
+                activeTab === 'report'
+                  ? 'bg-[#18153B] text-white shadow-[2px_2px_0px_0px_#000] font-black'
+                  : 'bg-[#FFFDF9] text-gray-700 hover:bg-gray-100 font-bold'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  activeTab === 'report' ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'
+                }`}
+              />
+              <span>3. COMPLIANCE &amp; FILE</span>
+            </button>
+          </div>
         )}
 
         {/* Right Section: Authenticated Actions or Auth Buttons */}
@@ -324,44 +357,46 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. MOBILE 6-FEATURE GRID BAR (< 1024px)                                   */}
-      {/* ALL 6 FEATURES VISIBLE SIMULTANEOUSLY WITH ZERO HORIZONTAL SCROLLING       */}
+      {/* 2. MOBILE 3-STAGE GUIDED FLOW BAR (< 1024px)                              */}
+      {/* PERFECT 3-STAGE FIT WITH ZERO HORIZONTAL OVERFLOW                         */}
       {/* ========================================================================= */}
       {currentUser && (
         <nav
           data-tour="nav-tabs"
-          className="lg:hidden bg-[#FFFDF9] border-t-2 border-black p-1 sm:p-1.5 grid grid-cols-6 gap-0.5 sm:gap-1 w-full shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)]"
+          className="lg:hidden bg-[#FFFDF9] border-t-2 border-black p-1.5 grid grid-cols-3 gap-1.5 w-full shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)] font-mono text-[10px] sm:text-xs"
         >
-          {navItems.map((item) => {
-            const isActive = activeTab === item.key;
-            return (
-              <button
-                key={item.key}
-                onClick={() => handleTabClick(item.key)}
-                className={`flex flex-col items-center justify-center py-1 sm:py-1.5 px-0.5 text-center border-2 border-black transition-all cursor-pointer relative min-w-0 ${
-                  isActive
-                    ? 'bg-[#FACC15] text-black font-black shadow-[2px_2px_0px_0px_#000] -translate-y-0.5 z-10'
-                    : 'bg-[#FAF7F2] text-black font-bold hover:bg-[#FACC15]/20'
-                }`}
-                title={item.fullLabel}
-              >
-                {/* Step Icon with Step Number & Discrepancy Badge */}
-                <div className="relative flex items-center justify-center">
-                  {item.icon}
-                  {item.badge !== undefined && (
-                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white font-mono text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full border border-black animate-pulse">
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
+          <button
+            onClick={() => handleTabClick('upload')}
+            className={`py-1.5 px-1 text-center border-2 border-black font-black uppercase transition-all cursor-pointer truncate ${
+              activeTab === 'upload' || activeTab === 'reconciliation' || activeTab === 'snapshot'
+                ? 'bg-[#18153B] text-[#FACC15] shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
+                : 'bg-[#FAF7F2] text-black hover:bg-gray-100'
+            }`}
+          >
+            1. INFLOW {flagCount > 0 && <span className="text-rose-400">({flagCount})</span>}
+          </button>
 
-                {/* Step Number + Micro Label */}
-                <span className="text-[8px] xs:text-[9px] sm:text-[10px] tracking-tighter leading-tight mt-0.5 font-['Space_Grotesk'] font-black truncate w-full block">
-                  {item.stepNumber}. {item.microLabel}
-                </span>
-              </button>
-            );
-          })}
+          <button
+            onClick={() => handleTabClick('catalog')}
+            className={`py-1.5 px-1 text-center border-2 border-black font-black uppercase transition-all cursor-pointer truncate ${
+              activeTab === 'catalog' || activeTab === 'career' || activeTab === 'chat'
+                ? 'bg-[#18153B] text-[#FACC15] shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
+                : 'bg-[#FAF7F2] text-black hover:bg-gray-100'
+            }`}
+          >
+            2. OPTIMIZE
+          </button>
+
+          <button
+            onClick={() => handleTabClick('report')}
+            className={`py-1.5 px-1 text-center border-2 border-black font-black uppercase transition-all cursor-pointer truncate ${
+              activeTab === 'report'
+                ? 'bg-[#18153B] text-[#FACC15] shadow-[2px_2px_0px_0px_#000] -translate-y-0.5'
+                : 'bg-[#FAF7F2] text-black hover:bg-gray-100'
+            }`}
+          >
+            3. COMPLY &amp; FILE
+          </button>
         </nav>
       )}
 

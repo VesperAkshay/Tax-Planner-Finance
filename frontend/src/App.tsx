@@ -19,9 +19,12 @@ import { HouseholdSummaryModal } from './components/HouseholdSummaryModal';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AnimatedFeatureRibbon } from './components/AnimatedFeatureRibbon';
+import { TaxFlightDeck } from './components/TaxFlightDeck';
+import { FlowPipelineNav, type FlowStageId } from './components/FlowPipelineNav';
+import { FlowActionBar } from './components/FlowActionBar';
+import { FloatingAssistantDrawer } from './components/FloatingAssistantDrawer';
 import { api } from './api/client';
-import type { User, TaxpayerProfile, ProfileReadinessResponse } from './types';
-import { Users } from 'lucide-react';
+import type { User, TaxpayerProfile, ProfileReadinessResponse, TaxComparisonReport } from './types';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('upload');
@@ -33,6 +36,10 @@ export const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [flagCount, setFlagCount] = useState<number>(0);
   const [initializing, setInitializing] = useState(true);
+
+  // Live Tax Report & Ambient Assistant State
+  const [report, setReport] = useState<TaxComparisonReport | null>(null);
+  const [assistantDrawerOpen, setAssistantDrawerOpen] = useState(false);
 
   // Multi-Taxpayer Profiles & Command Hub State
   const [profiles, setProfiles] = useState<TaxpayerProfile[]>([]);
@@ -88,7 +95,7 @@ export const App: React.FC = () => {
     api.setActiveProfileId(profileId);
     const target = profiles.find((p) => p.id === profileId) || null;
     setActiveProfile(target);
-    await Promise.all([loadFlags(), loadReadiness()]);
+    await refreshFinancialState();
   };
 
   const handleSaveProfile = async (profileData: Partial<TaxpayerProfile>) => {
@@ -99,25 +106,15 @@ export const App: React.FC = () => {
       api.setActiveProfileId(newProfile.id);
     }
     await loadProfiles();
-    await loadReadiness();
-    await loadFlags();
+    await refreshFinancialState();
   };
 
-  const checkAuth = async () => {
-    setInitializing(true);
+  const loadReport = async () => {
     try {
-      const user = await api.getCurrentUser();
-      setCurrentUser(user);
-      if (user) {
-        await Promise.all([loadFlags(), loadProfiles(), loadReadiness()]);
-        if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
-          setTourModalOpen(true);
-        }
-      }
+      const data = await api.getTaxComparisonReport();
+      setReport(data);
     } catch {
-      setCurrentUser(null);
-    } finally {
-      setInitializing(false);
+      setReport(null);
     }
   };
 
@@ -130,6 +127,28 @@ export const App: React.FC = () => {
     }
   };
 
+  const refreshFinancialState = async () => {
+    await Promise.all([loadFlags(), loadReadiness(), loadReport()]);
+  };
+
+  const checkAuth = async () => {
+    setInitializing(true);
+    try {
+      const user = await api.getCurrentUser();
+      setCurrentUser(user);
+      if (user) {
+        await Promise.all([loadProfiles(), refreshFinancialState()]);
+        if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
+          setTourModalOpen(true);
+        }
+      }
+    } catch {
+      setCurrentUser(null);
+    } finally {
+      setInitializing(false);
+    }
+  };
+
   const handleLogout = () => {
     api.clearToken();
     api.setActiveProfileId(null);
@@ -137,6 +156,7 @@ export const App: React.FC = () => {
     setActiveProfile(null);
     setProfiles([]);
     setReadiness(null);
+    setReport(null);
     setActiveTab('upload');
   };
 
@@ -147,10 +167,41 @@ export const App: React.FC = () => {
 
   const handleAuthSuccess = async (user: User) => {
     setCurrentUser(user);
-    await Promise.all([loadFlags(), loadProfiles(), loadReadiness()]);
+    await Promise.all([loadProfiles(), refreshFinancialState()]);
     setActiveTab('upload');
     if (!localStorage.getItem('taxplanner_onboarding_tour_seen')) {
       setTourModalOpen(true);
+    }
+  };
+
+  const getStageForTab = (tab: string): FlowStageId => {
+    if (['upload', 'reconciliation', 'snapshot'].includes(tab)) return 1;
+    if (['catalog', 'career', 'chat'].includes(tab)) return 2;
+    return 3;
+  };
+
+  const currentStage = getStageForTab(activeTab);
+
+  const handleSelectStage = (stage: FlowStageId) => {
+    if (stage === 1) setActiveTab('upload');
+    else if (stage === 2) setActiveTab('catalog');
+    else setActiveTab('report');
+  };
+
+  const handleSelectSubView = (subView: string) => {
+    if (subView === 'household') {
+      setHouseholdModalOpen(true);
+      setActiveTab('report');
+    } else {
+      setActiveTab(subView as TabKey);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      await api.downloadTaxReportPdf();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Failed to download report PDF');
     }
   };
 
@@ -198,61 +249,48 @@ export const App: React.FC = () => {
         {!currentUser ? (
           <LandingView onOpenAuth={handleOpenAuth} />
         ) : (
-          /* If user IS logged in: Show real Dashboard with 6 Views */
+          /* If user IS logged in: Show unified Flow State Dashboard */
           <div className="space-y-6 sm:space-y-8">
-            {/* User Vault Header Strip */}
-            <div className="bg-[#FAF7F2] border-3 border-black p-3 sm:p-4 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 font-mono text-xs">
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-                <span className="font-bold">
-                  ACTIVE: <span className="text-[#3730A3] font-black">{activeProfile?.name || currentUser.full_name || currentUser.email}</span>
-                </span>
-                <span className="bg-[#3730A3] text-white border border-black px-1.5 py-0.5 font-bold uppercase text-[10px]">
-                  {activeProfile?.persona?.toUpperCase() || 'SALARIED'}
-                </span>
-                {(activeProfile?.pan || currentUser.pan) && (
-                  <span className="bg-gray-200 border border-black px-1.5 py-0.5 font-bold text-[10px] sm:text-xs">
-                    PAN: {activeProfile?.pan || currentUser.pan}
-                  </span>
-                )}
-                {readiness && (
-                  <span className="bg-emerald-100 text-emerald-950 border border-black px-1.5 py-0.5 font-black text-[10px]">
-                    READINESS: {readiness.overall_score}%
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
-                <button
-                  onClick={() => setHouseholdModalOpen(true)}
-                  className="bg-[#FACC15] hover:bg-yellow-400 text-black px-3 py-1.5 sm:py-1 border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
-                  title="Open Joint Family Tax Optimizer & Arbitrage"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>HOUSEHOLD TAX HUB</span>
-                </button>
-                <div className="text-gray-600 font-bold hidden md:block">
-                  SECURE VAULT
-                </div>
-              </div>
-            </div>
+            {/* 1. Ambient Tax Flight Deck (Persistent HUD) */}
+            <TaxFlightDeck
+              readiness={readiness}
+              report={report}
+              flagCount={flagCount}
+              activeProfile={activeProfile}
+              profiles={profiles}
+              onSelectProfile={handleSwitchProfile}
+              onNavigateToSubView={handleSelectSubView}
+              onOpenHousehold={() => setHouseholdModalOpen(true)}
+            />
 
-            {/* Dynamic View Switched by Tabs with ErrorBoundary protection */}
+            {/* 2. Three-Stage Progressive Flow Pipeline Navigation */}
+            <FlowPipelineNav
+              currentStage={currentStage}
+              activeSubView={activeTab}
+              onSelectStage={handleSelectStage}
+              onSelectSubView={handleSelectSubView}
+              flagCount={flagCount}
+              hasDocuments={(report?.gross_income ?? 0) > 0}
+              isFilingReady={readiness?.is_filing_ready ?? false}
+            />
+
+            {/* 3. Focused Stage Workspace (Protected by ErrorBoundary) */}
             <ErrorBoundary key={activeTab}>
               {activeTab === 'upload' && (
                 <UploadView
                   onUploadSuccess={() => {
-                    loadFlags();
+                    refreshFinancialState();
                   }}
-                  onNavigateTab={(tab) => setActiveTab(tab as any)}
+                  onNavigateTab={(tab) => handleSelectSubView(tab)}
                 />
               )}
 
-              {activeTab === 'snapshot' && <SnapshotView onNavigateToTab={setActiveTab} />}
+              {activeTab === 'snapshot' && <SnapshotView onNavigateToTab={(tab) => handleSelectSubView(tab)} />}
 
               {activeTab === 'reconciliation' && (
                 <ReconciliationView
                   onFlagUpdate={() => {
-                    loadFlags();
+                    refreshFinancialState();
                   }}
                 />
               )}
@@ -260,9 +298,9 @@ export const App: React.FC = () => {
               {activeTab === 'catalog' && (
                 <DeductionCatalogView
                   onCatalogUpdated={() => {
-                    loadFlags();
+                    refreshFinancialState();
                   }}
-                  onNavigateToReport={() => setActiveTab('report')}
+                  onNavigateToReport={() => handleSelectSubView('report')}
                 />
               )}
 
@@ -273,21 +311,35 @@ export const App: React.FC = () => {
               {activeTab === 'chat' && (
                 <AgentChatView
                   onDeductionsUpdated={() => {
-                    loadFlags();
+                    refreshFinancialState();
                   }}
-                  onNavigateToCatalog={() => setActiveTab('catalog')}
+                  onNavigateToCatalog={() => handleSelectSubView('catalog')}
                 />
               )}
 
               {activeTab === 'report' && (
                 <TaxReportView
-                  onNavigateToCatalog={() => setActiveTab('catalog')}
+                  onNavigateToCatalog={() => handleSelectSubView('catalog')}
                 />
               )}
             </ErrorBoundary>
 
-            {/* Smooth Hardware-Accelerated Feature & Guarantees Ribbon (Render Style) */}
+            {/* 4. Contextual Bottom Flow Action Bar */}
+            <FlowActionBar
+              activeSubView={activeTab}
+              onNavigateToSubView={handleSelectSubView}
+              onDownloadPdf={handleDownloadPdf}
+            />
+
+            {/* 5. Smooth Hardware-Accelerated Feature & Guarantees Ribbon */}
             <AnimatedFeatureRibbon />
+
+            {/* 6. Ambient Slide-Over Mr. Planner AI Co-Pilot Drawer */}
+            <FloatingAssistantDrawer
+              isOpen={assistantDrawerOpen}
+              onToggle={() => setAssistantDrawerOpen(!assistantDrawerOpen)}
+              onNavigateToView={handleSelectSubView}
+            />
           </div>
         )}
       </main>
